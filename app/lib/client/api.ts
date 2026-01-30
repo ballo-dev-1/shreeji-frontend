@@ -3,6 +3,23 @@ import clientAuth from './auth';
 
 const API_URL = process.env.NEXT_PUBLIC_ECOM_API_URL?.replace(/\/$/, '') || 'http://localhost:4000';
 
+// Determine if we should use proxy (when frontend is HTTPS and backend is HTTP)
+function shouldUseProxy(): boolean {
+  if (typeof window === 'undefined') return false; // Server-side, no proxy needed
+  const isHttps = window.location.protocol === 'https:';
+  const backendIsHttp = API_URL.startsWith('http://');
+  return isHttps && backendIsHttp;
+}
+
+function getApiUrl(path: string): string {
+  if (shouldUseProxy()) {
+    // Use Next.js API proxy route
+    return `/api/backend${path}`;
+  }
+  // Direct backend URL
+  return `${API_URL}${path}`;
+}
+
 class ClientApiClient {
   private baseURL: string;
 
@@ -19,7 +36,7 @@ class ClientApiClient {
   }
 
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const url = `${this.baseURL}${endpoint}`;
+    const url = getApiUrl(endpoint);
     const headers = {
       ...this.getAuthHeaders(),
       ...(options.headers as Record<string, string> || {}),
