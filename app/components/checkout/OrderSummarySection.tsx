@@ -12,6 +12,11 @@ import { getProductImages, getMainProductImage } from '@/app/lib/admin/image-map
 function processImageUrl(url: string): string {
   if (!url) return url
   
+  // Convert HTTP to HTTPS for mixed content security
+  if (url.startsWith('http://')) {
+    url = url.replace('http://', 'https://');
+  }
+  
   // If it's already an absolute URL, return as-is
   if (url.startsWith('http')) return url
   

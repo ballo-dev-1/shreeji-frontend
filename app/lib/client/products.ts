@@ -38,6 +38,11 @@ function transformProduct(nestProduct: any): any {
             return null;
           }
           
+          // Convert HTTP to HTTPS for mixed content security
+          if (url.startsWith('http://')) {
+            url = url.replace('http://', 'https://');
+          }
+          
           // If URL is relative and starts with /, it should work with Next.js
           // If it's from backend/Imghippo, it should already be absolute
           // Convert @/public paths if present

@@ -88,8 +88,13 @@ export default function WishlistPage() {
 
   const normalizeImageUrl = (url?: string) => {
     if (!url) return '/images/placeholder-product.png'
-    if (url.startsWith('http')) return url
-    return url.startsWith('/') ? url : `/${url}`
+    // Convert HTTP to HTTPS for mixed content security
+    let normalizedUrl = url;
+    if (normalizedUrl.startsWith('http://')) {
+      normalizedUrl = normalizedUrl.replace('http://', 'https://');
+    }
+    if (normalizedUrl.startsWith('http')) return normalizedUrl
+    return normalizedUrl.startsWith('/') ? normalizedUrl : `/${normalizedUrl}`
   }
 
   if (authLoading || loading) {

@@ -29,8 +29,12 @@ interface RecentlyViewedItem {
 
 const normalizeImageUrl = (url?: string) => {
   if (!url || typeof url !== 'string') return '/products/placeholder.png'
-  const trimmed = url.trim()
+  let trimmed = url.trim()
   if (!trimmed) return '/products/placeholder.png'
+  // Convert HTTP to HTTPS for mixed content security
+  if (trimmed.startsWith('http://')) {
+    trimmed = trimmed.replace('http://', 'https://');
+  }
   if (trimmed.startsWith('http')) return trimmed
   return trimmed.startsWith('/') ? trimmed : `/${trimmed}`
 }

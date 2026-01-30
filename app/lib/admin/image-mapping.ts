@@ -39,6 +39,16 @@ export function getAvailableProducts(): string[] {
   return Object.keys(imageMapping.mappings);
 }
 
+// Convert HTTP URLs to HTTPS for mixed content security
+function ensureHttps(url: string): string {
+  if (!url || typeof url !== 'string') return url;
+  // Convert http:// to https:// for external URLs
+  if (url.startsWith('http://')) {
+    return url.replace('http://', 'https://');
+  }
+  return url;
+}
+
 // Enhanced image processing that prioritizes uploaded images from backend
 export function processProductImages(product: any): Array<{ url: string; alt: string; isMain?: boolean }> {
   const productName = product.name;
@@ -59,7 +69,7 @@ export function processProductImages(product: any): Array<{ url: string; alt: st
 
         if (url && typeof url === 'string' && url.trim()) {
           return {
-            url: url.trim(),
+            url: ensureHttps(url.trim()),
             alt,
             isMain: index === 0 || img.isMain === true,
           };
@@ -75,7 +85,7 @@ export function processProductImages(product: any): Array<{ url: string; alt: st
 
   // PRIORITY 2: Single image field
   if (product.image && typeof product.image === 'string' && product.image.trim()) {
-    return [{ url: product.image.trim(), alt: productName, isMain: true }];
+    return [{ url: ensureHttps(product.image.trim()), alt: productName, isMain: true }];
   }
 
   // PRIORITY 3: Media field (e.g., Strapi)
@@ -87,7 +97,7 @@ export function processProductImages(product: any): Array<{ url: string; alt: st
           const url = media?.url || media?.attributes?.url || media;
           if (url && typeof url === 'string' && url.trim()) {
             return {
-              url: url.trim(),
+              url: ensureHttps(url.trim()),
               alt: media?.alt || productName,
               isMain: index === 0,
             };
@@ -96,9 +106,9 @@ export function processProductImages(product: any): Array<{ url: string; alt: st
         })
         .filter((img: any): img is { url: string; alt: string; isMain?: boolean } => img !== null);
     } else if (typeof product.media === 'object' && product.media.url) {
-      mediaImages = [{ url: product.media.url.trim(), alt: productName, isMain: true }];
+      mediaImages = [{ url: ensureHttps(product.media.url.trim()), alt: productName, isMain: true }];
     } else if (typeof product.media === 'string' && product.media.trim()) {
-      mediaImages = [{ url: product.media.trim(), alt: productName, isMain: true }];
+      mediaImages = [{ url: ensureHttps(product.media.trim()), alt: productName, isMain: true }];
     }
 
     if (mediaImages.length > 0) {
