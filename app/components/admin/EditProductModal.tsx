@@ -2571,19 +2571,23 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                       const showAddButton = displayImages.length < 10; // Show add button if less than 10 images
                       const totalItems = displayImages.length + (showAddButton ? 1 : 0);
                       
+                      // Ensure minimum columns so add button doesn't get too large when no images exist
+                      const minColumns = 4;
+                      const gridColumns = Math.max(minColumns, totalItems > 10 ? 10 : totalItems);
+                      
                       return (
                         <div className={`grid gap-2 h-[20%] ${
-                          totalItems === 1 ? 'grid-cols-1' :
-                          totalItems === 2 ? 'grid-cols-2' :
-                          totalItems === 3 ? 'grid-cols-3' :
-                          totalItems === 4 ? 'grid-cols-4' :
-                          totalItems === 5 ? 'grid-cols-5' :
-                          totalItems === 6 ? 'grid-cols-6' :
-                          totalItems === 7 ? 'grid-cols-7' :
-                          totalItems === 8 ? 'grid-cols-8' :
-                          totalItems === 9 ? 'grid-cols-9' :
+                          gridColumns === 1 ? 'grid-cols-1' :
+                          gridColumns === 2 ? 'grid-cols-2' :
+                          gridColumns === 3 ? 'grid-cols-3' :
+                          gridColumns === 4 ? 'grid-cols-4' :
+                          gridColumns === 5 ? 'grid-cols-5' :
+                          gridColumns === 6 ? 'grid-cols-6' :
+                          gridColumns === 7 ? 'grid-cols-7' :
+                          gridColumns === 8 ? 'grid-cols-8' :
+                          gridColumns === 9 ? 'grid-cols-9' :
                           'grid-cols-10'
-                        }`} style={{ gridTemplateColumns: `repeat(${totalItems}, 1fr)` }}>
+                        }`} style={{ gridTemplateColumns: `repeat(${gridColumns}, 1fr)` }}>
                           {displayImages.map((image, index) => (
                             <div
                               key={index}
