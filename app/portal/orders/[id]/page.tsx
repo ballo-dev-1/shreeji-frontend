@@ -18,7 +18,7 @@ function processImageUrl(url: string): string {
   if (!url) return url
   
   // Convert HTTP to HTTPS for mixed content security
-  // For image server that doesn't support HTTPS, proxy through Next.js
+  // For image server that doesn't support HTTPS, proxy through Next.js 
   if (url.startsWith('http://164.92.249.220:9000/')) {
     // Extract the path after the base URL
     const imagePath = url.replace('http://164.92.249.220:9000/', '');
