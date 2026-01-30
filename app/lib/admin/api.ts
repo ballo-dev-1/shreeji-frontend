@@ -638,7 +638,8 @@ class ApiClient {
     if (params?.paymentStatus) searchParams.append('paymentStatus', params.paymentStatus);
 
     const queryString = searchParams.toString();
-    const url = `${this.baseURL}/orders/admin/export/csv${queryString ? `?${queryString}` : ''}`;
+    const endpoint = `/orders/admin/export/csv${queryString ? `?${queryString}` : ''}`;
+    const url = getApiUrl(endpoint);
     
     const response = await fetch(url, {
       method: 'GET',
@@ -673,7 +674,8 @@ class ApiClient {
     if (params?.paymentStatus) searchParams.append('paymentStatus', params.paymentStatus);
 
     const queryString = searchParams.toString();
-    const url = `${this.baseURL}/orders/admin/export/pdf${queryString ? `?${queryString}` : ''}`;
+    const endpoint = `/orders/admin/export/pdf${queryString ? `?${queryString}` : ''}`;
+    const url = getApiUrl(endpoint);
     
     const response = await fetch(url, {
       method: 'GET',
@@ -709,7 +711,8 @@ class ApiClient {
     if (params?.paymentMethod) searchParams.append('paymentMethod', params.paymentMethod);
 
     const queryString = searchParams.toString();
-    const url = `${this.baseURL}/admin/payments/export/csv${queryString ? `?${queryString}` : ''}`;
+    const endpoint = `/admin/payments/export/csv${queryString ? `?${queryString}` : ''}`;
+    const url = getApiUrl(endpoint);
     
     const response = await fetch(url, {
       method: 'GET',
@@ -744,7 +747,8 @@ class ApiClient {
     if (params?.paymentMethod) searchParams.append('paymentMethod', params.paymentMethod);
 
     const queryString = searchParams.toString();
-    const url = `${this.baseURL}/admin/payments/export/pdf${queryString ? `?${queryString}` : ''}`;
+    const endpoint = `/admin/payments/export/pdf${queryString ? `?${queryString}` : ''}`;
+    const url = getApiUrl(endpoint);
     
     const response = await fetch(url, {
       method: 'GET',
@@ -903,7 +907,7 @@ class ApiClient {
 
   async updateSettings(category: string, settings: Record<string, any>) {
     const endpoint = `/admin/settings/${category}`;
-    const url = `${this.baseURL}${endpoint}`;
+    const url = getApiUrl(endpoint);
     
     console.log(`📤 [API] PUT ${url}`);
     console.log(`📤 [API] Request body:`, JSON.stringify(settings, null, 2));

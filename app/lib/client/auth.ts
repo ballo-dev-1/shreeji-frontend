@@ -1,6 +1,23 @@
 // Client Authentication utilities - NestJS Backend
 const API_URL = process.env.NEXT_PUBLIC_ECOM_API_URL?.replace(/\/$/, '') || 'http://localhost:4000';
 
+// Determine if we should use proxy (when frontend is HTTPS and backend is HTTP)
+function shouldUseProxy(): boolean {
+  if (typeof window === 'undefined') return false; // Server-side, no proxy needed
+  const isHttps = window.location.protocol === 'https:';
+  const backendIsHttp = API_URL.startsWith('http://');
+  return isHttps && backendIsHttp;
+}
+
+function getApiUrl(path: string): string {
+  if (shouldUseProxy()) {
+    // Use Next.js API proxy route
+    return `/api/backend${path}`;
+  }
+  // Direct backend URL
+  return `${API_URL}${path}`;
+}
+
 export interface ClientUser {
   id: number;
   email: string;
@@ -42,7 +59,8 @@ class ClientAuth {
   // Login with email and password using NestJS backend
   async login(credentials: ClientLoginCredentials): Promise<ClientAuthResponse> {
     try {
-      const response = await fetch(`${this.baseURL}/auth/login`, {
+      const url = getApiUrl('/auth/login');
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,7 +94,8 @@ class ClientAuth {
   // Register new user with NestJS backend
   async register(credentials: ClientRegisterCredentials): Promise<ClientAuthResponse> {
     try {
-      const response = await fetch(`${this.baseURL}/auth/register`, {
+      const url = getApiUrl('/auth/register');
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -113,7 +132,8 @@ class ClientAuth {
       const jwt = this.getStoredToken();
       if (!jwt) return null;
 
-      const response = await fetch(`${this.baseURL}/auth/me`, {
+      const url = getApiUrl('/auth/me');
+      const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${jwt}`,
         },
@@ -139,7 +159,8 @@ class ClientAuth {
       const jwt = this.getStoredToken();
       if (!jwt) return false;
 
-      const response = await fetch(`${this.baseURL}/auth/me`, {
+      const url = getApiUrl('/auth/me');
+      const response = await fetch(url, {
         headers: {
           Authorization: `Bearer ${jwt}`,
         },

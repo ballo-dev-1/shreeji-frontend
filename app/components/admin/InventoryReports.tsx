@@ -121,11 +121,18 @@ export default function InventoryReports() {
           return;
       }
 
-      // Use fetch directly to get blob response
+      // Use fetch with proxy support to get blob response
       const API_URL = process.env.NEXT_PUBLIC_ECOM_API_URL?.replace(/\/$/, '') || 'http://localhost:4000';
       const token = typeof window !== 'undefined' ? localStorage.getItem('admin_jwt') : null;
       
-      const response = await fetch(`${API_URL}${endpoint}`, {
+      // Determine if we should use proxy (when frontend is HTTPS and backend is HTTP)
+      const shouldUseProxy = typeof window !== 'undefined' && 
+        window.location.protocol === 'https:' && 
+        API_URL.startsWith('http://');
+      
+      const url = shouldUseProxy ? `/api/backend${endpoint}` : `${API_URL}${endpoint}`;
+      
+      const response = await fetch(url, {
         headers: {
           'Authorization': token ? `Bearer ${token}` : '',
         },
