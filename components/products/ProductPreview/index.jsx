@@ -5,7 +5,7 @@ import Image from "next/image";
 const ProductPreview = ({product, index, additionalClass}) => {
   if (!product || !product.images || product.images.length === 0) {
     return null;
-  }
+  } 
 
   return (    
     <Link 
