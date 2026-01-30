@@ -67,9 +67,10 @@ interface Product {
 interface EditProductModalProps {
   isOpen: boolean;
   onClose: () => void;
-  product: Product | null;
-  onSave: (updatedProduct: Product) => void;
-  onDelete: (id: number) => Promise<void>;
+  product?: Product | null;
+  onSave?: (updatedProduct: Product) => void;
+  onDelete?: (id: number) => Promise<void>;
+  onSuccess?: () => void;
 }
 
 interface Category {
@@ -671,7 +672,10 @@ function AttributeInput({
   );
 }
 
-export default function EditProductModal({ isOpen, onClose, product, onSave, onDelete }: EditProductModalProps) {
+export default function EditProductModal({ isOpen, onClose, product, onSave, onDelete, onSuccess }: EditProductModalProps) {
+  // Determine if we're in edit mode (product provided) or create mode (no product)
+  const isEditMode = !!product;
+  
   const [formData, setFormData] = useState<Product>({
     id: 0,
     name: '',
@@ -782,7 +786,9 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
     value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
   useEffect(() => {
-    if (product && isOpen) {
+    if (isOpen) {
+      if (product) {
+        // Edit mode: populate form with product data
       console.log('EditProductModal - Product received:', product);
       console.log('EditProductModal - basePrice:', (product as any).basePrice);
       console.log('EditProductModal - costPrice:', (product as any).costPrice);
@@ -893,13 +899,54 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
         schemaMarkup: (product as any).schemaMarkup || undefined,
       };
 
-      setFormData(initialFormData);
-      // Store original product data for comparison
-      originalProductRef.current = JSON.parse(JSON.stringify(initialFormData));
-      setErrors({});
-      // Find the main image index or default to 0
-      const mainIndex = processedImages.findIndex(img => img.isMain) ?? 0;
-      setMainImageIndex(mainIndex >= 0 ? mainIndex : 0);
+        setFormData(initialFormData);
+        // Store original product data for comparison
+        originalProductRef.current = JSON.parse(JSON.stringify(initialFormData));
+        setErrors({});
+        // Find the main image index or default to 0
+        const mainIndex = processedImages.findIndex(img => img.isMain) ?? 0;
+        setMainImageIndex(mainIndex >= 0 ? mainIndex : 0);
+      } else {
+        // Create mode: reset form to default empty values
+        const defaultFormData: Product = {
+          id: 0,
+          name: '',
+          slug: '',
+          category: '',
+          subcategory: '',
+          brand: '',
+          price: '',
+          discountedPrice: '0',
+          tagline: '',
+          description: '',
+          specs: {},
+          images: [],
+          isActive: true,
+          SKU: '',
+          stockQuantity: 0,
+          minStockLevel: 5,
+          maxStockLevel: 100,
+          stockStatus: 'in-stock',
+          basePrice: 0,
+          taxRate: 16, // Default VAT 16%
+          discountPercent: 0,
+          weight: 0,
+          Dimensions: { length: 0, width: 0, height: 0, unit: 'cm' },
+          color: '',
+          condition: '',
+          warrantyPeriod: '',
+          attributes: {},
+          metaTitle: '',
+          metaDescription: '',
+          metaKeywords: '',
+          ogImage: '',
+          schemaMarkup: undefined
+        };
+        setFormData(defaultFormData);
+        originalProductRef.current = null;
+        setErrors({});
+        setMainImageIndex(0);
+      }
     }
   }, [product, isOpen]);
 
@@ -2259,8 +2306,12 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
   };
 
   const handleDeleteProduct = async () => {
-    if (!product?.id) {
+    if (!isEditMode || !product?.id) {
       showToast('error', 'Product ID is missing. Cannot delete.');
+      return;
+    }
+    if (!onDelete) {
+      showToast('error', 'Delete handler is not available.');
       return;
     }
     if (!confirm('Are you sure you want to delete this product?')) return;
@@ -2296,11 +2347,6 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
     setErrors({}); // Clear previous errors
     
     try {
-      // Ensure documentId is preserved from the original product
-      if (!formData.documentId && product?.documentId) {
-        console.warn('documentId missing from formData, using product.documentId');
-      }
-
       // Calculate prices
       const basePrice = formData.basePrice || 0;
       const vatPercent = formData.taxRate || 16;
@@ -2308,48 +2354,133 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
       const discountPercent = formData.discountPercent || 0;
       const discountPrice = discountPercent > 0 ? sellingPrice * (1 - discountPercent / 100) : 0;
 
-      // Update slug based on name
-      const updatedProduct = {
-        ...formData,
-        documentId: formData.documentId || product?.documentId,
-        slug: formData.name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, ''),
-        price: sellingPrice.toString(), // Selling price = Base Price + VAT
-        discountedPrice: discountPrice > 0 ? discountPrice.toString() : '0',
-        basePrice: basePrice, // Base price (formerly cost price)
-        taxRate: vatPercent,
-        discountPercent: discountPercent,
-        // Include SEO fields
-        metaTitle: formData.metaTitle,
-        metaDescription: formData.metaDescription,
-        metaKeywords: formData.metaKeywords,
-        ogImage: formData.ogImage,
-        schemaMarkup: formData.schemaMarkup,
-      };
+      // Generate slug from name
+      const slug = formData.name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
 
-      console.log('Saving product:', updatedProduct);
-      console.log('Product documentId:', updatedProduct.documentId);
-      console.log('Product id:', product?.id);
-      
-      // Use documentId if available, otherwise use id
-      const productId = updatedProduct.documentId || product?.id;
-      if (!productId) {
-        throw new Error('Product ID is missing. Cannot save product.');
+      if (isEditMode) {
+        // Edit mode: update existing product
+        // Ensure documentId is preserved from the original product
+        if (!formData.documentId && product?.documentId) {
+          console.warn('documentId missing from formData, using product.documentId');
+        }
+
+        const updatedProduct = {
+          ...formData,
+          documentId: formData.documentId || product?.documentId,
+          slug: slug,
+          price: sellingPrice.toString(), // Selling price = Base Price + VAT
+          discountedPrice: discountPrice > 0 ? discountPrice.toString() : '0',
+          basePrice: basePrice, // Base price (formerly cost price)
+          taxRate: vatPercent,
+          discountPercent: discountPercent,
+          // Include SEO fields
+          metaTitle: formData.metaTitle,
+          metaDescription: formData.metaDescription,
+          metaKeywords: formData.metaKeywords,
+          ogImage: formData.ogImage,
+          schemaMarkup: formData.schemaMarkup,
+        };
+
+        console.log('Saving product:', updatedProduct);
+        console.log('Product documentId:', updatedProduct.documentId);
+        console.log('Product id:', product?.id);
+        
+        // Use documentId if available, otherwise use id
+        const productId = updatedProduct.documentId || product?.id;
+        if (!productId) {
+          throw new Error('Product ID is missing. Cannot save product.');
+        }
+
+        // Ensure documentId is set for the API call
+        if (!updatedProduct.documentId && product?.id) {
+          updatedProduct.documentId = product.id.toString();
+        }
+
+        if (!onSave) {
+          throw new Error('Save handler is not available.');
+        }
+
+        await onSave(updatedProduct);
+        showToast('success', 'Product saved successfully!');
+        originalProductRef.current = null;
+        onClose();
+      } else {
+        // Create mode: create new product
+        // Upload images first if there are any file uploads needed
+        // (For now, we'll assume images are already URLs or handled separately)
+        
+        const productData = {
+          ...formData,
+          slug: slug,
+          price: sellingPrice.toString(),
+          discountedPrice: discountPrice > 0 ? discountPrice.toString() : '0',
+          basePrice: basePrice,
+          taxRate: vatPercent,
+          discountPercent: discountPercent,
+          // Include SEO fields
+          metaTitle: formData.metaTitle,
+          metaDescription: formData.metaDescription,
+          metaKeywords: formData.metaKeywords,
+          ogImage: formData.ogImage,
+          schemaMarkup: formData.schemaMarkup,
+        };
+
+        console.log('Creating product with data:', productData);
+        
+        await api.createProduct(productData);
+        showToast('success', 'Product created successfully!');
+        originalProductRef.current = null;
+        
+        // Reset form to default values
+        const defaultFormData: Product = {
+          id: 0,
+          name: '',
+          slug: '',
+          category: '',
+          subcategory: '',
+          brand: '',
+          price: '',
+          discountedPrice: '0',
+          tagline: '',
+          description: '',
+          specs: {},
+          images: [],
+          isActive: true,
+          SKU: '',
+          stockQuantity: 0,
+          minStockLevel: 5,
+          maxStockLevel: 100,
+          stockStatus: 'in-stock',
+          basePrice: 0,
+          taxRate: 16,
+          discountPercent: 0,
+          weight: 0,
+          Dimensions: { length: 0, width: 0, height: 0, unit: 'cm' },
+          color: '',
+          condition: '',
+          warrantyPeriod: '',
+          attributes: {},
+          metaTitle: '',
+          metaDescription: '',
+          metaKeywords: '',
+          ogImage: '',
+          schemaMarkup: undefined
+        };
+        setFormData(defaultFormData);
+        setMainImageIndex(0);
+        setErrors({});
+        
+        // Call onSuccess callback if provided
+        if (onSuccess) {
+          onSuccess();
+        }
+        onClose();
       }
-
-      // Ensure documentId is set for the API call
-      if (!updatedProduct.documentId && product?.id) {
-        updatedProduct.documentId = product.id.toString();
-      }
-
-      await onSave(updatedProduct);
-      showToast('success', 'Product saved successfully!');
-      originalProductRef.current = null;
-      onClose();
     } catch (error: any) {
       console.error('Error saving product:', error);
       
       // Show more detailed error message
-      let errorMessage = 'Failed to save product. Please try again.';
+      let errorMessage = isEditMode ? 'Failed to save product. Please try again.' : 'Failed to create product. Please try again.';
       
       if (error.message) {
         errorMessage = error.message;
@@ -2379,7 +2510,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
     }));
   }, []); // Empty dependency array since setFormData is stable
 
-  if (!isOpen || !product) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-[0.93]" onClick={handleClose}>
@@ -2502,7 +2633,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
         <div className="md:overflow-auto flex-1 p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
             <h2 className="text-3xl font-semibold text-center mb-6">
-              Edit Product
+              {isEditMode ? 'Edit Product' : 'Add New Product'}
             </h2>
             
             {/* Active Status Toggle - At the top */}
@@ -3361,21 +3492,23 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
               </div>
             )}
 
-            {/* Danger zone */}
-            <div className="mt-8 rounded-2xl border border-red-100 bg-red-50/60 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="text-sm font-semibold text-red-800">Danger zone</div>
-                <button
-                  type="button"
-                  onClick={handleDeleteProduct}
-                  disabled={loading || deleting}
-                  className="inline-flex items-center rounded-xl border border-red-200 bg-white px-5 py-3 text-sm font-semibold text-red-700 shadow-sm hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  <TrashIcon className="mr-2 h-4 w-4" />
-                  {deleting ? 'Deleting...' : 'Delete Product'}
-                </button>
+            {/* Danger zone - Only show in edit mode */}
+            {isEditMode && onDelete && (
+              <div className="mt-8 rounded-2xl border border-red-100 bg-red-50/60 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="text-sm font-semibold text-red-800">Danger zone</div>
+                  <button
+                    type="button"
+                    onClick={handleDeleteProduct}
+                    disabled={loading || deleting}
+                    className="inline-flex items-center rounded-xl border border-red-200 bg-white px-5 py-3 text-sm font-semibold text-red-700 shadow-sm hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <TrashIcon className="mr-2 h-4 w-4" />
+                    {deleting ? 'Deleting...' : 'Delete Product'}
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="sticky bottom-0 z-20 mt-6 flex justify-end">
               <div className="flex flex-wrap items-center justify-end gap-3 rounded-2xl p-3">

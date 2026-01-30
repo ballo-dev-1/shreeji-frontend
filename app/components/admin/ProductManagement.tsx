@@ -14,7 +14,6 @@ import {
 import api from '@/app/lib/admin/api'
 import { processProductImages } from '@/app/lib/admin/image-mapping'
 import EditProductModal from './EditProductModal'
-import AddProductModal from './AddProductModal'
 import toast from 'react-hot-toast'
 import { ProductGridSkeleton, TableSkeleton } from '@/app/components/ui/Skeletons'
 import { currencyFormatter } from '@/app/components/checkout/currency-formatter'
@@ -748,9 +747,10 @@ export default function ProductManagement() {
       </div>
 
       {/* Add Product Modal */}
-      <AddProductModal
+      <EditProductModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
+        product={null}
         onSuccess={() => {
           setShowAddModal(false)
           // Reset filters to ensure new product is visible
