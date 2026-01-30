@@ -89,8 +89,14 @@ export default function WishlistPage() {
   const normalizeImageUrl = (url?: string) => {
     if (!url) return '/images/placeholder-product.png'
     // Convert HTTP to HTTPS for mixed content security
+    // For image server that doesn't support HTTPS, proxy through Next.js
     let normalizedUrl = url;
-    if (normalizedUrl.startsWith('http://')) {
+    if (normalizedUrl.startsWith('http://164.92.249.220:9000/')) {
+      // Extract the path after the base URL
+      const imagePath = normalizedUrl.replace('http://164.92.249.220:9000/', '');
+      normalizedUrl = `/api/images/${imagePath}`;
+    } else if (normalizedUrl.startsWith('http://')) {
+      // For other HTTP URLs, try to convert to HTTPS
       normalizedUrl = normalizedUrl.replace('http://', 'https://');
     }
     if (normalizedUrl.startsWith('http')) return normalizedUrl

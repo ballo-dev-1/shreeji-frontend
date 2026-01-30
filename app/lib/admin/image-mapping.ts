@@ -40,12 +40,28 @@ export function getAvailableProducts(): string[] {
 }
 
 // Convert HTTP URLs to HTTPS for mixed content security
+// For servers that don't support HTTPS, proxy through Next.js
 function ensureHttps(url: string): string {
   if (!url || typeof url !== 'string') return url;
-  // Convert http:// to https:// for external URLs
+  
+  // If it's already HTTPS, return as-is
+  if (url.startsWith('https://')) {
+    return url;
+  }
+  
+  // If it's HTTP and from the image server, proxy through Next.js
+  if (url.startsWith('http://164.92.249.220:9000/')) {
+    // Extract the path after the base URL
+    const imagePath = url.replace('http://164.92.249.220:9000/', '');
+    // Return the proxied URL
+    return `/api/images/${imagePath}`;
+  }
+  
+  // For other HTTP URLs, try to convert to HTTPS
   if (url.startsWith('http://')) {
     return url.replace('http://', 'https://');
   }
+  
   return url;
 }
 

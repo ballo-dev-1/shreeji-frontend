@@ -32,7 +32,13 @@ const normalizeImageUrl = (url?: string) => {
   let trimmed = url.trim()
   if (!trimmed) return '/products/placeholder.png'
   // Convert HTTP to HTTPS for mixed content security
-  if (trimmed.startsWith('http://')) {
+  // For image server that doesn't support HTTPS, proxy through Next.js
+  if (trimmed.startsWith('http://164.92.249.220:9000/')) {
+    // Extract the path after the base URL
+    const imagePath = trimmed.replace('http://164.92.249.220:9000/', '');
+    trimmed = `/api/images/${imagePath}`;
+  } else if (trimmed.startsWith('http://')) {
+    // For other HTTP URLs, try to convert to HTTPS
     trimmed = trimmed.replace('http://', 'https://');
   }
   if (trimmed.startsWith('http')) return trimmed
