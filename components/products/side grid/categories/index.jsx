@@ -5,13 +5,16 @@ import React, { useEffect, useState } from "react";
 import { getAllProductsList } from "@/app/lib/client/products";
 import Link from "next/link";
 import SearchInput from "../SearchInput";
+import { CategoryListSkeleton, SearchInputSkeleton } from '@/app/components/ui/Skeletons';
 
 const Categories = () => {
   const [categories, setCategories] = useState([]); // Use an array instead of an object
   const [openCategory, setOpenCategory] = useState(null); // Add state for toggling
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCategories = async () => {
+      setLoading(true);
       try {
         const allProducts = await getAllProductsList();
         
@@ -36,11 +39,22 @@ const Categories = () => {
       } catch (error) {
         console.error('Error fetching categories:', error);
         setCategories([]);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchCategories();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-[var(--shreeji-primary)] flex flex-col px-5 py-7 h-full">
+        <SearchInputSkeleton />
+        <CategoryListSkeleton count={8} />
+      </div>
+    );
+  }
 
   return (
     <div className={`bg-[var(--shreeji-primary)] flex flex-col px-5 py-7 ${openCategory ? 'h-auto' : 'h-full'}`}>

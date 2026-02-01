@@ -161,12 +161,69 @@ export function StatsSkeleton() {
 }
 
 // Product List Item Skeleton (for category pages)
-export function ProductListItemSkeleton() {
+// Matches ProductPreview component structure with proper dimensions and shimmer effect
+export function ProductListItemSkeleton({ additionalClass = '' }: { additionalClass?: string }) {
   return (
-    <div className="bg-white rounded-lg p-4 animate-pulse">
-      <div className="aspect-square bg-gray-200 rounded mb-4"></div>
-      <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
-      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+    <div className={`products-page-product md:mr-2 px-5 flex flex-col gap-2 items-center py-4 cursor-pointer relative ${additionalClass}`}>
+      {/* Background element matching ::before pseudo-element from ProductPreview SCSS */}
+      <div 
+        className="absolute bottom-[10%] left-0 bg-[#605432] w-full h-[55%] rounded-lg -z-10 skeleton-shimmer"
+        style={{ borderRadius: '8px' }}
+      />
+      
+      {/* Image wrapper div - matches ProductPreview structure */}
+      <div className="">
+        {/* Image skeleton - matches products-page-product__image dimensions (15rem height) */}
+        <div 
+          className="products-page-product__image w-auto h-[15rem] max-h-[15rem] min-h-[15rem] mx-auto mt-[-5px] mb-0 relative z-[1] bg-white/20 rounded-lg skeleton-shimmer"
+        />
+      </div>
+      
+      {/* Title and tagline container - matches flex-center gap-4 pb-14 from ProductPreview */}
+      <div className="flex-center gap-4 pb-14 relative z-[1]">
+        {/* Title skeleton - matches text-2xl font-semibold line-clamp-2 */}
+        <div className="h-7 bg-white/30 rounded w-3/4 max-w-[20rem] skeleton-shimmer" />
+        {/* Tagline skeleton - matches text-center text-base */}
+        <div className="h-5 bg-white/20 rounded w-1/2 max-w-[15rem] skeleton-shimmer" />
+      </div>
+    </div>
+  )
+}
+
+// Category List Item Skeleton (for sidebar categories)
+export function CategoryListItemSkeleton() {
+  return (
+    <li className="mr-2 px-5 flex flex-col gap-2 items-start border-b py-4 last:border-none">
+      <div className="flex gap-5 items-center w-full">
+        {/* CircleDot icon skeleton */}
+        <div className="w-8 h-8 bg-white/20 rounded-full skeleton-shimmer" />
+        {/* Category name skeleton */}
+        <div className="h-5 bg-white/30 rounded w-32 skeleton-shimmer flex-1" />
+        {/* ChevronDown icon skeleton */}
+        <div className="w-5 h-5 bg-white/20 rounded skeleton-shimmer" />
+      </div>
+    </li>
+  )
+}
+
+// Category List Skeleton (for sidebar)
+export function CategoryListSkeleton({ count = 6 }: { count?: number }) {
+  return (
+    <ul className="min-h-[70vh]">
+      {Array.from({ length: count }).map((_, i) => (
+        <CategoryListItemSkeleton key={i} />
+      ))}
+    </ul>
+  )
+}
+
+// Search Input Skeleton (for sidebar search)
+export function SearchInputSkeleton() {
+  return (
+    <div className="w-full mb-5">
+      <div className="relative">
+        <div className="w-full h-12 bg-white/20 rounded-2xl skeleton-shimmer" />
+      </div>
     </div>
   )
 }
