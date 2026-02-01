@@ -279,6 +279,8 @@ export default function CheckoutPage() {
         }
       }
       setCurrentStep(2)
+      // Scroll to top when proceeding to next step
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } else if (currentStep === 2) {
       // Step 2: Fulfillment & Address - validate if delivery
       if (fulfillmentType === 'delivery') {
@@ -294,6 +296,8 @@ export default function CheckoutPage() {
         }
       }
       setCurrentStep(3)
+      // Scroll to top when proceeding to next step
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } else if (currentStep === 3) {
       // Step 3: Payment - process checkout
       handlePayment()
@@ -304,6 +308,8 @@ export default function CheckoutPage() {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
       setFormError(null)
+      // Scroll to top when going back to previous step
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
@@ -524,23 +530,45 @@ export default function CheckoutPage() {
   }
 
   const canProceedToNext = (): boolean => {
+    // #region agent log
+    fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:526',message:'canProceedToNext called',data:{currentStep,fulfillmentType,selectedAddressId,isAuthenticated,hasGuestAddress:!!guestShippingAddress,guestAddressComplete:!!(guestShippingAddress?.addressLine1&&guestShippingAddress?.city&&guestShippingAddress?.postalCode&&guestShippingAddress?.country),paymentMethod,hasCardDetails:!!paymentDetails.cardDetails,hasMobileMoneyDetails:!!paymentDetails.mobileMoneyDetails,hasPickupDetails:!!paymentDetails.pickupDetails},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
+    // #endregion
     switch (currentStep) {
       case 1:
+        // #region agent log
+        fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:529',message:'Step 1: returning true',data:{result:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
+        // #endregion
         return true // Review always valid
       case 2:
-        return fulfillmentType === 'pickup' || selectedAddressId !== null
+        // #region agent log
+        const step2Result = fulfillmentType === 'pickup' || selectedAddressId !== null;
+        fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:531',message:'Step 2: checking address',data:{fulfillmentType,isPickup:fulfillmentType==='pickup',selectedAddressId,hasSelectedAddress:selectedAddressId!==null,isAuthenticated,hasGuestAddress:!!guestShippingAddress,guestAddressData:guestShippingAddress?{hasAddressLine1:!!guestShippingAddress.addressLine1,hasCity:!!guestShippingAddress.city,hasPostalCode:!!guestShippingAddress.postalCode,hasCountry:!!guestShippingAddress.country}:null,result:step2Result},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
+        // #endregion
+        return step2Result
       case 3:
         if (paymentMethod === 'cop') {
-          // For cash on pickup, require pickup details
-          return !!(
+          // #region agent log
+          const copResult = !!(
             paymentDetails.pickupDetails?.preferredPickupDate && 
             paymentDetails.pickupDetails?.preferredPickupTime &&
             paymentDetails.pickupDetails?.idType &&
             paymentDetails.pickupDetails?.idNumber
-          )
+          );
+          fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:533',message:'Step 3: checking COP details',data:{paymentMethod,hasPickupDate:!!paymentDetails.pickupDetails?.preferredPickupDate,hasPickupTime:!!paymentDetails.pickupDetails?.preferredPickupTime,hasIdType:!!paymentDetails.pickupDetails?.idType,hasIdNumber:!!paymentDetails.pickupDetails?.idNumber,result:copResult},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H2'})}).catch(()=>{});
+          // #endregion
+          return copResult
         }
-        return paymentMethod !== ''
+        // #region agent log
+        const step3OtherResult = paymentMethod !== '';
+        const cardValid = paymentMethod === 'card' ? !!(paymentDetails.cardDetails?.cardId || (paymentDetails.cardDetails?.number && paymentDetails.cardDetails?.expiryMonth && paymentDetails.cardDetails?.expiryYear && paymentDetails.cardDetails?.cvv && paymentDetails.cardDetails?.cardholderName)) : true;
+        const mobileMoneyValid = paymentMethod === 'mobile_money' ? !!(paymentDetails.mobileMoneyDetails?.provider && paymentDetails.mobileMoneyDetails?.phoneNumber) : true;
+        fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:542',message:'Step 3: checking other payment methods',data:{paymentMethod,hasPaymentMethod:paymentMethod!=='',isCard:paymentMethod==='card',isMobileMoney:paymentMethod==='mobile_money',cardValid,mobileMoneyValid,hasCardDetails:!!paymentDetails.cardDetails,hasMobileMoneyDetails:!!paymentDetails.mobileMoneyDetails,cardDetails:paymentDetails.cardDetails?{hasCardId:!!paymentDetails.cardDetails.cardId,hasNumber:!!paymentDetails.cardDetails.number,hasExpiryMonth:!!paymentDetails.cardDetails.expiryMonth,hasExpiryYear:!!paymentDetails.cardDetails.expiryYear,hasCvv:!!paymentDetails.cardDetails.cvv,hasCardholderName:!!paymentDetails.cardDetails.cardholderName}:null,mobileMoneyDetails:paymentDetails.mobileMoneyDetails?{hasProvider:!!paymentDetails.mobileMoneyDetails.provider,hasPhoneNumber:!!paymentDetails.mobileMoneyDetails.phoneNumber}:null,currentResult:step3OtherResult,shouldBeValid:cardValid&&mobileMoneyValid},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H2'})}).catch(()=>{});
+        // #endregion
+        return step3OtherResult
       default:
+        // #region agent log
+        fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:544',message:'Default case: returning false',data:{currentStep,result:false},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
+        // #endregion
         return false
     }
   }
@@ -773,6 +801,8 @@ export default function CheckoutPage() {
           setShowGuestCustomerModal(false)
           // Automatically proceed to next step after successful submission
           setCurrentStep(2)
+          // Scroll to top when proceeding to next step
+          window.scrollTo({ top: 0, behavior: 'smooth' })
         }}
         initialData={guestCustomerData}
       />

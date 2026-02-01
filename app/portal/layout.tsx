@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { ClientAuthProvider } from '@/app/contexts/ClientAuthContext'
 import { CartProvider } from '@/app/contexts/CartContext'
 import PortalLayoutContent from '@/app/components/portal/PortalLayoutContent'
-import '../globals.css'
 
 export const metadata: Metadata = {
   title: 'Client Portal - Shreeji',

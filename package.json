@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev -p 3001",
     "dev:backend": "cd ../shreeji-ecommerce-backend && npm run start:dev",
     "dev:all": "concurrently -n \"backend,website\" -c \"red,blue\" \"npm run dev:backend\" \"npm run dev\"",
     "build": "next build",
