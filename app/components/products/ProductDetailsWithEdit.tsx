@@ -6,10 +6,10 @@ import { PencilIcon } from '@heroicons/react/24/outline';
 import EditProductModal from '@/app/components/admin/EditProductModal';
 import ProductDetails from '@/components/products/product details';
 import api from '@/app/lib/admin/api';
-import adminAuth from '@/app/lib/admin/auth';
 import { clearProductsCache } from '@/app/lib/client/products';
 import clientApi from '@/app/lib/client/api';
 import { useClientAuth } from '@/app/contexts/ClientAuthContext';
+import { useAuth } from '@/app/contexts/AuthContext';
 import { processProductImages } from '@/app/lib/admin/image-mapping';
 import toast from 'react-hot-toast';
 
@@ -26,41 +26,11 @@ export default function ProductDetailsWithEdit({
 }: ProductDetailsWithEditProps) {
   const router = useRouter();
   const { isAuthenticated: isClientAuthenticated } = useClientAuth();
+  const { isAuthenticated: isAdminAuthenticated } = useAuth();
   const [showEditModal, setShowEditModal] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authLoading, setAuthLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [loadingProduct, setLoadingProduct] = useState(false);
-
-  // Check admin authentication status
-  useEffect(() => {
-    const checkAuth = () => {
-      const authenticated = adminAuth.isAuthenticated();
-      setIsAuthenticated(authenticated);
-      setAuthLoading(false);
-    };
-
-    // Check immediately
-    checkAuth();
-
-    // Listen for storage changes (e.g., when admin logs in/out in another tab)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'admin_jwt' || e.key === 'admin_user') {
-        checkAuth();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    // Also check periodically in case of same-tab login/logout
-    const interval = setInterval(checkAuth, 1000);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      clearInterval(interval);
-    };
-  }, []);
 
   // Track product view for authenticated customers
   useEffect(() => {
@@ -280,7 +250,7 @@ export default function ProductDetailsWithEdit({
   return (
     <div className="relative">
       {/* Edit Button - Only show when admin is authenticated */}
-      {isAuthenticated && (
+      {isAdminAuthenticated && (
         <button
           onClick={handleOpenEditModal}
           disabled={loadingProduct}

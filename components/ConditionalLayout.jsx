@@ -6,6 +6,7 @@ import ContactCard from "@/components/contact card/ContactCard"
 import Footer from "@/components/footer"
 import { CartProvider } from '@/app/contexts/CartContext'
 import { ClientAuthProvider } from '@/app/contexts/ClientAuthContext'
+import { AuthProvider } from '@/app/contexts/AuthContext'
 import { NotificationProvider } from '@/app/contexts/NotificationContext'
 
 export default function ConditionalLayout({ children }) {
@@ -16,26 +17,31 @@ export default function ConditionalLayout({ children }) {
   // Admin and Portal routes have their own layouts
   if (isAdminRoute || isPortalRoute) {
     return (
-      <ClientAuthProvider>
-        <NotificationProvider>
-          {children}
-        </NotificationProvider>
-      </ClientAuthProvider>
+      <AuthProvider>
+        <ClientAuthProvider>
+          <NotificationProvider>
+            {children}
+          </NotificationProvider>
+        </ClientAuthProvider>
+      </AuthProvider>
     )
   }
 
   // Main site layout - wrap with ClientAuthProvider so CartProvider can use auth
+  // Also include AuthProvider so admin can edit products from product pages
   return (
-    <ClientAuthProvider>
-      <NotificationProvider>
-      <CartProvider>
-        <Navbar />
-        <main className="text-lg text-center md:text-start">{children}</main>
-        <ContactCard />
-        <Footer />
-      </CartProvider>
-      </NotificationProvider>
-    </ClientAuthProvider>
+    <AuthProvider>
+      <ClientAuthProvider>
+        <NotificationProvider>
+        <CartProvider>
+          <Navbar />
+          <main className="text-lg text-center md:text-start">{children}</main>
+          <ContactCard />
+          <Footer />
+        </CartProvider>
+        </NotificationProvider>
+      </ClientAuthProvider>
+    </AuthProvider>
   )
 }
 
