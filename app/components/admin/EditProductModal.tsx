@@ -112,7 +112,11 @@ function SpecInput({
   onValueChange: (key: string, value: string) => void;
   onRemove: (key: string) => void;
 }) {
-  const [query, setQuery] = useState(specKey || '');
+  // Check if specKey is a temporary generated key (spec_ followed by numbers)
+  // If so, show empty string instead of the temporary key
+  const isTempKey = specKey.startsWith('spec_') && /^spec_\d+$/.test(specKey);
+  const initialQuery = isTempKey ? '' : (specKey || '');
+  const [query, setQuery] = useState(initialQuery);
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -120,7 +124,10 @@ function SpecInput({
   // Update query when specKey changes externally
   useEffect(() => {
     if (inputRef.current !== document.activeElement) {
-      setQuery(specKey || '');
+      // Check if specKey is a temporary generated key - if so, show empty string
+      const isTempKeyInEffect = specKey.startsWith('spec_') && /^spec_\d+$/.test(specKey);
+      const queryValue = isTempKeyInEffect ? '' : (specKey || '');
+      setQuery(queryValue);
     }
   }, [specKey]);
 
