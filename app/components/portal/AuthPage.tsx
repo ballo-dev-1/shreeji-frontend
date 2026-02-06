@@ -183,7 +183,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
         </div>        
 
         {/* Right Side - Form */}
-        <div className="w-full lg:w-1/2 p-8 md:p-12 flex flex-col bg-white overflow-y-auto scrollbar-hover">
+        <div className="w-full lg:w-1/2 p-8 md:p-12 flex flex-col bg-white dark:bg-[#1A1C1E] overflow-y-auto scrollbar-hover">
           {/* Tab Switcher */}
           <div className="flex gap-4 mb-8">
             <button
@@ -217,10 +217,10 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
           </div>
 
           {/* Heading */}
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 text-center">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2 text-center">
             {mode === 'login' ? 'Welcome back' : 'Create Account'} 
           </h1>
-          <p className="text-gray-600 mb-8 text-center">
+          <p className="text-gray-600 dark:text-gray-300 mb-8 text-center">
             {mode === 'login' 
               ? 'Sign in to access your account' 
               : 'Sign up to access your client portal'}
@@ -230,7 +230,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
           <button
             type="button"
             onClick={handleAppleLogin}
-            className="w-full mb-6 py-3 px-4 rounded-full border border-gray-300 bg-white text-gray-700 font-medium hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+            className="w-full mb-6 py-3 px-4 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
               <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.48-3.24 0-1.44.62-2.2.44-3.06-.4C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
@@ -264,7 +264,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
                   name="email"
                   type="email"
                   required
-                  className="w-full pl-12 pr-4 py-3 rounded-full border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full pl-12 pr-4 py-3 rounded-full border border-gray-300 dark:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Email address"
                   value={credentials.email}
                   onChange={(e) => setCredentials({ ...credentials, email: e.target.value })}
@@ -286,7 +286,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
                   name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
-                  className="w-full pl-12 pr-12 py-3 rounded-full border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full pl-12 pr-12 py-3 rounded-full border border-gray-300 dark:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Password"
                   value={credentials.password}
                   onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
@@ -341,12 +341,12 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
 
               {/* Footer Links */}
               <div className="text-center space-y-2 pt-4">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   <Link href="/portal/forgot-password" className="font-medium text-primary-600 hover:text-primary-700">
                     Forgot your password?
                   </Link>
                 </p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   Don't have an account?{' '}
                   <button
                     type="button"
@@ -374,7 +374,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
                     name="firstName"
                     type="text"
                     required
-                    className="w-full px-4 py-3 rounded-full border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-4 py-3 rounded-full border border-gray-300 dark:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     placeholder="First Name"
                     value={formData.firstName}
                     onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
@@ -389,7 +389,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
                     name="lastName"
                     type="text"
                     required
-                    className="w-full px-4 py-3 rounded-full border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="w-full px-4 py-3 rounded-full border border-gray-300 dark:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                     placeholder="Last Name"
                     value={formData.lastName}
                     onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
@@ -410,7 +410,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
                   name="email"
                   type="email"
                   required
-                  className="w-full pl-12 pr-4 py-3 rounded-full border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full pl-12 pr-4 py-3 rounded-full border border-gray-300 dark:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Email address"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
@@ -449,7 +449,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
                   type={showPassword ? 'text' : 'password'}
                   required
                   minLength={6}
-                  className="w-full pl-12 pr-12 py-3 rounded-full border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full pl-12 pr-12 py-3 rounded-full border border-gray-300 dark:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Password (min. 6 characters)"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -483,7 +483,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
                   type={showConfirmPassword ? 'text' : 'password'}
                   required
                   minLength={6}
-                  className="w-full pl-12 pr-12 py-3 rounded-full border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full pl-12 pr-12 py-3 rounded-full border border-gray-300 dark:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Confirm Password"
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
@@ -538,7 +538,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
 
               {/* Footer Links */}
               <div className="text-center pt-4">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   Already have an account?{' '}
                   <button
                     type="button"

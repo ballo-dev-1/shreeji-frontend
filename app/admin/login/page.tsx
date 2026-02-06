@@ -111,7 +111,7 @@ export default function AdminLoginPage() {
       </div>
 
       {/* Right Panel - Login Form */}
-      <div className="flex-1 lg:w-2/5 bg-[floralwhite] flex md:items-center justify-center p-8 lg:p-12 m-2 rounded-lg">
+      <div className="flex-1 lg:w-2/5 bg-[floralwhite] dark:bg-gray-900 flex md:items-center justify-center p-8 lg:p-12 m-2 rounded-lg">
         <div className="w-full max-wlg space-y-8">
 
           {/* Mobile Back Link */}
@@ -129,10 +129,10 @@ export default function AdminLoginPage() {
 
           {/* Form Header */}
           <div>
-            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900">
+            <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
               Welcome Back!
             </h2>
-            <p className="mt-2 text-sm lg:text-base text-gray-600">
+            <p className="mt-2 text-sm lg:text-base text-gray-600 dark:text-gray-300">
               Log in to access your admin dashboard
             </p>
           </div>
@@ -141,7 +141,7 @@ export default function AdminLoginPage() {
           <form className="space-y-6" onSubmit={handleSubmit}>
             {/* Email Field */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Email
               </label>
               <input
@@ -149,7 +149,7 @@ export default function AdminLoginPage() {
                 name="email"
                 type="email"
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200"
                 placeholder="Input your email"
                 value={credentials.email}
                 onChange={(e) => handleInputChange('email', e.target.value)}
@@ -158,7 +158,7 @@ export default function AdminLoginPage() {
 
             {/* Password Field */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Password
               </label>
               <div className="relative">
@@ -167,7 +167,7 @@ export default function AdminLoginPage() {
                   name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200"
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors duration-200"
                   placeholder="Input your password"
                   value={credentials.password}
                   onChange={(e) => handleInputChange('password', e.target.value)}
