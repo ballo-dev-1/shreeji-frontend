@@ -123,6 +123,9 @@ export default function ModernProductShowcase({
               </p>
             </div>
             <h1 className="text-4xl font-bold text-[#4b3a24] md:text-5xl">{product.name}</h1>
+            <p className="text-2xl font-semibold text-[#4b3a24]">
+              {priceLabel}
+            </p>
             <p className="text-base text-[#7c6a4c]">
               {product.shortDescription ||
                 "Ideal for professionals needing portability without sacrificing performance."}
