@@ -179,6 +179,10 @@ This document tracks all pending tasks and next steps required to make the ecomm
 ### ✅ Completed (December 7, 2024)
 - [x] **Customer Portal Enhancements**
   - [x] Wishlist functionality (backend + frontend)
+    - [x] WishlistButton component integrated into product cards (ProductPreview)
+    - [x] WishlistButton component integrated into product detail pages
+    - [x] WishlistButton component integrated into product recommendations
+    - [x] WishlistButton component integrated into recently viewed products
   - [x] Product reviews and ratings (backend + frontend)
   - [x] Recently viewed products tracking (backend + frontend)
   - [x] Recently viewed carousel styled to match recommendations + RTL tests (Dec 11, 2025)
@@ -558,7 +562,7 @@ This document tracks all pending tasks and next steps required to make the ecomm
 
 ---
 
-**Last Updated:** December 15, 2025
+**Last Updated:** January 2025
 **Maintained By:** Development Team
 
 ### December 2024 - Inventory Management Frontend Completion

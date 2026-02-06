@@ -8,6 +8,7 @@ import { ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react'
 import { useCart } from '@/app/contexts/CartContext'
 import toast from 'react-hot-toast'
 import { currencyFormatter } from '@/app/components/checkout/currency-formatter'
+import WishlistButton from '@/app/components/products/WishlistButton'
 
 interface ProductRecommendation {
   id: number
@@ -297,6 +298,11 @@ function ProductCard({ product }: { product: ProductRecommendation }) {
               target.src = '/products/placeholder.png'
             }}
           />
+          {product.id && (
+            <div className="absolute top-2 right-2 z-10">
+              <WishlistButton productId={product.id} size="sm" />
+            </div>
+          )}
         </div>
         
         <div className="space-y-1 text-center my-3 min-h-[60px]">

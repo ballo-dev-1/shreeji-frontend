@@ -6,6 +6,7 @@ import clientApi from '@/app/lib/client/api'
 import Image from 'next/image'
 import Link from 'next/link'
 import { currencyFormatter } from '@/app/components/checkout/currency-formatter'
+import WishlistButton from '@/app/components/products/WishlistButton'
 
 interface RecentlyViewedProps {
   limit?: number
@@ -146,6 +147,11 @@ function RecentlyViewedCard({ item }: { item: RecentlyViewedItem }) {
               target.src = '/products/placeholder.png'
             }}
           />
+          {item.product.id && (
+            <div className="absolute top-2 right-2 z-10">
+              <WishlistButton productId={item.product.id} size="sm" />
+            </div>
+          )}
         </div>
 
         <div className="space-y-1 text-center my-3 min-h-[60px]">

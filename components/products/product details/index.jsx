@@ -13,6 +13,7 @@ import toast from 'react-hot-toast';
 import QuantityInput from '../QuantityInput';
 import { ToastWithProgress } from '@/app/components/ToastWithProgress';
 import clientApi from '@/app/lib/client/api';
+import WishlistButton from '@/app/components/products/WishlistButton';
 
 const ProductDetails = ({product, previewMode = false}) => {  
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -591,26 +592,31 @@ const ProductDetails = ({product, previewMode = false}) => {
         <div className='product-specs mt-10 md:mt-0 flex-1 md:p-10 pr-0'>  
             {/* Price Display */}
             {(displayPrice || displayDiscountedPrice) && (
-              <div className='mb-6'>
-                {displayDiscountedPrice ? (
-                  <div className='flex flex-col gap-2'>
-                    <div className='flex items-center gap-3 flex-wrap'>
-                      <span className='text-3xl font-bold text-white bg-[var(--shreeji-primary)] w-fit px-5 py-2 rounded-lg'>
-                        {formatPrice(displayDiscountedPrice)}
-                      </span>
-                      {displayPrice && (
-                        <span className='text-xl text-gray-500 line-through'>
-                          {formatPrice(displayPrice)}
+              <div className='mb-6 flex items-center gap-3 flex-wrap'>
+                <div className='flex items-center gap-3 flex-wrap'>
+                  {displayDiscountedPrice ? (
+                    <div className='flex flex-col gap-2'>
+                      <div className='flex items-center gap-3 flex-wrap'>
+                        <span className='text-3xl font-bold text-white bg-[var(--shreeji-primary)] w-fit px-5 py-2 rounded-lg'>
+                          {formatPrice(displayDiscountedPrice)}
                         </span>
-                      )}
+                        {displayPrice && (
+                          <span className='text-xl text-gray-500 line-through'>
+                            {formatPrice(displayPrice)}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  displayPrice && (
-                    <div className='text-3xl font-bold text-white bg-[var(--shreeji-primary)] w-fit px-5 py-2 rounded-lg'>
-                      {formatPrice(displayPrice)}
-                    </div>
-                  )
+                  ) : (
+                    displayPrice && (
+                      <div className='text-3xl font-bold text-white bg-[var(--shreeji-primary)] w-fit px-5 py-2 rounded-lg'>
+                        {formatPrice(displayPrice)}
+                      </div>
+                    )
+                  )}
+                </div>
+                {product?.id && (
+                  <WishlistButton productId={product.id} size="md" />
                 )}
               </div>
             )}
