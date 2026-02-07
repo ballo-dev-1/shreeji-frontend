@@ -67,17 +67,13 @@ export default function WishlistButton({ productId, className = '', size = 'md',
     }
   }
 
-  if (!isAuthenticated) {
-    return null
-  }
-
   const sizeClasses = {
     sm: 'h-6 w-6',
     md: 'h-8 w-8',
     lg: 'h-10 w-10',
   }
 
-  if (checking) {
+  if (checking && isAuthenticated) {
     return (
       <button
         type="button"
@@ -114,7 +110,13 @@ export default function WishlistButton({ productId, className = '', size = 'md',
 
   // When backgroundColor is provided, suppress button's own title to let wrapper handle tooltip
   // Otherwise, use the button's own title
-  const buttonTitle = backgroundColor ? undefined : (isInWishlist ? 'Remove from wishlist' : 'Add to wishlist')
+  const buttonTitle = backgroundColor 
+    ? undefined 
+    : !isAuthenticated 
+      ? 'Login to add to wishlist'
+      : isInWishlist 
+        ? 'Remove from wishlist' 
+        : 'Add to wishlist'
 
   return (
     <button
