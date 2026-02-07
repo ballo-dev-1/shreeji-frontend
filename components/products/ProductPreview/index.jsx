@@ -79,7 +79,7 @@ const ProductPreview = ({product, index, additionalClass}) => {
   };
 
   return (    
-    <div className={`products-page-product md:mr-2 px-5 flex flex-col gap-2 items-center py-4 relative ${additionalClass}`}>
+    <div className={`products-page-product md:mr-2 px-3 sm:px-4 md:px-5 flex flex-col gap-2 items-center py-3 sm:py-4 relative ${additionalClass}`}>
       <Link 
         href={
           product["subcategory"]
@@ -99,40 +99,54 @@ const ProductPreview = ({product, index, additionalClass}) => {
               unoptimized={product.images[0]?.startsWith('http')}
             />
           )}
-          {product.id && (
-            <div className="absolute top-2 right-2 z-10">
-              <WishlistButton productId={product.id} size="sm" />
-            </div>
-          )}
         </div>
-      <div className="flex-center gap-4 pb-14">
-        {product.name && (<h1 className="products-page-product__title text-2xl font-semibold line-clamp-2">{product.name}</h1>)}
+      <div className="flex-center gap-2 sm:gap-3 md:gap-4 pb-8 sm:pb-10 md:pb-14">
+        {product.name && (<h1 className="products-page-product__title text-lg sm:text-xl md:text-2xl font-semibold line-clamp-2">{product.name}</h1>)}
         <div className="flex flex-col items-center gap-1">
           {rawPrice && (
-            <div className="text-xl font-semibold text-[#fef3c7]">
+            <div className="text-base sm:text-lg md:text-xl font-semibold text-[#fef3c7]">
               {formatPriceWithCurrency(rawPrice)}
             </div>
           )}
           {originalPrice && (
-            <div className="text-sm text-[#e5e7eb] line-through">
+            <div className="text-xs sm:text-sm text-[#e5e7eb] line-through">
               {formatPriceWithCurrency(originalPrice)}
             </div>
           )}
           {product.tagline && (
-            <div className="text-center text-base">
+            <div className="text-center text-sm sm:text-base px-2 line-clamp-2">
               {product.tagline}
             </div>
           )}
 
-          <button
-            type="button"
-            onClick={handleAddToCart}
-            disabled={addingToCart || !(product?.documentId || product?.id)}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#fef3c7] px-4 py-2 text-[var(--shreeji-primary)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70 mt-2"
-          >
-            <ShoppingCart className="h-5 w-5" />
-            <span>{addingToCart ? 'Adding...' : 'Add to Cart'}</span>
-          </button>
+          <div className="flex items-center gap-1.5 sm:gap-2 w-full mt-2">
+            <button
+              type="button"
+              onClick={handleAddToCart}
+              disabled={addingToCart || !(product?.documentId || product?.id)}
+              className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2 rounded-2xl bg-[#fef3c7] px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-[var(--shreeji-primary)] transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70 text-xs sm:text-sm md:text-base"
+            >
+              <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+              <span className="truncate">{addingToCart ? 'Adding...' : 'Add to Cart'}</span>
+            </button>
+            {product.id && (
+              <div 
+                className="flex items-center justify-center gap-2 rounded-2xl p-0 mx-0.5 sm:mx-1 text-black transition hover:opacity-90 cursor-pointer flex-shrink-0"
+                title="Add to wishlist"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  // Trigger click on the wishlist button
+                  const wishlistBtn = e.currentTarget.querySelector('button');
+                  if (wishlistBtn && !wishlistBtn.disabled) {
+                    wishlistBtn.click();
+                  }
+                }}
+              >
+                <WishlistButton productId={product.id} size="sm" className="!h-7 !w-auto sm:!h-8" backgroundColor="#fef3c7" />
+              </div>
+            )}
+          </div>
         </div>
         </div>
       </Link>
