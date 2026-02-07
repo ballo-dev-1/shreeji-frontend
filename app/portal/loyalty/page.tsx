@@ -66,14 +66,14 @@ export default function LoyaltyPage() {
       {error && <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</div>}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div className="col-span-1 rounded-lg bg-gradient-to-r from-[var(--shreeji-primary)] to-[var(--shreeji-secondary)] p-6 text-white shadow">
+        <div className="col-span-1 rounded-lg bg-[var(--shreeji-primary)] p-6 text-white shadow">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm opacity-80">Your balance</p>
               <p className="mt-2 text-4xl font-bold">{points}</p>
               <p className="text-sm opacity-80">points (ngwee)</p>
             </div>
-            <Gift className="h-12 w-12 opacity-30" />
+            <Gift className="h-12 w-12 opacity-60" />
           </div>
         </div>
       </div>
