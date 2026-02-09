@@ -12,15 +12,17 @@ export default function CartButton() {
   return (
     <Link
       href="/checkout"
-      className={`relative flex items-center gap-1 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+      className={`relative flex items-center justify-center rounded-full p-2 transition-colors ${
         disabled ? 'pointer-events-none opacity-70' : 'hover:bg-[var(--primary)] hover:text-white'
       }`}
+      aria-label="Go to cart"
     >
       <ShoppingCart className="h-5 w-5" />
-      <span className="hidden md:inline">Cart</span>
-      <span className="ml-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[var(--primary)] px-1 text-xs text-white">
-        {count}
-      </span>
+      {count > 0 && (
+        <span className="absolute -top-1 -right-1 inline-flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[var(--primary)] px-1 text-xs text-white">
+          {count > 99 ? '99+' : count}
+        </span>
+      )}
     </Link>
   )
 }

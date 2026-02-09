@@ -18,7 +18,7 @@ export default function ProfileButton() {
   return (
     <Link
       href={href}
-      className="relative flex items-center justify-center rounded-full border p-2 transition-colors hover:bg-[var(--primary)] hover:text-white"
+      className="relative flex items-center justify-center rounded-full p-2 transition-colors hover:bg-[var(--primary)] hover:text-white"
       aria-label={isAuthenticated ? 'Go to profile' : 'Sign in'}
     >
       <User className="h-5 w-5" />
