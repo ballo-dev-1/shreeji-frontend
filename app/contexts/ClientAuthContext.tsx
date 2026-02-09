@@ -10,6 +10,7 @@ interface ClientAuthContextType {
   register: (email: string, password: string, firstName?: string, lastName?: string, phone?: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  setUser: (user: ClientUser | null) => void;
 }
 
 const ClientAuthContext = createContext<ClientAuthContextType | undefined>(undefined);
@@ -30,6 +31,7 @@ export function ClientAuthProvider({ children }: { children: ReactNode }) {
       if (clientAuth.isAuthenticated()) {
         // Validate the token and get user data
         const isValid = await clientAuth.validateToken();
+        
         if (isValid) {
           const currentUser = await clientAuth.getCurrentUser();
           setUser(currentUser);
@@ -75,7 +77,8 @@ export function ClientAuthProvider({ children }: { children: ReactNode }) {
     login,
     register,
     logout,
-    isAuthenticated: !!user
+    isAuthenticated: !!user,
+    setUser
   };
 
   return (
