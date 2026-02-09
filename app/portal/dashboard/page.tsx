@@ -9,6 +9,7 @@ import clientApi from '@/app/lib/client/api'
 import { Package, DollarSign, TrendingUp, ShoppingCart } from 'lucide-react'
 import RecentlyViewed from '@/app/components/products/RecentlyViewed'
 import { currencyFormatter } from '@/app/components/checkout/currency-formatter'
+import { DashboardSkeleton } from '@/app/components/ui/Skeletons'
 
 export default function PortalDashboardPage() {
   const { user, loading: authLoading, isAuthenticated } = useClientAuth()
@@ -61,11 +62,7 @@ export default function PortalDashboardPage() {
   ).length
 
   if (authLoading || loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f1e8]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    )
+    return <DashboardSkeleton />
   }
 
   if (!isAuthenticated) {

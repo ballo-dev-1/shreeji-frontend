@@ -10,6 +10,7 @@ import {
   EnvelopeIcon
 } from '@heroicons/react/24/outline';
 import { useClientAuth } from '@/app/contexts/ClientAuthContext';
+import { PortalLayoutSkeleton } from '@/app/components/ui/Skeletons';
 import logo2 from '@/public/logos/Shreeji icon.png';
 import '@/components/home/HeroSection/style.scss';
 
@@ -39,6 +40,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [oauthProcessing, setOauthProcessing] = useState(false);
   const { isAuthenticated, login, register, setUser: setContextUser } = useClientAuth();
   const tokenProcessedRef = useRef<string | null>(null);
   
@@ -73,6 +75,9 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
         return;
       }
       tokenProcessedRef.current = token;
+      
+      // Show loading state immediately
+      setOauthProcessing(true);
 
       // Store token from Google OAuth callback
       localStorage.setItem('client_jwt', token);
@@ -102,13 +107,17 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
             setContextUser(user);
           }
           
-          // Use router.replace instead of window.location.href to avoid full page reload
-          // Remove token from URL to clean it up
-          router.replace('/portal/dashboard');
+          // Small delay to ensure state is set before redirect
+          setTimeout(() => {
+            // Use router.replace instead of window.location.href to avoid full page reload
+            // Remove token from URL to clean it up
+            router.replace('/portal/dashboard');
+          }, 100);
         })
         .catch((error) => {
           console.error('Error fetching user data:', error);
           setError('Failed to complete Google login');
+          setOauthProcessing(false);
         });
     }
   }, [searchParams, router, setContextUser]);
@@ -130,6 +139,15 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
       router.replace(returnUrl || '/portal/dashboard');
     }
   }, [isAuthenticated, router, searchParams]);
+
+  // Show full-screen loading overlay during OAuth processing
+  if (oauthProcessing) {
+    return (
+      <div className="fixed inset-0 z-50 bg-[whitesmoke] dark:bg-[#131313] overflow-hidden">
+        <PortalLayoutSkeleton />
+      </div>
+    );
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

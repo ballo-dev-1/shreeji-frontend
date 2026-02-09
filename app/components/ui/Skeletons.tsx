@@ -70,6 +70,133 @@ export function TableSkeleton({ rows = 5, columns = 5 }: { rows?: number; column
   )
 }
 
+// Dashboard Card Skeleton
+export function DashboardCardSkeleton() {
+  return (
+    <div className="bg-white rounded-3xl p-6 shadow-[0_0_20px_0_rgba(0,0,0,0.1)] animate-pulse">
+      <div className="flex items-center justify-between">
+        <div className="flex-1">
+          <div className="h-4 bg-gray-300 rounded w-24 mb-4"></div>
+          <div className="h-8 bg-gray-300 rounded w-20"></div>
+        </div>
+        <div className="h-8 w-8 bg-gray-200 rounded"></div>
+      </div>
+    </div>
+  );
+}
+
+// Dashboard Skeleton
+export function DashboardSkeleton() {
+  return (
+    <div className="space-y-8">
+      {/* Welcome Section */}
+      <div className="flex items-center justify-between">
+        <div className="h-4 bg-gray-200 rounded w-48 animate-pulse"></div>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <DashboardCardSkeleton key={i} />
+        ))}
+      </div>
+
+      {/* Recent Orders Section */}
+      <div className="bg-white rounded-3xl shadow-[0_0_20px_0_rgba(0,0,0,0.1)] animate-pulse">
+        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+          <div className="h-6 bg-gray-300 rounded w-32"></div>
+          <div className="h-4 bg-gray-200 rounded w-24"></div>
+        </div>
+        <div className="p-6">
+          <div className="space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="border-b border-gray-200 pb-4 last:border-0">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1 space-y-2">
+                    <div className="h-5 bg-gray-300 rounded w-40"></div>
+                    <div className="h-4 bg-gray-200 rounded w-32"></div>
+                  </div>
+                  <div className="text-right space-y-2">
+                    <div className="h-5 bg-gray-300 rounded w-24 ml-auto"></div>
+                    <div className="h-6 bg-gray-200 rounded-full w-20 ml-auto"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Recently Viewed Section */}
+      <div className="space-y-4 animate-pulse">
+        <div className="h-6 bg-gray-200 rounded w-40"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+              <div className="aspect-square w-full bg-gray-200"></div>
+              <div className="p-4 space-y-2">
+                <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Portal Layout Skeleton (with sidebar and header)
+export function PortalLayoutSkeleton() {
+  return (
+    <div className="flex h-screen bg-[whitesmoke] dark:bg-[#131313]">
+      {/* Sidebar Skeleton */}
+      <div className="hidden lg:block w-64 bg-white dark:bg-[#1A1C1E] border-r border-gray-200 dark:border-gray-800">
+        <div className="flex items-center justify-center h-16 px-4 animate-pulse">
+          <div className="flex items-center space-x-3">
+            <div className="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
+          </div>
+        </div>
+        <nav className="mt-8 px-4 space-y-2">
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div key={i} className="h-12 bg-gray-100 dark:bg-gray-800 rounded-2xl animate-pulse"></div>
+          ))}
+        </nav>
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 flex flex-col overflow-hidden rounded-2xl m-2 ml-0">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-white dark:bg-[whitesmoke]">
+          {/* Header Skeleton */}
+          <header className="shadow-sm">
+            <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8 animate-pulse">
+              <div className="flex items-center">
+                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
+              </div>
+              <div className="flex items-center space-x-4">
+                <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-28"></div>
+                <div className="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                <div className="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+              </div>
+            </div>
+          </header>
+          
+          {/* Content Skeleton */}
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <DashboardSkeleton />
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+// Portal Loading Skeleton (for route transitions)
+export function PortalLoadingSkeleton() {
+  return <PortalLayoutSkeleton />;
+}
+
 // Order Card Skeleton
 export function OrderCardSkeleton() {
   return (
