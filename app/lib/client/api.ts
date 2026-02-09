@@ -629,7 +629,13 @@ class ClientApiClient {
 
   async addToWishlist(productId: number) {
     const user = await clientAuth.getCurrentUser();
+    // #region agent log
+    fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:630',message:'addToWishlist called',data:{hasUser:!!user,productId},timestamp:Date.now(),runId:'debug2',hypothesisId:'C'})}).catch(()=>{});
+    // #endregion
     if (!user) {
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:633',message:'addToWishlist - User not authenticated error thrown',data:{},timestamp:Date.now(),runId:'debug2',hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
       throw new Error('User not authenticated');
     }
 

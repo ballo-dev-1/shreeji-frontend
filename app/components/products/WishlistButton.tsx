@@ -5,6 +5,7 @@ import { HeartIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid'
 import { useClientAuth } from '@/app/contexts/ClientAuthContext'
 import clientApi from '@/app/lib/client/api'
+import clientAuth from '@/app/lib/client/auth'
 import toast from 'react-hot-toast'
 import AuthModal from '@/app/components/portal/AuthModal'
 
@@ -46,7 +47,14 @@ export default function WishlistButton({ productId, className = '', size = 'md',
     e.preventDefault()
     e.stopPropagation()
 
-    if (!isAuthenticated) {
+    // Verify actual authentication state - check both context and stored token/user
+    // This prevents issues where context state is stale but token is invalid/expired
+    // Check stored token and user without making API call (API will validate if needed)
+    const hasToken = clientAuth.isAuthenticated()
+    const storedUser = clientAuth.getStoredUser()
+    const isActuallyAuthenticated = isAuthenticated && hasToken && !!storedUser
+
+    if (!isActuallyAuthenticated) {
       setShowAuthModal(true)
       return
     }
