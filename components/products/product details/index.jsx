@@ -615,9 +615,6 @@ const ProductDetails = ({product, previewMode = false}) => {
                     )
                   )}
                 </div>
-                {product?.id && (
-                  <WishlistButton productId={product.id} size="md" />
-                )}
               </div>
             )}
 

@@ -298,11 +298,6 @@ function ProductCard({ product }: { product: ProductRecommendation }) {
               target.src = '/products/placeholder.png'
             }}
           />
-          {product.id && (
-            <div className="absolute top-2 right-2 z-10">
-              <WishlistButton productId={product.id} size="sm" />
-            </div>
-          )}
         </div>
         
         <div className="space-y-1 text-center my-3 min-h-[60px]">
@@ -321,14 +316,33 @@ function ProductCard({ product }: { product: ProductRecommendation }) {
           )}
         </div>
       </Link>
-      <button
-        onClick={handleAddToCart}
-        disabled={addingToCart || !product.id}
-        className="mt-auto z-[1] w-full flex items-center justify-center gap-2 px-4 py-2 bg-[var(--shreeji-primary)] text-white rounded-lg hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium"
-      >
-        <ShoppingCart className="h-4 w-4" />
-        {addingToCart ? 'Adding...' : 'Add to Cart'}
-      </button>
+      <div className="flex items-center gap-1.5 sm:gap-2 w-full mt-auto z-[1]">
+        <button
+          onClick={handleAddToCart}
+          disabled={addingToCart || !product.id}
+          className="flex-1 flex items-center justify-center gap-1.5 sm:gap-2 rounded-2xl bg-[var(--shreeji-primary)] px-2 sm:px-3 md:px-4 py-1.5 sm:py-2 text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-70 text-xs sm:text-sm md:text-base"
+        >
+          <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+          <span className="truncate">{addingToCart ? 'Adding...' : 'Add to Cart'}</span>
+        </button>
+        {product.id && (
+          <div 
+            className="flex items-center justify-center gap-2 rounded-2xl p-0 mx-0.5 sm:mx-1 text-black transition hover:opacity-90 cursor-pointer flex-shrink-0"
+            title="Add to wishlist"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              // Trigger click on the wishlist button
+              const wishlistBtn = e.currentTarget.querySelector('button');
+              if (wishlistBtn && !wishlistBtn.disabled) {
+                wishlistBtn.click();
+              }
+            }}
+          >
+            <WishlistButton productId={product.id} size="sm" className="!h-7 !w-auto sm:!h-8" backgroundColor="var(--shreeji-primary)" />
+          </div>
+        )}
+      </div>
     </div>
   )
 }
