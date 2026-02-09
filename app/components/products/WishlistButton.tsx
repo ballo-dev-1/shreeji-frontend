@@ -6,6 +6,7 @@ import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid'
 import { useClientAuth } from '@/app/contexts/ClientAuthContext'
 import clientApi from '@/app/lib/client/api'
 import toast from 'react-hot-toast'
+import AuthModal from '@/app/components/portal/AuthModal'
 
 interface WishlistButtonProps {
   productId: number
@@ -19,6 +20,7 @@ export default function WishlistButton({ productId, className = '', size = 'md',
   const [isInWishlist, setIsInWishlist] = useState(false)
   const [loading, setLoading] = useState(false)
   const [checking, setChecking] = useState(true)
+  const [showAuthModal, setShowAuthModal] = useState(false)
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -45,7 +47,7 @@ export default function WishlistButton({ productId, className = '', size = 'md',
     e.stopPropagation()
 
     if (!isAuthenticated) {
-      toast.error('Please login to add items to wishlist')
+      setShowAuthModal(true)
       return
     }
 
@@ -55,13 +57,39 @@ export default function WishlistButton({ productId, className = '', size = 'md',
         await clientApi.removeFromWishlist(productId)
         setIsInWishlist(false)
         toast.success('Removed from wishlist')
+        // Dispatch event to notify navbar to refresh count
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('wishlist-changed'))
+        }
       } else {
         await clientApi.addToWishlist(productId)
         setIsInWishlist(true)
         toast.success('Added to wishlist')
+        // Dispatch event to notify navbar to refresh count
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('wishlist-changed'))
+        }
       }
     } catch (error: any) {
       toast.error(error.message || 'Failed to update wishlist')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAuthSuccess = async () => {
+    // After successful authentication, try to add to wishlist
+    try {
+      setLoading(true)
+      await clientApi.addToWishlist(productId)
+      setIsInWishlist(true)
+      toast.success('Added to wishlist')
+      // Dispatch event to notify navbar to refresh count
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('wishlist-changed'))
+      }
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to add to wishlist')
     } finally {
       setLoading(false)
     }
@@ -119,28 +147,36 @@ export default function WishlistButton({ productId, className = '', size = 'md',
         : 'Add to wishlist'
 
   return (
-    <button
-      type="button"
-      onClick={handleToggle}
-      disabled={loading}
-      className={`${sizeClasses[size]} ${className} flex items-center justify-center transition-colors ${textColorClasses} disabled:opacity-50 disabled:cursor-not-allowed`}
-      title={buttonTitle}
-    >
-      {loading ? (
-        <HeartIcon 
-          className="h-full w-full animate-pulse" 
-          style={{
-            color: backgroundColor ? '#e5e7eb' : '#d1d5db',
-            fill: 'none',
-            stroke: backgroundColor ? '#e5e7eb' : '#d1d5db'
-          }} 
-        />
-      ) : isInWishlist ? (
-        <HeartIconSolid className="h-full w-full" style={heartIconStyle} />
-      ) : (
-        <HeartIcon className="h-full w-full" style={heartIconStyle} />
-      )}
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={handleToggle}
+        disabled={loading}
+        className={`${sizeClasses[size]} ${className} flex items-center justify-center transition-colors ${textColorClasses} disabled:opacity-50 disabled:cursor-not-allowed`}
+        title={buttonTitle}
+      >
+        {loading ? (
+          <HeartIcon 
+            className="h-full w-full animate-pulse" 
+            style={{
+              color: backgroundColor ? '#e5e7eb' : '#d1d5db',
+              fill: 'none',
+              stroke: backgroundColor ? '#e5e7eb' : '#d1d5db'
+            }} 
+          />
+        ) : isInWishlist ? (
+          <HeartIconSolid className="h-full w-full" style={heartIconStyle} />
+        ) : (
+          <HeartIcon className="h-full w-full" style={heartIconStyle} />
+        )}
+      </button>
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        defaultMode="login"
+        onSuccess={handleAuthSuccess}
+      />
+    </>
   )
 }
 

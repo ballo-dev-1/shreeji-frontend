@@ -130,7 +130,7 @@ export default function AdminLoginPage() {
           {/* Form Header */}
           <div>
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white">
-              Welcome Back!
+              Welcome!
             </h2>
             <p className="mt-2 text-sm lg:text-base text-gray-600 dark:text-gray-300">
               Log in to access your admin dashboard

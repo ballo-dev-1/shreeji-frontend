@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useClientAuth } from '@/app/contexts/ClientAuthContext'
@@ -21,39 +21,53 @@ export default function PortalDashboardPage() {
   const hasActiveCart = cart && cart.items && cart.items.length > 0
   const cartItemCount = cart?.items?.reduce((sum, item) => sum + item.quantity, 0) || 0
 
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/portal/login')
-    }
-  }, [authLoading, isAuthenticated, router])
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchOrders()
-      
-      // Refresh orders every 30 seconds
-      const interval = setInterval(() => {
-        fetchOrders()
-      }, 30000)
-      
-      return () => clearInterval(interval)
-    }
-  }, [isAuthenticated])
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async (showLoading = false) => {
     try {
-      setLoading(true)
+      if (showLoading) {
+        setLoading(true)
+      }
       const response = await clientApi.getOrders({ 
         pagination: { page: 1, pageSize: 5 },
         populate: ['orderItems']
       })
-      setOrders(response.data || [])
-    } catch (error) {
+      const newOrders = response.data || []
+      // Only update state if orders actually changed to prevent unnecessary re-renders
+      setOrders(prevOrders => {
+        const ordersChanged = JSON.stringify(prevOrders) !== JSON.stringify(newOrders)
+        if (!ordersChanged) {
+          return prevOrders
+        }
+        return newOrders
+      })
+    } catch (error: any) {
       console.error('Error fetching orders:', error)
     } finally {
-      setLoading(false)
+      if (showLoading) {
+        setLoading(false)
+      }
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/portal/login')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authLoading, isAuthenticated])
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Initial fetch with loading indicator
+      fetchOrders(true)
+      
+      // Refresh orders every 30 seconds without loading indicator
+      const interval = setInterval(() => {
+        fetchOrders(false)
+      }, 30000)
+      
+      return () => clearInterval(interval)
+    }
+  }, [isAuthenticated, fetchOrders])
 
   const totalSpent = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0)
   const averageOrderValue = orders.length > 0 ? totalSpent / orders.length : 0
@@ -79,7 +93,7 @@ export default function PortalDashboardPage() {
 
         {/* Continue Checkout Banner */}
         {hasActiveCart && (
-          <div className="mb-6 rounded-lg bg-gradient-to-r from-[var(--shreeji-primary)] to-[var(--shreeji-secondary)] p-4 text-white shadow">
+          <div className="mb-6 rounded-lg bg-gradient-to-r from-[var(--shreeji-primary)] to-[#9b8f6d] p-4 text-white shadow">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <ShoppingCart className="h-6 w-6" />

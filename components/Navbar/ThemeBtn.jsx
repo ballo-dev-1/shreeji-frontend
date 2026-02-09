@@ -22,7 +22,7 @@ const ThemeBtn = ({ isScrolled }) => {
   return (
     <button
       onClick={toggleTheme}
-      className="relative flex items-center justify-center rounded-full border p-2 transition-colors hover:bg-[var(--primary)] hover:text-white"
+      className="relative flex items-center justify-center rounded-full p-2 transition-colors hover:bg-[var(--primary)] hover:text-white"
       aria-label={theme === "dark-theme" ? "Switch to light mode" : "Switch to dark mode"}
     >
       {theme === "dark-theme" ? (

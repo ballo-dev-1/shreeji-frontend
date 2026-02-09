@@ -114,7 +114,7 @@ const ProductPreview = ({product, index, additionalClass}) => {
             </div>
           )}
           {product.tagline && (
-            <div className="text-center text-sm sm:text-base px-2 line-clamp-2">
+            <div className="text-center text-sm sm:text-base px-2 line-clamp-2 text-white">
               {product.tagline}
             </div>
           )}

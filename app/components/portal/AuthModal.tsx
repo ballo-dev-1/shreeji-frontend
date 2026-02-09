@@ -1,153 +1,113 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Image from 'next/image';
-import Link from 'next/link';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { X } from 'lucide-react';
 import { 
   EyeIcon, 
   EyeSlashIcon,
   EnvelopeIcon
 } from '@heroicons/react/24/outline';
 import { useClientAuth } from '@/app/contexts/ClientAuthContext';
-import { PortalLayoutSkeleton } from '@/app/components/ui/Skeletons';
-import logo2 from '@/public/logos/Shreeji icon.png';
-import '@/components/home/HeroSection/style.scss';
+import { useRouter } from 'next/navigation';
 
 type AuthMode = 'login' | 'signup';
 
-interface AuthPageProps {
+interface AuthModalProps {
+  isOpen: boolean;
+  onClose: () => void;
   defaultMode?: AuthMode;
+  onSuccess?: () => void;
 }
 
-export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
+export default function AuthModal({ 
+  isOpen, 
+  onClose, 
+  defaultMode = 'login',
+  onSuccess 
+}: AuthModalProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [mode, setMode] = useState<AuthMode>(defaultMode);
   const [credentials, setCredentials] = useState({
     email: '',
     password: ''
   });
   const [formData, setFormData] = useState({
-    email: searchParams?.get('email') || '',
+    email: '',
     password: '',
     confirmPassword: '',
-    firstName: searchParams?.get('firstName') || '',
-    lastName: searchParams?.get('lastName') || '',
+    firstName: '',
+    lastName: '',
     phone: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [oauthProcessing, setOauthProcessing] = useState(false);
-  const { isAuthenticated, login, register, setUser: setContextUser } = useClientAuth();
-  const tokenProcessedRef = useRef<string | null>(null);
-  
-  // Update form data when search params change (for guest checkout pre-fill)
+  const { isAuthenticated, login, register } = useClientAuth();
+
+  // Reset form when modal opens/closes
   useEffect(() => {
-    if (searchParams) {
-      const email = searchParams.get('email');
-      const firstName = searchParams.get('firstName');
-      const lastName = searchParams.get('lastName');
-      
-      if (email || firstName || lastName) {
-        setFormData(prev => ({
-          ...prev,
-          email: email || prev.email,
-          firstName: firstName || prev.firstName,
-          lastName: lastName || prev.lastName,
-        }));
-        // Switch to signup mode if guest data is provided
-        if (defaultMode === 'signup' || (email && !mode)) {
-          setMode('signup');
-        }
-      }
+    if (!isOpen) {
+      setCredentials({ email: '', password: '' });
+      setFormData({
+        email: '',
+        password: '',
+        confirmPassword: '',
+        firstName: '',
+        lastName: '',
+        phone: ''
+      });
+      setError('');
+      setMode(defaultMode);
     }
-  }, [searchParams, defaultMode, mode]);
+  }, [isOpen, defaultMode]);
 
-  // Handle Google OAuth callback token
+  // Store current URL as returnUrl when modal opens (Hypothesis A, C, E)
   useEffect(() => {
-    const token = searchParams?.get('token');
-    if (token && typeof window !== 'undefined') {
-      // Prevent multiple executions (React Strict Mode)
-      if (tokenProcessedRef.current === token) {
-        return;
-      }
-      tokenProcessedRef.current = token;
-      
-      // Show loading state immediately
-      setOauthProcessing(true);
-
-      // Store token from Google OAuth callback
-      localStorage.setItem('client_jwt', token);
-      
-      // Get user data and update context
-      const API_URL = process.env.NEXT_PUBLIC_ECOM_API_URL?.replace(/\/$/, '') || 'http://localhost:4000';
-      const shouldUseProxy = window.location.protocol === 'https:' && API_URL.startsWith('http://');
-      const apiUrl = shouldUseProxy ? `/api/backend/auth/me` : `${API_URL}/auth/me`;
-      
-      fetch(apiUrl, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-        .then((res) => {
-          if (res.ok) {
-            return res.json();
-          }
-          throw new Error('Failed to get user data');
-        })
-        .then((user) => {
-          localStorage.setItem('client_user', JSON.stringify(user));
-          
-          // Update the context state directly to avoid race condition
-          // This ensures the user is set before navigation
-          if (setContextUser) {
-            setContextUser(user);
-          }
-          
-          // Small delay to ensure state is set before redirect
-          setTimeout(() => {
-            // Use router.replace instead of window.location.href to avoid full page reload
-            // Remove token from URL to clean it up
-            router.replace('/portal/dashboard');
-          }, 100);
-        })
-        .catch((error) => {
-          console.error('Error fetching user data:', error);
-          setError('Failed to complete Google login');
-          setOauthProcessing(false);
-        });
+    if (isOpen && typeof window !== 'undefined') {
+      const currentUrl = window.location.pathname + window.location.search;
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AuthModal.tsx:82',message:'Modal opened - storing returnUrl',data:{currentUrl,isOpen},timestamp:Date.now(),runId:'debug1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+      sessionStorage.setItem('returnUrl', currentUrl);
     }
-  }, [searchParams, router, setContextUser]);
+  }, [isOpen]);
 
+  // Close modal and call onSuccess when authenticated
   useEffect(() => {
-    if (isAuthenticated) {
-      // Check for return URL in query params first, then sessionStorage
-      const returnUrlParam = searchParams?.get('returnUrl');
-      const returnUrl = returnUrlParam || (typeof window !== 'undefined' 
-        ? sessionStorage.getItem('returnUrl') 
-        : null);
+    if (isAuthenticated && isOpen) {
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AuthModal.tsx:95',message:'User authenticated in modal',data:{isAuthenticated,isOpen,hasOnSuccess:!!onSuccess},timestamp:Date.now(),runId:'debug1',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
       
-      // Clear the return URL from sessionStorage
-      if (typeof window !== 'undefined' && !returnUrlParam) {
-        sessionStorage.removeItem('returnUrl');
+      const returnUrl = typeof window !== 'undefined' ? sessionStorage.getItem('returnUrl') : null;
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AuthModal.tsx:100',message:'Checking returnUrl before closing modal',data:{returnUrl,currentPath:typeof window !== 'undefined' ? window.location.pathname : null},timestamp:Date.now(),runId:'debug1',hypothesisId:'E'})}).catch(()=>{});
+      // #endregion
+      
+      onClose();
+      if (onSuccess) {
+        // #region agent log
+        fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AuthModal.tsx:107',message:'Calling onSuccess callback',data:{},timestamp:Date.now(),runId:'debug1',hypothesisId:'B'})}).catch(()=>{});
+        // #endregion
+        onSuccess();
       }
       
-      // Redirect to return URL if it exists, otherwise go to dashboard
-      router.replace(returnUrl || '/portal/dashboard');
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AuthModal.tsx:113',message:'Modal closing - checking if redirect will happen',data:{returnUrl},timestamp:Date.now(),runId:'debug1',hypothesisId:'D'})}).catch(()=>{});
+      // #endregion
     }
-  }, [isAuthenticated, router, searchParams]);
+  }, [isAuthenticated, isOpen, onClose, onSuccess]);
 
-  // Show full-screen loading overlay during OAuth processing
-  if (oauthProcessing) {
-    return (
-      <div className="fixed inset-0 z-50 bg-[whitesmoke] dark:bg-[#131313] overflow-hidden">
-        <PortalLayoutSkeleton />
-      </div>
-    );
-  }
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
+  if (!isOpen || !mounted || typeof window === 'undefined') return null;
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,7 +115,14 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
     setError('');
 
     try {
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AuthModal.tsx:120',message:'Login attempt started',data:{currentPath:typeof window !== 'undefined' ? window.location.pathname : null},timestamp:Date.now(),runId:'debug1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
       await login(credentials.email, credentials.password);
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AuthModal.tsx:125',message:'Login successful - waiting for isAuthenticated to update',data:{},timestamp:Date.now(),runId:'debug1',hypothesisId:'A'})}).catch(()=>{});
+      // #endregion
+      // Modal will close automatically via useEffect when isAuthenticated becomes true
     } catch (error: any) {
       setError(error.message || 'Login failed');
       setLoading(false);
@@ -188,7 +155,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
         formData.lastName,
         formData.phone
       );
-      // Registration successful, user will be redirected by useEffect
+      // Modal will close automatically via useEffect when isAuthenticated becomes true
     } catch (error: any) {
       setError(error.message || 'Registration failed');
       setLoading(false);
@@ -221,70 +188,52 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
     }, 0);
   };
 
-  if (isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--shreeji-primary)' }}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
-          <p className="mt-4 text-sm text-white">Redirecting...</p>
+  const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget && !loading) {
+      onClose();
+    }
+  };
+
+  const modalContent = (
+    <div 
+      className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 p-4"
+      style={{ zIndex: 99999 }}
+      onClick={handleBackdropClick}
+    >
+      <div 
+        className="bg-white dark:bg-[#1A1C1E] rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            {mode === 'login' ? 'Sign In' : 'Sign Up'}
+          </h2>
+          <button
+            onClick={onClose}
+            disabled={loading}
+            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition"
+            aria-label="Close"
+          >
+            <X className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+          </button>
         </div>
-      </div>
-    );
-  }
 
-  return (
-    <div className="min-h-screen flex bg-[var(--shreeji-primary)] items-center justify-center p-4">
-      <div className="w-full max-w-7xl bg-white rounded-3xl relative md:h-[85vh] h-full shadow-2xl overflow-hidden flex flex-col lg:flex-row">
-        {/* Left Side - Hero Video Section */}
-        <div className="hidden lg:flex lg:w-1/2 relative h-full text-white hero-text rounded-l-3xl overflow-hidden">
-          <video
-            className="absolute left-0 top-0 w-full h-full object-cover z-0"
-            muted
-            loop
-            autoPlay
-            playsInline
-            src="/videos/black-bg.mp4"
-          />
-          <Link href="/products" className="w-full text-xl px-10 pt-8 z-[1] flex-center justify-center bg-[rgba(0,0,0,0.85)]">
-            <Image
-              src={logo2}
-              alt="Logo"
-              quality={100}
-              className="h-auto w-[50%] hero-logo"
-            />
-            <div className="content">
-              <h1 className="title flex-center h-32">
-                Shreeji
-                <div className="aurora">
-                  <div className="aurora__item"></div>
-                  <div className="aurora__item"></div>
-                  <div className="aurora__item"></div>
-                  <div className="aurora__item"></div>
-                </div>
-              </h1>
-              <div className="subtitle flex gap-2 font-semibold text-3xl">
-                <div>Tried,</div>
-                <div>Trusted &</div>
-                <div>Tested</div>
-              </div>
-            </div>
-          </Link>
-        </div>        
-
-        {/* Right Side - Form */}
-        <div className="w-full lg:w-1/2 p-8 md:p-12 flex flex-col bg-white dark:bg-[#1A1C1E] overflow-y-auto scrollbar-hover">
+        {/* Content */}
+        <div className="p-6">
           {/* Tab Switcher */}
-          <div className="flex gap-4 mb-8">
+          <div className="flex gap-4 mb-6">
             <button
               type="button"
               onClick={() => {
                 setMode('login');
                 setError('');
               }}
+              disabled={loading}
               className={`flex-1 py-2 px-4 rounded-full font-semibold transition-colors ${
                 mode === 'login'
                   ? 'bg-primary-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
               Log In
@@ -295,10 +244,11 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
                 setMode('signup');
                 setError('');
               }}
+              disabled={loading}
               className={`flex-1 py-2 px-4 rounded-full font-semibold transition-colors ${
                 mode === 'signup'
                   ? 'bg-primary-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
               Sign Up
@@ -306,10 +256,10 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
           </div>
 
           {/* Heading */}
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-2 text-center">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2 text-center">
             {mode === 'login' ? 'Welcome' : 'Create Account'} 
-          </h1>
-          <p className="text-gray-600 dark:text-gray-300 mb-8 text-center">
+          </h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-6 text-center text-sm">
             {mode === 'login' 
               ? 'Sign in to access your account' 
               : 'Sign up to access your client portal'}
@@ -323,7 +273,8 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
               e.stopPropagation();
               handleGoogleLogin();
             }}
-            className="w-full mb-6 py-3 px-4 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2"
+            disabled={loading}
+            className="w-full mb-6 py-3 px-4 rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -349,10 +300,10 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
           {/* Divider */}
           <div className="relative mb-6">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
+              <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-500">or</span>
+              <span className="px-4 bg-white dark:bg-[#1A1C1E] text-gray-500">or</span>
             </div>
           </div>
 
@@ -361,14 +312,14 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
             <form onSubmit={handleLogin} className="space-y-4">
               {/* Email Input */}
               <div className="relative">
-                <label htmlFor="login-email" className="sr-only">
+                <label htmlFor="modal-login-email" className="sr-only">
                   Email address
                 </label>
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <EnvelopeIcon className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  id="login-email"
+                  id="modal-login-email"
                   name="email"
                   type="email"
                   required
@@ -381,7 +332,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
 
               {/* Password Input */}
               <div className="relative">
-                <label htmlFor="login-password" className="sr-only">
+                <label htmlFor="modal-login-password" className="sr-only">
                   Password
                 </label>
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -390,7 +341,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
                   </svg>
                 </div>
                 <input
-                  id="login-password"
+                  id="modal-login-password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
@@ -414,7 +365,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
 
               {/* Error Message */}
               {error && (
-                <div className="rounded-full bg-red-50 border border-red-200 p-4">
+                <div className="rounded-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
                   <div className="flex">
                     <div className="flex-shrink-0">
                       <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -422,7 +373,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
                       </svg>
                     </div>
                     <div className="ml-3">
-                      <p className="text-sm text-red-700">{error}</p>
+                      <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
                     </div>
                   </div>
                 </div>
@@ -450,12 +401,6 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
               {/* Footer Links */}
               <div className="text-center space-y-2 pt-4">
                 <p className="text-sm text-gray-600 dark:text-gray-300">
-                  <Link href="/portal/forgot-password" className="font-medium text-primary-600 hover:text-primary-700">
-                    Forgot your password?
-                  </Link>
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-300">
-                  Don't have an account?{' '}
                   <button
                     type="button"
                     onClick={() => {
@@ -464,7 +409,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
                     }}
                     className="font-medium text-primary-600 hover:text-primary-700"
                   >
-                    Sign Up
+                    Don't have an account? Sign Up
                   </button>
                 </p>
               </div>
@@ -474,11 +419,11 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
               {/* Name Fields */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="relative">
-                  <label htmlFor="firstName" className="sr-only">
+                  <label htmlFor="modal-firstName" className="sr-only">
                     First Name
                   </label>
                   <input
-                    id="firstName"
+                    id="modal-firstName"
                     name="firstName"
                     type="text"
                     required
@@ -489,11 +434,11 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
                   />
                 </div>
                 <div className="relative">
-                  <label htmlFor="lastName" className="sr-only">
+                  <label htmlFor="modal-lastName" className="sr-only">
                     Last Name
                   </label>
                   <input
-                    id="lastName"
+                    id="modal-lastName"
                     name="lastName"
                     type="text"
                     required
@@ -507,14 +452,14 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
 
               {/* Email Input */}
               <div className="relative">
-                <label htmlFor="signup-email" className="sr-only">
+                <label htmlFor="modal-signup-email" className="sr-only">
                   Email address
                 </label>
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                   <EnvelopeIcon className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  id="signup-email"
+                  id="modal-signup-email"
                   name="email"
                   type="email"
                   required
@@ -527,14 +472,14 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
 
               {/* Phone Input */}
               <div className="relative">
-                <label htmlFor="phone" className="sr-only">
+                <label htmlFor="modal-phone" className="sr-only">
                   Phone (Optional)
                 </label>
                 <input
-                  id="phone"
+                  id="modal-phone"
                   name="phone"
                   type="tel"
-                  className="w-full px-4 py-3 rounded-full border border-gray-300 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-4 py-3 rounded-full border border-gray-300 dark:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Phone (Optional)"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -543,7 +488,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
 
               {/* Password Input */}
               <div className="relative">
-                <label htmlFor="signup-password" className="sr-only">
+                <label htmlFor="modal-signup-password" className="sr-only">
                   Password
                 </label>
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -552,7 +497,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
                   </svg>
                 </div>
                 <input
-                  id="signup-password"
+                  id="modal-signup-password"
                   name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
@@ -577,7 +522,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
 
               {/* Confirm Password Input */}
               <div className="relative">
-                <label htmlFor="confirmPassword" className="sr-only">
+                <label htmlFor="modal-confirmPassword" className="sr-only">
                   Confirm Password
                 </label>
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -586,7 +531,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
                   </svg>
                 </div>
                 <input
-                  id="confirmPassword"
+                  id="modal-confirmPassword"
                   name="confirmPassword"
                   type={showConfirmPassword ? 'text' : 'password'}
                   required
@@ -611,7 +556,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
 
               {/* Error Message */}
               {error && (
-                <div className="rounded-full bg-red-50 border border-red-200 p-4">
+                <div className="rounded-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
                   <div className="flex">
                     <div className="flex-shrink-0">
                       <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -619,7 +564,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
                       </svg>
                     </div>
                     <div className="ml-3">
-                      <p className="text-sm text-red-700">{error}</p>
+                      <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
                     </div>
                   </div>
                 </div>
@@ -666,5 +611,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
       </div>
     </div>
   );
-}
 
+  // Render modal using portal to document.body to avoid stacking context issues
+  return createPortal(modalContent, document.body);
+}

@@ -11,6 +11,7 @@ import "./style.scss";
 import ThemeBtn from "./ThemeBtn";
 import { ChevronDown } from "lucide-react";
 import CartButton from "./CartButton";
+import WishlistButton from "./WishlistButton";
 import ProfileButton from "./ProfileButton";
 import NotificationBell from "@/app/components/notifications/NotificationBell";
 import { useClientAuth } from "@/app/contexts/ClientAuthContext";
@@ -494,6 +495,9 @@ const Navbar = () => {
                 <div onClick={() => setIsMobileMenuOpen(false)}>
                   <CartButton />
                 </div>
+                <div onClick={() => setIsMobileMenuOpen(false)}>
+                  <WishlistButton />
+                </div>
                 <NotificationBellWrapper />
                 <div onClick={() => setIsMobileMenuOpen(false)}>
                   <ProfileButton />
@@ -505,6 +509,7 @@ const Navbar = () => {
 
           <div className="ml-2 hidden lg:flex items-center gap-3">
             <CartButton />
+            <WishlistButton />
             <NotificationBellWrapper />
             <ProfileButton />
             <ThemeBtn isScrolled={isScrolled} />

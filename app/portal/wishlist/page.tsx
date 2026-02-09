@@ -4,13 +4,12 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useClientAuth } from '@/app/contexts/ClientAuthContext'
 import clientApi from '@/app/lib/client/api'
-import { HeartIcon, ShoppingCartIcon } from '@heroicons/react/24/outline'
+import { HeartIcon } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid'
-import Image from 'next/image'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
-import { useCart } from '@/app/contexts/CartContext'
 import { WishlistItemSkeleton } from '@/app/components/ui/Skeletons'
+import ProductPreview from '@/components/products/ProductPreview'
 
 interface WishlistItem {
   id: number
@@ -19,22 +18,25 @@ interface WishlistItem {
     id: number
     name: string
     slug: string
-    price: number
+    price: number | string // Can be number or string from API
     currency: string
-    images?: string[]
+    images?: Array<string | { url: string; alt?: string; isMain?: boolean }>
     stockStatus?: string
+    tagline?: string
+    discountedPrice?: number | string
+    category?: string
+    subcategory?: string
+    [key: string]: any // Allow additional fields from API
   }
   createdAt: string
 }
 
 export default function WishlistPage() {
   const { loading: authLoading, isAuthenticated } = useClientAuth()
-  const { addItem } = useCart()
   const router = useRouter()
   const [items, setItems] = useState<WishlistItem[]>([])
   const [loading, setLoading] = useState(true)
   const [removing, setRemoving] = useState<number | null>(null)
-  const [addingToCart, setAddingToCart] = useState<number | null>(null)
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -67,6 +69,10 @@ export default function WishlistPage() {
       await clientApi.removeFromWishlist(productId)
       toast.success('Removed from wishlist')
       loadWishlist()
+      // Dispatch event to notify navbar to refresh count
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('wishlist-changed'))
+      }
     } catch (error: any) {
       toast.error(error.message || 'Failed to remove from wishlist')
     } finally {
@@ -74,33 +80,78 @@ export default function WishlistPage() {
     }
   }
 
-  const handleAddToCart = async (product: WishlistItem['product']) => {
-    try {
-      setAddingToCart(product.id)
-      await addItem(product.id.toString(), 1)
-      toast.success('Added to cart')
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to add to cart')
-    } finally {
-      setAddingToCart(null)
+  // Transform wishlist item to ProductPreview format
+  const transformToProductPreview = (item: WishlistItem) => {
+    // Extract image URLs (handle both string and object formats)
+    const images: string[] = []
+    if (item.product.images) {
+      item.product.images.forEach((img) => {
+        if (typeof img === 'string') {
+          images.push(img)
+        } else if (typeof img === 'object' && img !== null && img.url) {
+          images.push(img.url)
+        }
+      })
     }
-  }
 
-  const normalizeImageUrl = (url?: string) => {
-    if (!url) return '/images/placeholder-product.png'
-    // Convert HTTP to HTTPS for mixed content security
-    // For image server that doesn't support HTTPS, proxy through Next.js
-    let normalizedUrl = url;
-    if (normalizedUrl.startsWith('http://164.92.249.220:9000/')) {
-      // Extract the path after the base URL
-      const imagePath = normalizedUrl.replace('http://164.92.249.220:9000/', '');
-      normalizedUrl = `/api/images/${imagePath}`;
-    } else if (normalizedUrl.startsWith('http://')) {
-      // For other HTTP URLs, try to convert to HTTPS
-      normalizedUrl = normalizedUrl.replace('http://', 'https://');
+    // Get category/subcategory from product or parse from slug
+    let category = item.product.category || ''
+    let subcategory = item.product.subcategory || undefined
+    
+    // If category not in product, try to parse from slug
+    if (!category && item.product.slug) {
+      const slugParts = item.product.slug.split('/').filter(Boolean)
+      if (slugParts.length >= 2) {
+        category = slugParts[0]
+        if (slugParts.length >= 3) {
+          subcategory = slugParts[1]
+        }
+      }
     }
-    if (normalizedUrl.startsWith('http')) return normalizedUrl
-    return normalizedUrl.startsWith('/') ? normalizedUrl : `/${normalizedUrl}`
+
+    // ProductPreview expects price as number (it will add "K" prefix itself)
+    // API returns sellingPrice or basePrice, not price
+    let price: number = 0
+    const productPrice = (item.product as any).sellingPrice || (item.product as any).basePrice || item.product.price
+    if (productPrice !== undefined && productPrice !== null) {
+      if (typeof productPrice === 'string') {
+        // Remove currency prefix if present and parse
+        const priceStr = productPrice.replace(/^[A-Z]+\s*/, '').trim()
+        price = parseFloat(priceStr) || 0
+      } else if (typeof productPrice === 'number') {
+        price = productPrice
+      }
+    }
+    
+    // Also handle discountedPrice if available
+    let discountedPrice: number | undefined = undefined
+    const productDiscountedPrice = (item.product as any).discountedPrice
+    if (productDiscountedPrice !== undefined && productDiscountedPrice !== null && productDiscountedPrice !== '0.00') {
+      if (typeof productDiscountedPrice === 'string') {
+        const discountedPriceStr = productDiscountedPrice.replace(/^[A-Z]+\s*/, '').trim()
+        const parsed = parseFloat(discountedPriceStr)
+        if (!isNaN(parsed) && parsed > 0) {
+          discountedPrice = parsed
+        }
+      } else if (typeof productDiscountedPrice === 'number' && productDiscountedPrice > 0) {
+        discountedPrice = productDiscountedPrice
+      }
+    }
+
+    const transformed = {
+      id: item.product.id,
+      documentId: item.product.id.toString(),
+      name: item.product.name,
+      images: images.length > 0 ? images : ['/images/placeholder-product.png'],
+      price: price, // Pass as number, ProductPreview will format with "K"
+      discountedPrice: discountedPrice,
+      tagline: item.product.tagline || undefined,
+      category: category || 'products',
+      subcategory: subcategory || undefined,
+      slug: item.product.slug,
+    }
+
+    return transformed
   }
 
   if (authLoading || loading) {
@@ -150,60 +201,15 @@ export default function WishlistPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {items.map((item) => (
-            <div
-              key={item.id}
-              className="bg-white rounded-2xl shadow-[0_0_20px_0_rgba(0,0,0,0.1)] overflow-hidden hover:shadow-[0_0_25px_0_rgba(0,0,0,0.15)] transition-shadow"
-            >
-              <Link href={`/products/${item.product.slug}`}>
-                <div className="relative aspect-square w-full">
-                  <Image
-                    src={normalizeImageUrl(item.product.images?.[0])}
-                    alt={item.product.name}
-                    fill
-                    className="object-cover"
-                    unoptimized={item.product.images?.[0]?.startsWith('http')}
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement
-                      target.src = '/images/placeholder-product.png'
-                    }}
-                  />
-                </div>
-              </Link>
-              <div className="p-4">
-                <Link href={`/products/${item.product.slug}`}>
-                  <h3 className="text-lg font-semibold text-gray-900 hover:text-[var(--shreeji-primary)] transition-colors line-clamp-2">
-                    {item.product.name}
-                  </h3>
-                </Link>
-                <p className="mt-2 text-xl font-bold text-[var(--shreeji-primary)]">
-                  {item.product.currency} {item.product.price?.toLocaleString()}
-                </p>
-                <div className="mt-4 flex items-center space-x-2">
-                  <button
-                    onClick={() => handleAddToCart(item.product)}
-                    disabled={addingToCart === item.product.id || item.product.stockStatus === 'out-of-stock'}
-                    className="flex-1 flex items-center justify-center px-4 py-2 bg-[var(--shreeji-primary)] text-white rounded-xl hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  >
-                    <ShoppingCartIcon className="h-5 w-5 mr-2" />
-                    {addingToCart === item.product.id ? 'Adding...' : 'Add to Cart'}
-                  </button>
-                  <button
-                    onClick={() => handleRemove(item.productId)}
-                    disabled={removing === item.productId}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors disabled:opacity-50"
-                    title="Remove from wishlist"
-                  >
-                    {removing === item.productId ? (
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-500"></div>
-                    ) : (
-                      <HeartIconSolid className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
+          {items.map((item, index) => {
+            const product = transformToProductPreview(item)
+
+            return (
+              <div key={item.id} className="relative">
+                <ProductPreview product={product} index={index} additionalClass="" />
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

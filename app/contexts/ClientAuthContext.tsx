@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useMemo } from 'react';
 import clientAuth, { ClientUser } from '@/app/lib/client/auth';
 
 interface ClientAuthContextType {
@@ -71,7 +71,7 @@ export function ClientAuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  const value = {
+  const value = useMemo(() => ({
     user,
     loading,
     login,
@@ -79,7 +79,7 @@ export function ClientAuthProvider({ children }: { children: ReactNode }) {
     logout,
     isAuthenticated: !!user,
     setUser
-  };
+  }), [user, loading]);
 
   return (
     <ClientAuthContext.Provider value={value}>
