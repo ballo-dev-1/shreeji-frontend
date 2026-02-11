@@ -355,7 +355,6 @@ export function SearchInputSkeleton() {
   )
 }
 
-
 // Full Page Loading Skeleton (for authentication checks and route transitions)
 export function FullPageLoadingSkeleton() {
   return (
