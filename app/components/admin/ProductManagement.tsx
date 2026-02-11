@@ -493,6 +493,11 @@ export default function ProductManagement() {
         ...(updatedProduct.maxStockLevel !== undefined && updatedProduct.maxStockLevel !== null && { maxStockLevel: updatedProduct.maxStockLevel }),
         ...(updatedProduct.stockStatus && { stockStatus: updatedProduct.stockStatus }),
         ...(updatedProduct.basePrice !== undefined && updatedProduct.basePrice !== null && { basePrice: updatedProduct.basePrice }),
+        ...(updatedProduct.basePriceUsd !== undefined && updatedProduct.basePriceUsd !== null && { basePriceUsd: updatedProduct.basePriceUsd }),
+        ...(updatedProduct.sellingPriceUsd !== undefined && updatedProduct.sellingPriceUsd !== null && { sellingPriceUsd: updatedProduct.sellingPriceUsd }),
+        ...(updatedProduct.exchangeRate !== undefined && updatedProduct.exchangeRate !== null && { exchangeRate: updatedProduct.exchangeRate }),
+        ...(updatedProduct.taxRate !== undefined && updatedProduct.taxRate !== null && { taxRate: updatedProduct.taxRate }),
+        ...(updatedProduct.discountPercent !== undefined && updatedProduct.discountPercent !== null && { discountPercent: updatedProduct.discountPercent }),
         ...(updatedProduct.weight !== undefined && updatedProduct.weight !== null && { weight: updatedProduct.weight }),
         ...(updatedProduct.Dimensions && { dimensions: updatedProduct.Dimensions }),
       }

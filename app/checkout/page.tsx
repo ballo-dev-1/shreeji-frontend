@@ -2,7 +2,7 @@
 
 import { useCart } from '@/app/contexts/CartContext'
 import { useClientAuth } from '@/app/contexts/ClientAuthContext'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import CheckoutTopBar from '@/app/components/checkout/CheckoutTopBar'
 import CheckoutTitle from '@/app/components/checkout/CheckoutTitle'
 import CheckoutAlerts from '@/app/components/checkout/CheckoutAlerts'
@@ -24,6 +24,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { CheckoutCustomerInput, CheckoutAddressInput } from '@/app/lib/ecommerce/api'
+import clientAuth from '@/app/lib/client/auth'
 
 const CHECKOUT_STEPS = [
   { label: 'Review', number: 1 },
@@ -105,6 +106,16 @@ export default function CheckoutPage() {
     }
   }, [currentStep, fulfillmentType, selectedAddressId, paymentMethod, success])
 
+  // Scroll to top whenever the step changes (Next, Continue, or Previous)
+  const isInitialMount = useRef(true)
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [currentStep])
+
   // Validate and redirect to step 1 if requirements not met
   useEffect(() => {
     // Don't validate during loading or if already on step 1 or if checkout is successful
@@ -148,8 +159,13 @@ export default function CheckoutPage() {
     }
 
     // Check if guest user hasn't provided customer information
-    if (!isAuthenticated) {
+    // Guard: if context says unauthenticated but auth module has a token, context may be stale - skip reset
+    const hasToken = typeof window !== 'undefined' && clientAuth.isAuthenticated()
+    if (!isAuthenticated && !hasToken) {
       if (!guestCustomerData || !guestCustomerData.email || !guestCustomerData.firstName || !guestCustomerData.lastName) {
+        // #region agent log
+        fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:useEffect:guestBlock1',message:'useEffect showing modal - no guest data',data:{currentStep,isAuthenticated,authLoading,loading},timestamp:Date.now(),hypothesisId:'H6'})}).catch(()=>{});
+        // #endregion
         setCurrentStep(1)
         // Optionally show the modal
         setShowGuestCustomerModal(true)
@@ -160,6 +176,9 @@ export default function CheckoutPage() {
       const email = guestCustomerData.email?.trim() || ''
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       if (!emailRegex.test(email) || guestCustomerData.firstName.trim().length < 2 || guestCustomerData.lastName.trim().length < 2) {
+        // #region agent log
+        fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:useEffect:guestBlock2',message:'useEffect showing modal - invalid guest data',data:{currentStep,isAuthenticated,authLoading},timestamp:Date.now(),hypothesisId:'H6'})}).catch(()=>{});
+        // #endregion
         setCurrentStep(1)
         setShowGuestCustomerModal(true)
         return
@@ -253,8 +272,13 @@ export default function CheckoutPage() {
 
     // Validate current step before proceeding
     if (currentStep === 1) {
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:handleNext:step1',message:'Next clicked on step 1',data:{isAuthenticated,authLoading,userId:user?.id,userEmail:user?.email,guestCustomerData:!!guestCustomerData,willShowModal:!isAuthenticated},timestamp:Date.now(),hypothesisId:'H1,H2,H3,H4'})}).catch(()=>{});
+      // #endregion
       // Step 1: Review - show guest customer info modal if not authenticated
-      if (!isAuthenticated) {
+      // Guard: if context says unauthenticated but auth module has a token, context may be stale - skip modal
+      const hasToken = typeof window !== 'undefined' && clientAuth.isAuthenticated()
+      if (!isAuthenticated && !hasToken) {
         if (!guestCustomerData) {
           // Show modal to collect guest information
           setShowGuestCustomerModal(true)
@@ -279,8 +303,6 @@ export default function CheckoutPage() {
         }
       }
       setCurrentStep(2)
-      // Scroll to top when proceeding to next step
-      window.scrollTo({ top: 0, behavior: 'smooth' })
     } else if (currentStep === 2) {
       // Step 2: Fulfillment & Address - validate if delivery
       if (fulfillmentType === 'delivery') {
@@ -296,8 +318,6 @@ export default function CheckoutPage() {
         }
       }
       setCurrentStep(3)
-      // Scroll to top when proceeding to next step
-      window.scrollTo({ top: 0, behavior: 'smooth' })
     } else if (currentStep === 3) {
       // Step 3: Payment - process checkout
       handlePayment()
@@ -308,8 +328,6 @@ export default function CheckoutPage() {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1)
       setFormError(null)
-      // Scroll to top when going back to previous step
-      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
@@ -801,8 +819,6 @@ export default function CheckoutPage() {
           setShowGuestCustomerModal(false)
           // Automatically proceed to next step after successful submission
           setCurrentStep(2)
-          // Scroll to top when proceeding to next step
-          window.scrollTo({ top: 0, behavior: 'smooth' })
         }}
         initialData={guestCustomerData}
       />

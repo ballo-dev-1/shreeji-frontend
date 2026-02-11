@@ -60,8 +60,9 @@ export default function InventoryAlertsSettings() {
   if (loading) {
     return (
       <Layout currentPage="Inventory Alerts">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="space-y-6 animate-pulse">
+          <div className="h-8 bg-gray-300 rounded w-64"></div>
+          <div className="h-96 bg-gray-200 rounded-lg"></div>
         </div>
       </Layout>
     );

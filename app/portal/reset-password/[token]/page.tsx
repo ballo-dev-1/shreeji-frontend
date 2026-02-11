@@ -74,9 +74,9 @@ export default function ResetPasswordPage() {
   if (verifying) {
     return (
       <div className="min-h-screen bg-[#f5f1e8] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-sm text-gray-600">Verifying reset token...</p>
+        <div className="text-center space-y-4 animate-pulse">
+          <div className="h-12 w-12 bg-gray-300 rounded-full mx-auto"></div>
+          <p className="text-sm text-gray-600">Verifying reset token...</p>
         </div>
       </div>
     )

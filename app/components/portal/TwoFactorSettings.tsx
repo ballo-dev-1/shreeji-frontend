@@ -11,6 +11,7 @@ import {
   CheckCircleIcon,
 } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
+import { TwoFactorSettingsSkeleton } from '@/app/components/ui/Skeletons'
 
 interface TwoFactorSettingsProps {
   /**
@@ -138,15 +139,7 @@ export default function TwoFactorSettings({ standalone = false }: TwoFactorSetti
   }
 
   if (authLoading || loading) {
-    return standalone ? (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f1e8]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    ) : (
-      <div className="flex justify-center py-6">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-      </div>
-    )
+    return <TwoFactorSettingsSkeleton standalone={standalone} />
   }
 
   if (!isAuthenticated) {

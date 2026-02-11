@@ -9,7 +9,6 @@ import {
   EnvelopeIcon
 } from '@heroicons/react/24/outline';
 import { useClientAuth } from '@/app/contexts/ClientAuthContext';
-import { useRouter } from 'next/navigation';
 
 type AuthMode = 'login' | 'signup';
 
@@ -26,7 +25,6 @@ export default function AuthModal({
   defaultMode = 'login',
   onSuccess 
 }: AuthModalProps) {
-  const router = useRouter();
   const [mode, setMode] = useState<AuthMode>(defaultMode);
   const [credentials, setCredentials] = useState({
     email: '',
@@ -63,40 +61,28 @@ export default function AuthModal({
     }
   }, [isOpen, defaultMode]);
 
-  // Store current URL as returnUrl when modal opens (Hypothesis A, C, E)
+  // Store current URL as returnUrl when modal opens
   useEffect(() => {
     if (isOpen && typeof window !== 'undefined') {
       const currentUrl = window.location.pathname + window.location.search;
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AuthModal.tsx:82',message:'Modal opened - storing returnUrl',data:{currentUrl,isOpen},timestamp:Date.now(),runId:'debug1',hypothesisId:'A'})}).catch(()=>{});
-      // #endregion
-      sessionStorage.setItem('returnUrl', currentUrl);
+      // Store in localStorage for persistence across page reloads
+      localStorage.setItem('authReturnUrl', currentUrl);
+      // Set flag to indicate redirect should happen after authentication
+      localStorage.setItem('shouldRedirectAfterAuth', 'true');
+      console.log('[AuthModal] Stored returnUrl:', currentUrl);
     }
   }, [isOpen]);
 
   // Close modal and call onSuccess when authenticated
+  // Don't redirect here - let AuthPage or PortalLayoutContent handle redirect
+  // They will check localStorage for shouldRedirectAfterAuth and authReturnUrl
   useEffect(() => {
     if (isAuthenticated && isOpen) {
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AuthModal.tsx:95',message:'User authenticated in modal',data:{isAuthenticated,isOpen,hasOnSuccess:!!onSuccess},timestamp:Date.now(),runId:'debug1',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
-      
-      const returnUrl = typeof window !== 'undefined' ? sessionStorage.getItem('returnUrl') : null;
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AuthModal.tsx:100',message:'Checking returnUrl before closing modal',data:{returnUrl,currentPath:typeof window !== 'undefined' ? window.location.pathname : null},timestamp:Date.now(),runId:'debug1',hypothesisId:'E'})}).catch(()=>{});
-      // #endregion
-      
       onClose();
       if (onSuccess) {
-        // #region agent log
-        fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AuthModal.tsx:107',message:'Calling onSuccess callback',data:{},timestamp:Date.now(),runId:'debug1',hypothesisId:'B'})}).catch(()=>{});
-        // #endregion
         onSuccess();
       }
-      
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AuthModal.tsx:113',message:'Modal closing - checking if redirect will happen',data:{returnUrl},timestamp:Date.now(),runId:'debug1',hypothesisId:'D'})}).catch(()=>{});
-      // #endregion
+      // Keep localStorage flags - let AuthPage or PortalLayoutContent handle redirect and cleanup
     }
   }, [isAuthenticated, isOpen, onClose, onSuccess]);
 
@@ -115,13 +101,7 @@ export default function AuthModal({
     setError('');
 
     try {
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AuthModal.tsx:120',message:'Login attempt started',data:{currentPath:typeof window !== 'undefined' ? window.location.pathname : null},timestamp:Date.now(),runId:'debug1',hypothesisId:'A'})}).catch(()=>{});
-      // #endregion
       await login(credentials.email, credentials.password);
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'AuthModal.tsx:125',message:'Login successful - waiting for isAuthenticated to update',data:{},timestamp:Date.now(),runId:'debug1',hypothesisId:'A'})}).catch(()=>{});
-      // #endregion
       // Modal will close automatically via useEffect when isAuthenticated becomes true
     } catch (error: any) {
       setError(error.message || 'Login failed');
@@ -386,12 +366,8 @@ export default function AuthModal({
                 className="w-full py-3 px-4 rounded-full bg-primary-500 text-white font-semibold hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? (
-                  <div className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Signing in...
+                  <div className="flex items-center justify-center animate-pulse">
+                    <div className="h-4 bg-white/30 rounded w-24"></div>
                   </div>
                 ) : (
                   'Log In'
@@ -577,12 +553,8 @@ export default function AuthModal({
                 className="w-full py-3 px-4 rounded-full bg-primary-500 text-white font-semibold hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? (
-                  <div className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Creating account...
+                  <div className="flex items-center justify-center animate-pulse">
+                    <div className="h-4 bg-white/30 rounded w-32"></div>
                   </div>
                 ) : (
                   'Create Account'

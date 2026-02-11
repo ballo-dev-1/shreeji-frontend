@@ -65,8 +65,9 @@ export default function DeliveryAddressSection({
           <Package className='h-5 w-5 text-[#544829]' />
           <h2 className='text-xl font-semibold text-gray-900'>Delivery address</h2>
         </div>
-        <div className='flex items-center justify-center py-8'>
-          <Loader2 className='h-6 w-6 animate-spin text-[#544829]' />
+        <div className='space-y-2 animate-pulse py-8'>
+          <div className='h-4 bg-gray-200 rounded w-32 mx-auto'></div>
+          <div className='h-1 bg-gray-200 rounded w-24 mx-auto'></div>
         </div>
       </div>
     )

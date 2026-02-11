@@ -8,6 +8,7 @@ import api from '@/app/lib/admin/api'
 import { currencyFormatter } from '@/app/components/checkout/currency-formatter'
 import { Download } from 'lucide-react';
 import Link from 'next/link';
+import { TableSkeleton } from '@/app/components/ui/Skeletons';
 
 const paymentStatusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -23,8 +24,8 @@ const paymentMethodLabels = {
   debit_card: 'Debit Card',
   bank_transfer: 'Bank Transfer',
   mobile_money: 'Mobile Money',
-  cash_on_delivery: 'Cash on Pick Up', // Backward compatibility
-  cash_on_pickup: 'Cash on Pick Up',
+  cash_on_delivery: 'Payment on Pickup', // Backward compatibility
+  cash_on_pickup: 'Payment on Pickup',
 };
 
 export default function PaymentManagement() {
@@ -126,8 +127,9 @@ export default function PaymentManagement() {
   if (loading) {
     return (
       <Layout currentPage="Payments">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="space-y-6 animate-pulse">
+          <div className="h-8 bg-gray-300 rounded w-64"></div>
+          <TableSkeleton rows={8} columns={6} />
         </div>
       </Layout>
     );
@@ -200,7 +202,7 @@ export default function PaymentManagement() {
                 <option value="debit_card">Debit Card</option>
                 <option value="bank_transfer">Bank Transfer</option>
                 <option value="mobile_money">Mobile Money</option>
-                <option value="cash_on_pickup">Cash on Pick Up</option>
+                <option value="cash_on_pickup">Payment on Pickup</option>
               </select>
             </div>
             <div>

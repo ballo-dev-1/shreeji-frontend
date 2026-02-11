@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useClientAuth } from '@/app/contexts/ClientAuthContext'
 import PortalNav from '@/app/components/portal/PortalNav'
 import PortalHeader from '@/app/components/portal/PortalHeader'
+import ProtectedRoute from '@/app/components/portal/ProtectedRoute'
+import { FullPagePortalLoadingSkeleton } from '@/app/components/ui/Skeletons'
 
 export default function PortalLayoutContent({
   children,
@@ -12,6 +14,7 @@ export default function PortalLayoutContent({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const router = useRouter()
   const { isAuthenticated, loading } = useClientAuth()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>('light')
@@ -77,8 +80,57 @@ export default function PortalLayoutContent({
     }
   }, [theme])
 
+  // Check for redirect after authentication
+  // This handles redirects when user authenticates via modal
+  // Runs whenever user is authenticated and on a portal page
+  useEffect(() => {
+    if (!loading && isAuthenticated && typeof window !== 'undefined') {
+      const shouldRedirect = localStorage.getItem('shouldRedirectAfterAuth') === 'true'
+      const returnUrl = localStorage.getItem('authReturnUrl')
+      const currentPath = window.location.pathname
+      
+      console.log('[PortalLayoutContent] Redirect check:', { shouldRedirect, returnUrl, currentPath, isAuthenticated, loading })
+      
+      // Only redirect if:
+      // 1. Flag is set (user authenticated via modal)
+      // 2. ReturnUrl exists
+      // 3. ReturnUrl is NOT a portal page (to prevent redirect loops)
+      // 4. We're currently on a portal page (user was redirected here or navigated here)
+      if (shouldRedirect && returnUrl && currentPath.startsWith('/portal/')) {
+        const isPortalPage = returnUrl.startsWith('/portal/')
+        const isAuthPage = returnUrl.startsWith('/portal/login') || 
+                          returnUrl.startsWith('/portal/register') ||
+                          returnUrl.startsWith('/portal/forgot-password') ||
+                          returnUrl.startsWith('/portal/reset-password')
+        
+        console.log('[PortalLayoutContent] Evaluating redirect:', { isPortalPage, isAuthPage, returnUrl, currentPath })
+        
+        // Only redirect if it's not a portal page
+        if (!isPortalPage) {
+          console.log('[PortalLayoutContent] Redirecting to:', returnUrl)
+          // Clear the flags before redirecting
+          localStorage.removeItem('shouldRedirectAfterAuth')
+          localStorage.removeItem('authReturnUrl')
+          
+          // Redirect to the stored URL
+          router.replace(returnUrl)
+        } else if (!isAuthPage) {
+          // If it's a portal page (but not auth), clear flags but don't redirect
+          // User intentionally navigated to portal, so stay there
+          console.log('[PortalLayoutContent] Clearing flags - portal page')
+          localStorage.removeItem('shouldRedirectAfterAuth')
+          localStorage.removeItem('authReturnUrl')
+        }
+        // If it's an auth page, keep the flags in case user needs to complete auth flow
+      }
+    }
+  }, [loading, isAuthenticated, router, pathname])
+
   // Show full-width layout for login and register pages when not authenticated
-  const isAuthPage = pathname === '/portal/login' || pathname === '/portal/register'
+  const isAuthPage = pathname === '/portal/login' || 
+                     pathname === '/portal/register' ||
+                     pathname === '/portal/forgot-password' ||
+                     pathname?.startsWith('/portal/reset-password')
   const showSidebar = isAuthenticated && !isAuthPage
 
   // Get page title from pathname
@@ -92,11 +144,7 @@ export default function PortalLayoutContent({
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f1e8]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-      </div>
-    )
+    return <FullPagePortalLoadingSkeleton />
   }
 
   if (isAuthPage && !isAuthenticated) {
@@ -104,41 +152,48 @@ export default function PortalLayoutContent({
     return <div className="min-h-screen bg-[#f5f1e8]">{children}</div>
   }
 
-  // Authenticated layout with sidebar and header
-  return (
-    <div className="flex h-screen bg-[whitesmoke] dark:bg-[#131313]">
-      {/* Sidebar */}
-      {showSidebar && (
-        <>
-          <PortalNav sidebarOpen={sidebarOpen} />
-          {/* Sidebar overlay for mobile */}
-          {sidebarOpen && (
-            <div 
-              className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
-              onClick={() => setSidebarOpen(false)}
-            />
-          )}
-        </>
-      )}
-
-      {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden rounded-2xl m-2 ml-0">
-        {/* Page content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-white dark:bg-[whitesmoke]">
-          {/* Header */}
+  // For protected routes, wrap with ProtectedRoute
+  if (!isAuthPage) {
+    return (
+      <ProtectedRoute>
+        <div className="flex h-screen bg-[whitesmoke] dark:bg-[#131313]">
+          {/* Sidebar */}
           {showSidebar && (
-            <PortalHeader 
-              currentPage={getPageTitle()}
-              pageTitle={getPageTitle()}
-              onMenuClick={() => setSidebarOpen(true)}
-            />
+            <>
+              <PortalNav sidebarOpen={sidebarOpen} />
+              {/* Sidebar overlay for mobile */}
+              {sidebarOpen && (
+                <div 
+                  className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
+                  onClick={() => setSidebarOpen(false)}
+                />
+              )}
+            </>
           )}
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {children}
+
+          {/* Main content */}
+          <div className="flex-1 flex flex-col overflow-hidden rounded-2xl m-2 ml-0">
+            {/* Page content */}
+            <main className="flex-1 overflow-x-hidden overflow-y-auto bg-white dark:bg-[whitesmoke]">
+              {/* Header */}
+              {showSidebar && (
+                <PortalHeader 
+                  currentPage={getPageTitle()}
+                  pageTitle={getPageTitle()}
+                  onMenuClick={() => setSidebarOpen(true)}
+                />
+              )}
+              <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {children}
+              </div>
+            </main>
           </div>
-        </main>
-      </div>
-    </div>
-  )
+        </div>
+      </ProtectedRoute>
+    )
+  }
+
+  // Fallback for auth pages
+  return <div className="min-h-screen bg-[#f5f1e8]">{children}</div>
 }
 

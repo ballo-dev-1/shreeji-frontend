@@ -373,8 +373,9 @@ export default function InventoryReports() {
         {/* Report Table */}
         <div className="bg-white shadow-sm rounded-lg overflow-hidden">
           {loading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+            <div className="space-y-2 animate-pulse py-16">
+              <div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
+              <div className="h-1 bg-gray-200 rounded w-24 mx-auto"></div>
             </div>
           ) : (
             renderReportTable()

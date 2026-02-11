@@ -6,6 +6,7 @@ import api from '@/app/lib/admin/api'
 import toast from 'react-hot-toast'
 import { CheckCircleIcon, XCircleIcon, EyeIcon } from '@heroicons/react/20/solid'
 import { currencyFormatter } from '@/app/components/checkout/currency-formatter'
+import { TableSkeleton } from '@/app/components/ui/Skeletons'
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -75,8 +76,9 @@ export default function ReturnManagement() {
   if (loading) {
     return (
       <Layout currentPage="Returns">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="space-y-6 animate-pulse">
+          <div className="h-8 bg-gray-300 rounded w-64"></div>
+          <TableSkeleton rows={8} columns={6} />
         </div>
       </Layout>
     )

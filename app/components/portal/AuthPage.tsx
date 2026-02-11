@@ -109,9 +109,22 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
           
           // Small delay to ensure state is set before redirect
           setTimeout(() => {
-            // Use router.replace instead of window.location.href to avoid full page reload
-            // Remove token from URL to clean it up
-            router.replace('/portal/dashboard');
+            // Check for returnUrl in localStorage (from modal authentication)
+            const returnUrl = typeof window !== 'undefined' ? localStorage.getItem('authReturnUrl') : null;
+            const shouldRedirect = typeof window !== 'undefined' ? localStorage.getItem('shouldRedirectAfterAuth') === 'true' : false;
+            
+            if (shouldRedirect && returnUrl && !returnUrl.startsWith('/portal/')) {
+              // Clear flags and redirect to stored URL
+              if (typeof window !== 'undefined') {
+                localStorage.removeItem('shouldRedirectAfterAuth');
+                localStorage.removeItem('authReturnUrl');
+              }
+              router.replace(returnUrl);
+            } else {
+              // Use router.replace instead of window.location.href to avoid full page reload
+              // Remove token from URL to clean it up
+              router.replace('/portal/dashboard');
+            }
           }, 100);
         })
         .catch((error) => {
@@ -124,19 +137,42 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
 
   useEffect(() => {
     if (isAuthenticated) {
-      // Check for return URL in query params first, then sessionStorage
+      // Check for return URL in query params first, then localStorage (from modal), then sessionStorage
       const returnUrlParam = searchParams?.get('returnUrl');
-      const returnUrl = returnUrlParam || (typeof window !== 'undefined' 
+      const returnUrlFromLocalStorage = typeof window !== 'undefined' 
+        ? localStorage.getItem('authReturnUrl') 
+        : null;
+      const shouldRedirectFromModal = typeof window !== 'undefined' 
+        ? localStorage.getItem('shouldRedirectAfterAuth') === 'true'
+        : false;
+      const returnUrlFromSession = typeof window !== 'undefined' 
         ? sessionStorage.getItem('returnUrl') 
-        : null);
+        : null;
       
-      // Clear the return URL from sessionStorage
-      if (typeof window !== 'undefined' && !returnUrlParam) {
-        sessionStorage.removeItem('returnUrl');
+      const returnUrl = returnUrlParam || 
+                       (shouldRedirectFromModal && returnUrlFromLocalStorage ? returnUrlFromLocalStorage : null) ||
+                       returnUrlFromSession;
+      
+      // Clear the return URLs
+      if (typeof window !== 'undefined') {
+        if (!returnUrlParam && returnUrlFromSession) {
+          sessionStorage.removeItem('returnUrl');
+        }
+        if (shouldRedirectFromModal && returnUrlFromLocalStorage) {
+          localStorage.removeItem('shouldRedirectAfterAuth');
+          localStorage.removeItem('authReturnUrl');
+        }
       }
       
-      // Redirect to return URL if it exists, otherwise go to dashboard
-      router.replace(returnUrl || '/portal/dashboard');
+      // Only redirect to dashboard if no returnUrl exists
+      // If returnUrl exists and is not a portal page, redirect there
+      // Otherwise, if returnUrl is a portal page, stay there
+      if (returnUrl && !returnUrl.startsWith('/portal/')) {
+        router.replace(returnUrl);
+      } else if (!returnUrl) {
+        router.replace('/portal/dashboard');
+      }
+      // If returnUrl is a portal page, don't redirect (user is already there)
     }
   }, [isAuthenticated, router, searchParams]);
 
@@ -224,9 +260,9 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
   if (isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--shreeji-primary)' }}>
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto"></div>
-          <p className="mt-4 text-sm text-white">Redirecting...</p>
+        <div className="text-center space-y-4 animate-pulse">
+          <div className="h-12 w-12 bg-white/20 rounded-full mx-auto"></div>
+          <p className="text-sm text-white">Redirecting...</p>
         </div>
       </div>
     );
@@ -435,12 +471,8 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
                 className="w-full py-3 px-4 rounded-full bg-primary-500 text-white font-semibold hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? (
-                  <div className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Signing in...
+                  <div className="flex items-center justify-center animate-pulse">
+                    <div className="h-4 bg-white/30 rounded w-24"></div>
                   </div>
                 ) : (
                   'Log In'
@@ -632,12 +664,8 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
                 className="w-full py-3 px-4 rounded-full bg-primary-500 text-white font-semibold hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 {loading ? (
-                  <div className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Creating account...
+                  <div className="flex items-center justify-center animate-pulse">
+                    <div className="h-4 bg-white/30 rounded w-32"></div>
                   </div>
                 ) : (
                   'Create Account'

@@ -175,7 +175,7 @@ export default function NotificationPreferences() {
               <p className="text-xs text-gray-500">Receive promotional emails, special offers, and updates</p>
             </div>
             {marketingLoading ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-400"></div>
+              <div className="h-5 w-5 bg-gray-200 rounded animate-pulse"></div>
             ) : (
               <Switch
                 checked={marketingSubscribed}

@@ -8,6 +8,7 @@ import Layout from './Layout'
 import { useRouter } from 'next/navigation'
 import api from '@/app/lib/admin/api'
 import { currencyFormatter } from '@/app/components/checkout/currency-formatter'
+import { TableSkeleton } from '@/app/components/ui/Skeletons'
 
 const statusColors = {
   active: 'bg-green-100 text-green-800',
@@ -135,8 +136,9 @@ export default function CustomerManagement() {
   if (loading) {
     return (
       <Layout currentPage="Customers">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="space-y-6 animate-pulse">
+          <div className="h-8 bg-gray-300 rounded w-64"></div>
+          <TableSkeleton rows={8} columns={6} />
         </div>
       </Layout>
     );

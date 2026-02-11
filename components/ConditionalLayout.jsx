@@ -8,6 +8,7 @@ import { CartProvider } from '@/app/contexts/CartContext'
 import { ClientAuthProvider } from '@/app/contexts/ClientAuthContext'
 import { AuthProvider } from '@/app/contexts/AuthContext'
 import { NotificationProvider } from '@/app/contexts/NotificationContext'
+import { ExchangeRateProvider } from '@/app/contexts/ExchangeRateContext'
 
 export default function ConditionalLayout({ children }) {
   const pathname = usePathname()
@@ -20,7 +21,9 @@ export default function ConditionalLayout({ children }) {
       <AuthProvider>
         <ClientAuthProvider>
           <NotificationProvider>
-            {children}
+            <ExchangeRateProvider>
+              {children}
+            </ExchangeRateProvider>
           </NotificationProvider>
         </ClientAuthProvider>
       </AuthProvider>

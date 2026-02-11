@@ -144,7 +144,7 @@ export default function PaymentDetailsSection({
   }, [paymentMethod, bankDetails, loadingBankDetails])
 
   const allPaymentMethods = [
-    { value: 'cop', label: 'Cash on Pick Up' },
+    { value: 'cop', label: 'Payment on Pickup' },
     { value: 'mobile_money', label: 'Mobile Money' },
     { value: 'card', label: 'Credit / Debit Card (Visa, MasterCard, AmEx, Diners)' },
     { value: 'bank_transfer', label: 'Bank Transfer' },

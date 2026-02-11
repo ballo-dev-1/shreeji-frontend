@@ -67,7 +67,7 @@ export default function StickyCheckoutNavigation({
         aria-label={isLastStep ? 'Complete order' : 'Next step'}
       >
         {isProcessing ? (
-          <div className='h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent' />
+          <div className='h-5 w-5 bg-white/30 rounded animate-pulse' />
         ) : (
           <ChevronRight className='h-6 w-6' />
         )}

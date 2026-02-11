@@ -175,7 +175,7 @@ export default function OrderCompletionModal({
           {/* Cash on Pickup Instructions */}
           {paymentMethod === 'cop' && paymentStatus === 'pending' && (
             <div className="rounded-lg bg-blue-50 border border-blue-200 p-4">
-              <p className="font-semibold text-gray-900 mb-2">Cash on Pick Up Confirmed</p>
+              <p className="font-semibold text-gray-900 mb-2">Payment on Pickup Confirmed</p>
               <p className="text-sm text-gray-700">
                 Please have the exact amount ready when you pick up your order. You will receive
                 pickup instructions via email.

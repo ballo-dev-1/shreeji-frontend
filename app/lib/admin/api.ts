@@ -65,10 +65,9 @@ class ApiClient {
           const currentPath = window.location.pathname;
           if (!currentPath.includes('/admin/login')) {
             sessionStorage.setItem('adminReturnUrl', currentPath);
+            // Redirect to admin login only when not already there
+            window.location.href = '/admin/login';
           }
-          
-          // Redirect to admin login
-          window.location.href = '/admin/login';
         }
         
         const error: any = new Error('Session expired. Please log in again.');
@@ -928,6 +927,17 @@ class ApiClient {
 
   async initializeSettings() {
     return this.request('/admin/settings/initialize', {
+      method: 'POST',
+    });
+  }
+
+  // Exchange Rate Quota Management
+  async getExchangeRateQuota() {
+    return this.request<{ data: { count: number; month: string } }>('/admin/exchange-rate/quota');
+  }
+
+  async incrementExchangeRateQuota() {
+    return this.request<{ data: { count: number; month: string } }>('/admin/exchange-rate/quota/increment', {
       method: 'POST',
     });
   }

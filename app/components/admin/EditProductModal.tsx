@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Listbox, Transition } from '@headlessui/react';
+import { useExchangeRate } from '@/app/contexts/ExchangeRateContext';
 import { 
   XMarkIcon,
   PhotoIcon,
@@ -49,6 +50,9 @@ interface Product {
   maxStockLevel?: number;
   stockStatus?: string;
   basePrice?: number;
+  basePriceUsd?: number;
+  sellingPriceUsd?: number;
+  exchangeRate?: number;
   taxRate?: number;
   discountPercent?: number;
   weight?: number;
@@ -703,7 +707,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
     maxStockLevel: 100,
     stockStatus: 'in-stock',
     basePrice: 0,
-    taxRate: 16, // Default VAT 16%
+    taxRate: 16, // VAT is always 16%
     discountPercent: 0,
     weight: 0,
     Dimensions: { length: 0, width: 0, height: 0, unit: 'cm' },
@@ -723,6 +727,25 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
   const [deleting, setDeleting] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [mainImageIndex, setMainImageIndex] = useState<number>(0);
+  
+  // Currency conversion - use dynamic exchange rate (adjustable in modal)
+  const { rate: USD_TO_ZMW_RATE, refreshRate } = useExchangeRate();
+  const [modalExchangeRateInput, setModalExchangeRateInput] = useState<string>('');
+  const effectiveRate = useMemo(() => {
+    const n = parseFloat(modalExchangeRateInput);
+    return n > 0 && !Number.isNaN(n) ? n : USD_TO_ZMW_RATE;
+  }, [modalExchangeRateInput, USD_TO_ZMW_RATE]);
+  const [basePriceUSD, setBasePriceUSD] = useState<string>('');
+  const [basePriceZMW, setBasePriceZMW] = useState<string>('');
+  const [sellingPriceUSD, setSellingPriceUSD] = useState<string>('');
+  const [sellingPriceZMW, setSellingPriceZMW] = useState<string>('');
+
+  // Sync modal exchange rate field when modal opens or context rate changes
+  useEffect(() => {
+    if (isOpen && USD_TO_ZMW_RATE > 0) {
+      setModalExchangeRateInput(USD_TO_ZMW_RATE.toFixed(2));
+    }
+  }, [isOpen, USD_TO_ZMW_RATE]);
   
   // Image upload/URL modal states
   const [showAddImageModal, setShowAddImageModal] = useState(false);
@@ -842,14 +865,8 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
         ? ((sellingPrice - discountPrice) / sellingPrice) * 100 
         : 0;
 
-      // Get taxRate from product if available, or calculate from basePrice and sellingPrice
-      let taxRateValue = (product as any).taxRate || 16;
-      if (!taxRateValue && (product as any).basePrice && sellingPrice > 0) {
-        const basePrice = (product as any).basePrice || 0;
-        if (basePrice > 0) {
-          taxRateValue = ((sellingPrice - basePrice) / basePrice) * 100;
-        }
-      }
+      // VAT is always 16%
+      const taxRateValue = 16;
 
       // Handle dimensions - check both cases
       const dimensionsValue = (product as any).Dimensions ?? (product as any).dimensions ?? { length: 0, width: 0, height: 0, unit: 'cm' };
@@ -893,7 +910,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
         discountedPrice: product.discountedPrice !== undefined && product.discountedPrice !== null 
           ? String(product.discountedPrice) 
           : '0',
-        taxRate: taxRateValue,
+          taxRate: 16, // VAT is always 16%
         discountPercent: calculatedDiscountPercent,
         color: (product as any).color || '',
         condition: (product as any).condition || '',
@@ -907,12 +924,43 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
       };
 
         setFormData(initialFormData);
+        // Initialize currency fields from basePrice (stored in ZMW)
+        const basePriceZMWValue = initialFormData.basePrice || 0;
+        const basePriceUSDValue = basePriceZMWValue > 0 ? (basePriceZMWValue / USD_TO_ZMW_RATE).toFixed(2) : '';
+        setBasePriceZMW(basePriceZMWValue > 0 ? basePriceZMWValue.toFixed(2) : '');
+        setBasePriceUSD(basePriceUSDValue);
+        
+        // Initialize selling price currency fields
+        const parsedPriceValue = parseFloat(String(initialFormData.price || '0').replace(/[^0-9.]/g, '')) || 0;
+        if (parsedPriceValue > 0) {
+          setSellingPriceZMW(parsedPriceValue.toFixed(2));
+          setSellingPriceUSD((parsedPriceValue / USD_TO_ZMW_RATE).toFixed(2));
+        } else {
+          // Calculate from base price if price not set
+          const calculatedSellingPrice = basePriceZMWValue * (1 + 16 / 100);
+          if (calculatedSellingPrice > 0) {
+            setSellingPriceZMW(calculatedSellingPrice.toFixed(2));
+            setSellingPriceUSD((calculatedSellingPrice / USD_TO_ZMW_RATE).toFixed(2));
+          } else {
+            setSellingPriceZMW('');
+            setSellingPriceUSD('');
+          }
+        }
         // Store original product data for comparison
         originalProductRef.current = JSON.parse(JSON.stringify(initialFormData));
         setErrors({});
         // Find the main image index or default to 0
         const mainIndex = processedImages.findIndex(img => img.isMain) ?? 0;
         setMainImageIndex(mainIndex >= 0 ? mainIndex : 0);
+        // Pre-fill exchange rate from product if stored in DB
+        const productRate = (product as any).exchangeRate;
+        setModalExchangeRateInput(productRate != null && Number(productRate) > 0 ? String(Number(productRate)) : USD_TO_ZMW_RATE.toFixed(2));
+        if (basePriceZMWValue > 0 && (product as any).basePriceUsd != null) {
+          setBasePriceUSD(Number((product as any).basePriceUsd).toFixed(2));
+        }
+        if (parsedPriceValue > 0 && (product as any).sellingPriceUsd != null) {
+          setSellingPriceUSD(Number((product as any).sellingPriceUsd).toFixed(2));
+        }
       } else {
         // Create mode: reset form to default empty values
         const defaultFormData: Product = {
@@ -935,7 +983,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
           maxStockLevel: 100,
           stockStatus: 'in-stock',
           basePrice: 0,
-          taxRate: 16, // Default VAT 16%
+          taxRate: 16, // VAT is always 16%
           discountPercent: 0,
           weight: 0,
           Dimensions: { length: 0, width: 0, height: 0, unit: 'cm' },
@@ -950,6 +998,11 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
           schemaMarkup: undefined
         };
         setFormData(defaultFormData);
+        // Initialize currency fields for new product
+        setBasePriceZMW('');
+        setBasePriceUSD('');
+        setSellingPriceZMW('');
+        setSellingPriceUSD('');
         originalProductRef.current = null;
         setErrors({});
         setMainImageIndex(0);
@@ -2356,13 +2409,20 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
     try {
       // Calculate prices
       const basePrice = formData.basePrice || 0;
-      const vatPercent = formData.taxRate || 16;
+      const vatPercent = 16; // VAT is always 16%
       const sellingPrice = basePrice * (1 + vatPercent / 100);
       const discountPercent = formData.discountPercent || 0;
       const discountPrice = discountPercent > 0 ? sellingPrice * (1 - discountPercent / 100) : 0;
 
       // Generate slug from name
       const slug = formData.name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+
+      const rateToSave = (() => {
+        const n = parseFloat(modalExchangeRateInput);
+        return n > 0 && !Number.isNaN(n) ? n : USD_TO_ZMW_RATE;
+      })();
+      const basePriceUsd = parseFloat(basePriceUSD) || 0;
+      const sellingPriceUsd = parseFloat(sellingPriceUSD) || 0;
 
       if (isEditMode) {
         // Edit mode: update existing product
@@ -2377,7 +2437,10 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
           slug: slug,
           price: sellingPrice.toString(), // Selling price = Base Price + VAT
           discountedPrice: discountPrice > 0 ? discountPrice.toString() : '0',
-          basePrice: basePrice, // Base price (formerly cost price)
+          basePrice: basePrice, // Base price (ZMW)
+          basePriceUsd,
+          sellingPriceUsd,
+          exchangeRate: rateToSave,
           taxRate: vatPercent,
           discountPercent: discountPercent,
           // Include SEO fields
@@ -2408,6 +2471,14 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
         }
 
         await onSave(updatedProduct);
+        // Persist exchange rate to general settings and refresh context
+        try {
+          await api.updateSettings('general', { manualExchangeRateZmwPerUsd: rateToSave });
+          await refreshRate();
+        } catch (err) {
+          console.error('Failed to save exchange rate setting:', err);
+          showToast('error', 'Product saved but exchange rate could not be updated.');
+        }
         showToast('success', 'Product saved successfully!');
         originalProductRef.current = null;
         onClose();
@@ -2422,6 +2493,9 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
           price: sellingPrice.toString(),
           discountedPrice: discountPrice > 0 ? discountPrice.toString() : '0',
           basePrice: basePrice,
+          basePriceUsd,
+          sellingPriceUsd,
+          exchangeRate: rateToSave,
           taxRate: vatPercent,
           discountPercent: discountPercent,
           // Include SEO fields
@@ -2435,6 +2509,14 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
         console.log('Creating product with data:', productData);
         
         await api.createProduct(productData);
+        // Persist exchange rate to general settings and refresh context
+        try {
+          await api.updateSettings('general', { manualExchangeRateZmwPerUsd: rateToSave });
+          await refreshRate();
+        } catch (err) {
+          console.error('Failed to save exchange rate setting:', err);
+          showToast('error', 'Product created but exchange rate could not be updated.');
+        }
         showToast('success', 'Product created successfully!');
         originalProductRef.current = null;
         
@@ -3012,37 +3094,150 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                     {(() => {
                       // Computed values
                       const basePrice = formData.basePrice || 0;
-                      const vatPercent = formData.taxRate || 16;
-                      const sellingPrice = basePrice * (1 + vatPercent / 100);
+                      const vatPercent = 16; // VAT is always 16%
+                      // Use actual price from formData or calculate from base price
+                      const priceValue = parseFloat(String(formData.price || '0').replace(/[^0-9.]/g, '')) || 0;
+                      const sellingPrice = priceValue > 0 ? priceValue : (basePrice * (1 + vatPercent / 100));
                       const discountPercent = formData.discountPercent || 0;
                       const discountPrice = sellingPrice * (1 - discountPercent / 100);
 
                       return (
                         <div className="space-y-5">
-                          {/* Base Price (formerly Cost Price) */}
+                          {/* Base Price - Dual Currency Fields */}
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Base Price *</label>
-                            <input
-                              id="field-product-cost-price"
-                              type="number"
-                              value={formData.basePrice !== undefined && formData.basePrice !== null ? formData.basePrice : ''}
-                              onChange={(e) => {
-                                const value = parseFloat(e.target.value) || 0;
-                                handleInputChange('basePrice', value);
-                                // Auto-update selling price
-                                const newSellingPrice = value * (1 + (formData.taxRate || 16) / 100);
-                                handleInputChange('price', newSellingPrice.toFixed(2));
-                                // Auto-update discount price if discount percent exists
-                                if (formData.discountPercent) {
-                                  const newDiscountPrice = newSellingPrice * (1 - (formData.discountPercent || 0) / 100);
-                                  handleInputChange('discountedPrice', newDiscountPrice.toFixed(2));
-                                }
-                              }}
-                              className={`w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${errors.basePrice ? 'border-red-500' : ''}`}
-                              placeholder="0.00"
-                              min="0"
-                              step="0.01"
-                            />
+                            <div className="grid grid-cols-[1fr_1fr_10rem] gap-4">
+                              {/* USD Field */}
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">United States Dollar (USD)</label>
+                                <div className="relative">
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">$</span>
+                                  <input
+                                    id="field-product-base-price-usd"
+                                    type="number"
+                                    value={basePriceUSD}
+                                    onChange={(e) => {
+                                      const usdValue = e.target.value;
+                                      setBasePriceUSD(usdValue);
+                                      
+                                      if (usdValue === '' || usdValue === null || usdValue === undefined) {
+                                        setBasePriceZMW('');
+                                        setSellingPriceZMW('');
+                                        setSellingPriceUSD('');
+                                        handleInputChange('basePrice', 0);
+                                        handleInputChange('price', '0.00');
+                                        handleInputChange('discountedPrice', '0');
+                                        return;
+                                      }
+                                      
+                                      const usdNum = parseFloat(usdValue);
+                                      if (!isNaN(usdNum) && usdNum >= 0) {
+                                        // Convert USD to ZMW using modal exchange rate
+                                        const zmwValue = (usdNum * effectiveRate).toFixed(2);
+                                        setBasePriceZMW(zmwValue);
+                                        
+                                        // Update basePrice (stored in ZMW)
+                                        const basePriceValue = parseFloat(zmwValue);
+                                        handleInputChange('basePrice', basePriceValue);
+                                        
+                                        // Auto-update selling price (VAT is always 16%)
+                                        const newSellingPrice = basePriceValue * (1 + 16 / 100);
+                                        handleInputChange('price', newSellingPrice.toFixed(2));
+                                        
+                                        // Update selling price currency fields
+                                        setSellingPriceZMW(newSellingPrice.toFixed(2));
+                                        setSellingPriceUSD((newSellingPrice / effectiveRate).toFixed(2));
+                                        
+                                        // Auto-update discount price if discount percent exists
+                                        if (formData.discountPercent) {
+                                          const newDiscountPrice = newSellingPrice * (1 - (formData.discountPercent || 0) / 100);
+                                          handleInputChange('discountedPrice', newDiscountPrice.toFixed(2));
+                                        }
+                                      }
+                                    }}
+                                    className={`w-full pl-7 pr-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${errors.basePrice ? 'border-red-500' : ''}`}
+                                    placeholder="0.00"
+                                    min="0"
+                                    step="0.01"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* ZMW Field */}
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Zambian Kwacha (ZMW)</label>
+                                <div className="relative">
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">K</span>
+                                  <input
+                                    id="field-product-base-price-zmw"
+                                    type="number"
+                                    value={basePriceZMW}
+                                    onChange={(e) => {
+                                      const zmwValue = e.target.value;
+                                      setBasePriceZMW(zmwValue);
+                                      
+                                      if (zmwValue === '' || zmwValue === null || zmwValue === undefined) {
+                                        setBasePriceUSD('');
+                                        setSellingPriceZMW('');
+                                        setSellingPriceUSD('');
+                                        handleInputChange('basePrice', 0);
+                                        handleInputChange('price', '0.00');
+                                        handleInputChange('discountedPrice', '0');
+                                        return;
+                                      }
+                                      
+                                      const zmwNum = parseFloat(zmwValue);
+                                      if (!isNaN(zmwNum) && zmwNum >= 0) {
+                                        // Convert ZMW to USD using modal exchange rate
+                                        const usdValue = (zmwNum / effectiveRate).toFixed(2);
+                                        setBasePriceUSD(usdValue);
+                                        
+                                        // Update basePrice (stored in ZMW)
+                                        handleInputChange('basePrice', zmwNum);
+                                        
+                                        // Auto-update selling price (VAT is always 16%)
+                                        const newSellingPrice = zmwNum * (1 + 16 / 100);
+                                        handleInputChange('price', newSellingPrice.toFixed(2));
+                                        
+                                        // Update selling price currency fields
+                                        setSellingPriceZMW(newSellingPrice.toFixed(2));
+                                        setSellingPriceUSD((newSellingPrice / effectiveRate).toFixed(2));
+                                        
+                                        // Auto-update discount price if discount percent exists
+                                        if (formData.discountPercent) {
+                                          const newDiscountPrice = newSellingPrice * (1 - (formData.discountPercent || 0) / 100);
+                                          handleInputChange('discountedPrice', newDiscountPrice.toFixed(2));
+                                        }
+                                      }
+                                    }}
+                                    className={`w-full pl-7 pr-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent ${errors.basePrice ? 'border-red-500' : ''}`}
+                                    placeholder="0.00"
+                                    min="0"
+                                    step="0.01"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Manual Exchange Rate Field */}
+                              <div>
+                                <label htmlFor="field-product-exchange-rate" className="block text-xs font-medium text-gray-600 mb-1">
+                                  Ex.rate (1 USD in ZMW)
+                                </label>
+                                <input
+                                  id="field-product-exchange-rate"
+                                  type="number"
+                                  value={modalExchangeRateInput}
+                                  onChange={(e) => setModalExchangeRateInput(e.target.value)}
+                                  className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                  placeholder={USD_TO_ZMW_RATE.toFixed(2)}
+                                  min={0}
+                                  step="0.01"
+                                />
+                              </div>
+                            </div>
+                            <p className="mt-1 text-xs text-gray-500">
+                              Exchange rate used: 1 USD = {effectiveRate.toFixed(2)} ZMW.
+                            </p>
                             {errors.basePrice && <p className="mt-1 text-sm text-red-600">{errors.basePrice}</p>}
                           </div>
 
@@ -3051,39 +3246,51 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                             <label className="block text-sm font-medium text-gray-700 mb-2">Value Added Tax (VAT) (%)</label>
                             <input
                               type="number"
-                              value={formData.taxRate || 16}
-                              onChange={(e) => {
-                                const value = parseFloat(e.target.value) || 16;
-                                handleInputChange('taxRate', value);
-                                // Auto-update selling price
-                                const basePriceValue = formData.basePrice || 0;
-                                const newSellingPrice = basePriceValue * (1 + value / 100);
-                                handleInputChange('price', newSellingPrice.toFixed(2));
-                                // Auto-update discount price if discount percent exists
-                                if (formData.discountPercent) {
-                                  const newDiscountPrice = newSellingPrice * (1 - (formData.discountPercent || 0) / 100);
-                                  handleInputChange('discountedPrice', newDiscountPrice.toFixed(2));
-                                }
-                              }}
-                              className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                              placeholder="16"
-                              min="0"
-                              max="100"
-                              step="0.01"
-                            />
-                          </div>
-
-                          {/* Selling Price (computed) */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Selling Price</label>
-                            <input
-                              type="text"
-                              value={sellingPrice.toFixed(2)}
+                              value={16}
                               readOnly
                               className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-600 focus:outline-none cursor-not-allowed"
-                              placeholder="Calculated automatically"
+                              placeholder="16"
                             />
-                            <p className="mt-1 text-xs text-gray-500">Calculated from Base Price + VAT</p>
+                            <p className="mt-1 text-xs text-gray-500">VAT is fixed at 16%</p>
+                          </div>
+
+                          {/* Selling Price - Dual Currency Fields (Read-Only) */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Selling Price</label>
+                            <div className="grid grid-cols-2 gap-4">
+                              {/* USD Field */}
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">United States Dollar (USD)</label>
+                                <div className="relative">
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">$</span>
+                                  <input
+                                    id="field-product-selling-price-usd"
+                                    type="text"
+                                    value={sellingPriceUSD || '0.00'}
+                                    readOnly
+                                    className="w-full pl-7 pr-3 py-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-600 focus:outline-none cursor-not-allowed"
+                                    placeholder="0.00"
+                                  />
+                                </div>
+                              </div>
+                              
+                              {/* ZMW Field */}
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Zambian Kwacha (ZMW)</label>
+                                <div className="relative">
+                                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">K</span>
+                                  <input
+                                    id="field-product-selling-price-zmw"
+                                    type="text"
+                                    value={sellingPriceZMW || '0.00'}
+                                    readOnly
+                                    className="w-full pl-7 pr-3 py-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-600 focus:outline-none cursor-not-allowed"
+                                    placeholder="0.00"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                            <p className="mt-1 text-xs text-gray-500">Calculated from Base Price + VAT (16%). Exchange rate: 1 USD = {effectiveRate.toFixed(2)} ZMW</p>
                           </div>
 
                           {/* Discount Percent */}
@@ -3095,9 +3302,9 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                               onChange={(e) => {
                                 const value = parseFloat(e.target.value) || 0;
                                 handleInputChange('discountPercent', value);
-                                // Auto-update discount price
+                                // Auto-update discount price (VAT is always 16%)
                                 const basePriceValue = formData.basePrice || 0;
-                                const vatPercentValue = formData.taxRate || 16;
+                                const vatPercentValue = 16; // VAT is always 16%
                                 const currentSellingPrice = basePriceValue * (1 + vatPercentValue / 100);
                                 const newDiscountPrice = currentSellingPrice * (1 - value / 100);
                                 handleInputChange('discountedPrice', newDiscountPrice.toFixed(2));

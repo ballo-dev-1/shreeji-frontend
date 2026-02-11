@@ -8,12 +8,15 @@ import api from '@/app/lib/admin/api'
 import EditOrderModal from './EditOrderModal'
 import CancelOrderModal from './CancelOrderModal'
 import { currencyFormatter } from '@/app/components/checkout/currency-formatter'
+import { TableSkeleton } from '@/app/components/ui/Skeletons'
+import { ALL_ORDER_STATUSES, getEnabledOrderStatusOptions } from '@/app/lib/order-statuses';
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
   processing: 'bg-primary-100 text-primary-800',
   shipped: 'bg-purple-100 text-purple-800',
   delivered: 'bg-green-100 text-green-800',
+  fulfilled: 'bg-green-100 text-green-800',
   cancelled: 'bg-red-100 text-red-800',
   confirmed: 'bg-blue-100 text-blue-800',
   refunded: 'bg-gray-100 text-gray-800'
@@ -51,6 +54,23 @@ export default function OrderManagement() {
   const [orderToCancel, setOrderToCancel] = useState<any>(null);
   const [analytics, setAnalytics] = useState<any>(null);
   const [exporting, setExporting] = useState(false);
+
+  // Order status visibility settings (from general.enabledOrderStatuses)
+  const [enabledOrderStatuses, setEnabledOrderStatuses] = useState<string[] | null>(null);
+
+  const visibleStatusValues = useMemo(() => {
+    const allValues = ALL_ORDER_STATUSES.map((s) => s.value);
+    if (!enabledOrderStatuses || enabledOrderStatuses.length === 0) {
+      return allValues;
+    }
+    const set = new Set(enabledOrderStatuses);
+    return allValues.filter((value) => set.has(value));
+  }, [enabledOrderStatuses]);
+
+  const orderStatusFilterOptions = useMemo(
+    () => getEnabledOrderStatusOptions(enabledOrderStatuses),
+    [enabledOrderStatuses],
+  );
 
   const fetchOrders = useCallback(async () => {
     try {
@@ -188,6 +208,36 @@ export default function OrderManagement() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagination.page, filters.status, filters.paymentStatus, filters.startDate, filters.endDate]);
 
+  // Load order status visibility settings from backend (general.enabledOrderStatuses)
+  useEffect(() => {
+    let mounted = true;
+
+    const loadStatusSettings = async () => {
+      try {
+        const settingsResponse = await api.getSettingsByCategory('general');
+        if (!mounted) return;
+
+        const general = settingsResponse?.data || settingsResponse;
+        if (general && Array.isArray(general.enabledOrderStatuses)) {
+          setEnabledOrderStatuses(general.enabledOrderStatuses);
+        } else {
+          setEnabledOrderStatuses(null);
+        }
+      } catch (error) {
+        console.error('Error loading order status settings:', error);
+        if (mounted) {
+          setEnabledOrderStatuses(null);
+        }
+      }
+    };
+
+    loadStatusSettings();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const fetchAnalytics = useCallback(async () => {
     try {
       const response = await api.getOrderAnalytics({
@@ -307,8 +357,9 @@ export default function OrderManagement() {
   if (loading) {
     return (
       <Layout currentPage="Orders">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="space-y-6 animate-pulse">
+          <div className="h-8 bg-gray-300 rounded w-64"></div>
+          <TableSkeleton rows={8} columns={6} />
         </div>
       </Layout>
     );
@@ -359,10 +410,16 @@ export default function OrderManagement() {
           <div className="mt-4">
             <h4 className="text-sm font-medium text-gray-700 mb-2">Status Distribution</h4>
             <div className="flex flex-wrap gap-2">
-              {['pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled', 'refunded'].map((status) => {
+              {visibleStatusValues.map((status) => {
                 const count = analytics?.statusDistribution?.[status] || 0;
                 return (
-                  <span key={status} className={clsx('px-3 py-1 rounded-full text-sm', statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800')}>
+                  <span
+                    key={status}
+                    className={clsx(
+                      'px-3 py-1 rounded-full text-sm',
+                      statusColors[status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800',
+                    )}
+                  >
                     {status.charAt(0).toUpperCase() + status.slice(1)}: {count}
                   </span>
                 );
@@ -373,8 +430,9 @@ export default function OrderManagement() {
       ) : (
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Analytics</h3>
-          <div className="flex items-center justify-center h-32">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+          <div className="space-y-2 animate-pulse">
+            <div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
+            <div className="h-1 bg-gray-200 rounded w-24 mx-auto"></div>
           </div>
         </div>
       )}
@@ -410,13 +468,11 @@ export default function OrderManagement() {
               className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
             >
               <option value="">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="processing">Processing</option>
-              <option value="shipped">Shipped</option>
-              <option value="delivered">Delivered</option>
-              <option value="cancelled">Cancelled</option>
-              <option value="refunded">Refunded</option>
+              {orderStatusFilterOptions.map((status) => (
+                <option key={status.value} value={status.value}>
+                  {status.label}
+                </option>
+              ))}
             </select>
           </div>
           <div>
@@ -587,7 +643,7 @@ export default function OrderManagement() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end space-x-2">
-                      {order.status !== 'cancelled' && order.status !== 'delivered' && order.paymentStatus !== 'paid' && (
+                      {order.status !== 'cancelled' && order.status !== 'delivered' && order.status !== 'fulfilled' && order.paymentStatus !== 'paid' && (
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
@@ -676,6 +732,7 @@ export default function OrderManagement() {
         onSave={() => {
           fetchOrders();
         }}
+        enabledOrderStatuses={enabledOrderStatuses ?? undefined}
       />
 
       {/* Cancel Order Modal */}

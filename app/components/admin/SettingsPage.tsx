@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { 
-  UserIcon, 
-  CogIcon, 
-  ShieldCheckIcon, 
-  BellIcon, 
+import {
+  UserIcon,
+  CogIcon,
+  ShieldCheckIcon,
+  BellIcon,
   PaintBrushIcon,
   GlobeAltIcon,
   KeyIcon,
@@ -15,6 +15,7 @@ import {
 import clsx from 'clsx';
 import Layout from './Layout'
 import api from '@/app/lib/admin/api';
+import { ALL_ORDER_STATUSES } from '@/app/lib/order-statuses';
 
 const settingsSections = [
   {
@@ -66,6 +67,12 @@ const settingsSections = [
     description: 'Configure payment gateways and bank transfer details'
   },
   {
+    id: 'orders',
+    name: 'Orders',
+    icon: CogIcon,
+    description: 'Configure order management options'
+  },
+  {
     id: 'backup',
     name: 'Backup & Export',
     icon: DocumentTextIcon,
@@ -86,6 +93,7 @@ export default function SettingsPage() {
     // General
     companyName: 'Shreeji Technologies',
     currency: 'ZMW',
+    manualExchangeRateZmwPerUsd: '',
     dateFormat: 'MM/DD/YYYY',
     timeFormat: '12h',
     
@@ -147,6 +155,9 @@ export default function SettingsPage() {
   const [settingsStatus, setSettingsStatus] = useState<{ type: 'idle' | 'success' | 'error'; message?: string }>({
     type: 'idle',
   });
+
+  // Order status visibility settings (stored under general.enabledOrderStatuses)
+  const [enabledOrderStatuses, setEnabledOrderStatuses] = useState<string[] | null>(null);
 
   // Store initial state for cancel functionality
   const [initialFormData, setInitialFormData] = useState(formData);
@@ -283,6 +294,7 @@ export default function SettingsPage() {
             // General settings
             companyName: general?.companyName ?? prev.companyName,
             currency: general?.currency ?? prev.currency,
+            manualExchangeRateZmwPerUsd: general?.manualExchangeRateZmwPerUsd ?? prev.manualExchangeRateZmwPerUsd,
             dateFormat: general?.dateFormat ?? prev.dateFormat,
             timeFormat: general?.timeFormat ?? prev.timeFormat,
             
@@ -312,6 +324,13 @@ export default function SettingsPage() {
           setInitialFormData(updated);
           return updated;
         });
+
+        // Initialize order status visibility from general.enabledOrderStatuses (if present)
+        if (general && Array.isArray(general.enabledOrderStatuses)) {
+          setEnabledOrderStatuses(general.enabledOrderStatuses);
+        } else {
+          setEnabledOrderStatuses(null);
+        }
       } catch (error) {
         console.error('Failed to load settings', error);
         if (mounted) {
@@ -391,6 +410,7 @@ export default function SettingsPage() {
         await api.updateSettings('general', {
           companyName: formData.companyName,
           currency: formData.currency,
+          manualExchangeRateZmwPerUsd: formData.manualExchangeRateZmwPerUsd,
           dateFormat: formData.dateFormat,
           timeFormat: formData.timeFormat,
         });
@@ -429,6 +449,15 @@ export default function SettingsPage() {
           webhookUrl: formData.webhookUrl,
           rateLimit: formData.rateLimit,
         });
+      } else if (activeSection === 'orders') {
+        // Save order status visibility to general category
+        const allValues = ALL_ORDER_STATUSES.map((s) => s.value);
+        const valuesToSave =
+          enabledOrderStatuses && enabledOrderStatuses.length > 0
+            ? enabledOrderStatuses
+            : allValues;
+
+        await api.updateSetting('general', 'enabledOrderStatuses', valuesToSave, 'json');
       }
       
       // Update initial state after successful save
@@ -528,6 +557,86 @@ export default function SettingsPage() {
     </div>
   );
 
+  const renderOrderSettings = () => {
+    // When no explicit setting is stored, treat all statuses as enabled
+    const allValues = ALL_ORDER_STATUSES.map((s) => s.value);
+    const currentEnabled =
+      enabledOrderStatuses && enabledOrderStatuses.length > 0
+        ? enabledOrderStatuses
+        : allValues;
+
+    const isEnabled = (value: string) => currentEnabled.includes(value);
+
+    const handleToggle = (value: string) => {
+      setEnabledOrderStatuses((prev) => {
+        const base = prev && prev.length > 0 ? prev : allValues;
+        const set = new Set(base);
+
+        if (set.has(value)) {
+          set.delete(value);
+        } else {
+          set.add(value);
+        }
+
+        const next = Array.from(set);
+        // Ensure at least one status remains enabled
+        if (next.length === 0) {
+          return base;
+        }
+        return next;
+      });
+    };
+
+    return (
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-xl font-semibold text-gray-900">Order status options</h3>
+          <p className="mt-2 text-sm text-gray-500">
+            Choose which order statuses are available in admin filters and the Edit Order modal.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {ALL_ORDER_STATUSES.map((status) => {
+            const checked = isEnabled(status.value);
+            return (
+              <label
+                key={status.value}
+                className="flex items-center justify-between rounded-2xl border border-gray-200 px-4 py-3"
+              >
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{status.label}</p>
+                  <p className="text-xs text-gray-500">
+                    {`Show the \"${status.label}\" status in admin.`}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleToggle(status.value)}
+                  className={clsx(
+                    'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[var(--shreeji-primary)] focus:ring-offset-2',
+                    checked ? 'bg-[var(--shreeji-primary)]' : 'bg-gray-200',
+                  )}
+                >
+                  <span
+                    className={clsx(
+                      'inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                      checked ? 'translate-x-5' : 'translate-x-0',
+                    )}
+                  />
+                </button>
+              </label>
+            );
+          })}
+        </div>
+
+        <p className="text-xs text-gray-500">
+          Note: Existing orders keep their current status even if you hide that status here.
+        </p>
+      </div>
+    );
+  };
+
   const renderGeneralSettings = () => (
     <div className="space-y-6">
       <div>
@@ -557,6 +666,23 @@ export default function SettingsPage() {
             <option value="GBP">GBP - British Pound</option>
             <option value="CAD">CAD - Canadian Dollar</option>
           </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700">
+            Manual Exchange Rate (1 USD in ZMW)
+          </label>
+          <input
+            type="number"
+            value={formData.manualExchangeRateZmwPerUsd}
+            onChange={(e) => handleInputChange('manualExchangeRateZmwPerUsd', e.target.value)}
+            className="block w-full rounded-2xl border border-[#dddddd] shadow-sm focus:border-[var(--shreeji-primary)] focus:ring-[var(--shreeji-primary)] sm:text-sm px-4 py-3"
+            placeholder="e.g. 20.00"
+            min={0}
+            step="0.01"
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            When set, this value will be used for pricing calculations instead of the live Exchange Rate API.
+          </p>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">Date Format</label>
@@ -988,11 +1114,11 @@ export default function SettingsPage() {
             </button>
           </div>
 
-          {/* Cash on Pick Up */}
+          {/* Payment on Pickup */}
           <div className="flex items-center justify-between">
             <div>
-              <h5 className="text-sm font-medium text-gray-900">Cash on Pick Up</h5>
-              <p className="text-sm text-gray-500">Enable cash on pick up payments</p>
+              <h5 className="text-sm font-medium text-gray-900">Payment on Pickup</h5>
+              <p className="text-sm text-gray-500">Enable payment on pickup</p>
             </div>
             <button
               type="button"
@@ -1181,6 +1307,8 @@ export default function SettingsPage() {
         return renderApiSettings();
       case 'payments':
         return renderPaymentSettings();
+      case 'orders':
+        return renderOrderSettings();
       default:
         return (
           <div className="text-center py-12">

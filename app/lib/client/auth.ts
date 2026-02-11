@@ -145,6 +145,10 @@ class ClientAuth {
       }
 
       const user = await response.json();
+      // Update stored user data
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('client_user', JSON.stringify(user));
+      }
       return user;
     } catch (error) {
       console.error('Get current user error:', error);
@@ -190,6 +194,8 @@ class ClientAuth {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('client_jwt');
       localStorage.removeItem('client_user');
+      // Dispatch event to notify context and other components
+      window.dispatchEvent(new CustomEvent('client-auth-changed'));
     }
   }
 

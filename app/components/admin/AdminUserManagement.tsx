@@ -13,6 +13,7 @@ import {
 } from '@heroicons/react/24/outline'
 import api from '@/app/lib/admin/api'
 import toast from 'react-hot-toast'
+import { TableSkeleton } from '@/app/components/ui/Skeletons'
 import { useAuth } from '@/app/contexts/AuthContext'
 
 interface AdminUser {
@@ -166,8 +167,9 @@ export default function AdminUserManagement() {
   if (loading) {
     return (
       <Layout currentPage="Users" pageTitle="Admin User Management">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="space-y-6 animate-pulse">
+          <div className="h-8 bg-gray-300 rounded w-64"></div>
+          <TableSkeleton rows={8} columns={5} />
         </div>
       </Layout>
     )

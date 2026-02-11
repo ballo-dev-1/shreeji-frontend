@@ -355,3 +355,117 @@ export function SearchInputSkeleton() {
   )
 }
 
+
+// Full Page Loading Skeleton (for authentication checks and route transitions)
+export function FullPageLoadingSkeleton() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#f5f1e8]">
+      <div className="space-y-4 animate-pulse">
+        <div className="h-12 w-12 bg-gray-300 rounded-full mx-auto"></div>
+        <div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
+      </div>
+    </div>
+  )
+}
+
+// Full Page Loading Skeleton with Portal Layout
+export function FullPagePortalLoadingSkeleton() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#f5f1e8]">
+      <PortalLayoutSkeleton />
+    </div>
+  )
+}
+
+// Button Loading Skeleton (for button loading states)
+export function ButtonSkeleton({ className = '' }: { className?: string }) {
+  return (
+    <div className={`h-10 bg-gray-200 rounded-lg animate-pulse ${className}`}></div>
+  )
+}
+
+// Inline Loading Skeleton (for small inline loading states)
+export function InlineLoadingSkeleton() {
+  return (
+    <div className="flex items-center justify-center py-4">
+      <div className="space-y-2 animate-pulse">
+        <div className="h-4 bg-gray-200 rounded w-24 mx-auto"></div>
+        <div className="h-1 bg-gray-200 rounded w-16 mx-auto"></div>
+      </div>
+    </div>
+  )
+}
+
+// Activity Page Skeleton
+export function ActivityPageSkeleton() {
+  return (
+    <div className="space-y-6 pb-24 animate-pulse">
+      <div>
+        <div className="h-8 bg-gray-200 rounded w-48 mb-2"></div>
+        <div className="h-4 bg-gray-200 rounded w-64"></div>
+      </div>
+      <div className="bg-white rounded-3xl shadow-[0_0_20px_0_rgba(0,0,0,0.1)] p-6">
+        <div className="h-6 bg-gray-300 rounded w-40 mb-4"></div>
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-20 bg-gray-100 rounded-lg"></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Two Factor Settings Skeleton
+export function TwoFactorSettingsSkeleton({ standalone = false }: { standalone?: boolean }) {
+  const content = (
+    <div className="space-y-6 animate-pulse">
+      <div>
+        <div className="h-8 bg-gray-300 rounded w-64 mb-2"></div>
+        <div className="h-4 bg-gray-200 rounded w-96"></div>
+      </div>
+      <div className="bg-white rounded-3xl shadow-[0_0_20px_0_rgba(0,0,0,0.1)] p-6">
+        <div className="h-24 bg-gray-100 rounded-lg"></div>
+      </div>
+    </div>
+  )
+
+  return standalone ? (
+    <div className="min-h-screen bg-[#f5f1e8] p-8">{content}</div>
+  ) : (
+    <div className="py-6">{content}</div>
+  )
+}
+
+// Admin Page Loading Skeleton
+export function AdminPageLoadingSkeleton() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="space-y-6 animate-pulse w-full max-w-7xl px-4">
+        <div className="h-8 bg-gray-300 rounded w-64"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-32 bg-gray-200 rounded-lg"></div>
+          ))}
+        </div>
+        <div className="h-96 bg-gray-200 rounded-lg"></div>
+      </div>
+    </div>
+  )
+}
+
+// Order Details Skeleton
+export function OrderDetailsSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse">
+      <div className="h-8 bg-gray-300 rounded w-48"></div>
+      <div className="bg-white rounded-3xl shadow-[0_0_20px_0_rgba(0,0,0,0.1)] p-6">
+        <div className="space-y-4">
+          <div className="h-6 bg-gray-300 rounded w-32"></div>
+          <div className="h-4 bg-gray-200 rounded w-full"></div>
+          <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+        </div>
+      </div>
+    </div>
+  )
+}

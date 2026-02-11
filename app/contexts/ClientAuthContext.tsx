@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode, useMemo } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode, useMemo, useCallback } from 'react';
 import clientAuth, { ClientUser } from '@/app/lib/client/auth';
 
 interface ClientAuthContextType {
@@ -19,39 +19,99 @@ export function ClientAuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<ClientUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       setLoading(true);
       
       // Check if we have a stored token
-      if (clientAuth.isAuthenticated()) {
+      const hasToken = clientAuth.isAuthenticated();
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ClientAuthContext:checkAuth:start',message:'Auth check starting',data:{hasToken},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+      // #endregion
+      if (hasToken) {
         // Validate the token and get user data
         const isValid = await clientAuth.validateToken();
         
         if (isValid) {
           const currentUser = await clientAuth.getCurrentUser();
+          // #region agent log
+          fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ClientAuthContext:checkAuth:success',message:'Auth valid, user set',data:{userId:currentUser?.id},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+          // #endregion
           setUser(currentUser);
         } else {
+          // #region agent log
+          fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ClientAuthContext:checkAuth:invalid',message:'Token invalid, clearing',data:{},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+          // #endregion
           // Token is invalid, clear it
           clientAuth.logout();
+          setUser(null);
         }
+      } else {
+        // #region agent log
+        fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ClientAuthContext:checkAuth:noToken',message:'No token found',data:{},timestamp:Date.now(),hypothesisId:'H2,H4'})}).catch(()=>{});
+        // #endregion
+        // No token, ensure user is null
+        setUser(null);
       }
     } catch (error) {
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ClientAuthContext:checkAuth:error',message:'Auth check error',data:{error:String(error)},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+      // #endregion
       console.error('Client auth check error:', error);
       clientAuth.logout();
+      setUser(null);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  // Listen for storage changes (e.g., when token is removed in another tab)
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'client_jwt' || e.key === 'client_user') {
+        // Token or user data changed, re-check authentication
+        checkAuth();
+      }
+    };
+
+    // Listen for storage events from other tabs/windows
+    window.addEventListener('storage', handleStorageChange);
+
+    // Also listen for custom events (for same-tab logout)
+    const handleCustomStorageChange = () => {
+      checkAuth();
+    };
+    window.addEventListener('client-auth-changed', handleCustomStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('client-auth-changed', handleCustomStorageChange);
+    };
+  }, [checkAuth]);
+
+  // Periodically validate token (every 5 minutes)
+  useEffect(() => {
+    if (!clientAuth.isAuthenticated()) return;
+
+    const interval = setInterval(() => {
+      checkAuth();
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(interval);
+  }, [checkAuth]);
 
   const login = async (email: string, password: string) => {
     try {
       const response = await clientAuth.login({ email, password });
       setUser(response.user);
+      // Dispatch event to notify other components
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('client-auth-changed'));
+      }
     } catch (error: any) {
       throw new Error(error.message || 'Client login failed');
     }
@@ -61,15 +121,23 @@ export function ClientAuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await clientAuth.register({ email, password, firstName, lastName, phone });
       setUser(response.user);
+      // Dispatch event to notify other components
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('client-auth-changed'));
+      }
     } catch (error: any) {
       throw new Error(error.message || 'Client registration failed');
     }
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     clientAuth.logout();
     setUser(null);
-  };
+    // Dispatch event to notify other components
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('client-auth-changed'));
+    }
+  }, []);
 
   const value = useMemo(() => ({
     user,
@@ -79,7 +147,7 @@ export function ClientAuthProvider({ children }: { children: ReactNode }) {
     logout,
     isAuthenticated: !!user,
     setUser
-  }), [user, loading]);
+  }), [user, loading, logout]);
 
   return (
     <ClientAuthContext.Provider value={value}>

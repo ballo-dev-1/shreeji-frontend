@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, Fragment } from 'react'
 import { Transition } from '@headlessui/react'
+import { useExchangeRate } from '@/app/contexts/ExchangeRateContext'
 import api from '@/app/lib/admin/api'
 import { 
   PlusIcon, 
@@ -996,19 +997,19 @@ interface VariantFormProps {
 
 function VariantForm({ productId, productName, variant, onSave, onCancel }: VariantFormProps) {
   // Calculate basePrice from price if variant exists and has price
-  const calculateBasePrice = (price: number | string | undefined, taxRate: number | undefined) => {
+  const calculateBasePrice = (price: number | string | undefined) => {
     if (!price) return '';
     const priceNum = typeof price === 'string' ? parseFloat(price) : price;
     if (!priceNum || isNaN(priceNum)) return '';
-    const tax = taxRate || 16;
+    const tax = 16; // VAT is always 16%
     return (priceNum / (1 + tax / 100)).toFixed(2);
   };
 
   const [formData, setFormData] = useState({
     sku: variant?.sku || '',
     specs: variant?.specs || {},
-    basePrice: variant?.basePrice || (variant?.price ? calculateBasePrice(variant.price, variant.taxRate) : ''),
-    taxRate: variant?.taxRate || 16, // Default VAT 16%
+    basePrice: variant?.basePrice || (variant?.price ? calculateBasePrice(variant.price) : ''),
+    taxRate: 16, // VAT is always 16%
     discountPercent: variant?.discountPercent || 0,
     price: variant?.price || '',
     discountedPrice: variant?.discountedPrice || '',
@@ -1018,6 +1019,83 @@ function VariantForm({ productId, productName, variant, onSave, onCancel }: Vari
   })
   const [saving, setSaving] = useState(false)
   const [availableSpecNames, setAvailableSpecNames] = useState<string[]>([])
+  
+  // Currency conversion - use dynamic exchange rate
+  const { rate: USD_TO_ZMW_RATE } = useExchangeRate();
+  const [basePriceUSD, setBasePriceUSD] = useState<string>('');
+  const [basePriceZMW, setBasePriceZMW] = useState<string>('');
+  const [sellingPriceUSD, setSellingPriceUSD] = useState<string>('');
+  const [sellingPriceZMW, setSellingPriceZMW] = useState<string>('');
+
+  // Initialize currency fields from basePrice and price when variant changes
+  useEffect(() => {
+    if (variant) {
+      const basePriceValue = typeof variant.basePrice === 'string' 
+        ? parseFloat(variant.basePrice) 
+        : (variant.basePrice || 0);
+      
+      if (basePriceValue > 0) {
+        setBasePriceZMW(basePriceValue.toFixed(2));
+        setBasePriceUSD((basePriceValue / USD_TO_ZMW_RATE).toFixed(2));
+      } else {
+        setBasePriceZMW('');
+        setBasePriceUSD('');
+      }
+      
+      // Initialize selling price currency fields
+      const priceValue = typeof variant.price === 'string' 
+        ? parseFloat(variant.price) 
+        : (variant.price || 0);
+      
+      if (priceValue > 0) {
+        setSellingPriceZMW(priceValue.toFixed(2));
+        setSellingPriceUSD((priceValue / USD_TO_ZMW_RATE).toFixed(2));
+      } else {
+        // Calculate from base price if price not set
+        const calculatedPrice = basePriceValue * (1 + 16 / 100);
+        if (calculatedPrice > 0) {
+          setSellingPriceZMW(calculatedPrice.toFixed(2));
+          setSellingPriceUSD((calculatedPrice / USD_TO_ZMW_RATE).toFixed(2));
+        } else {
+          setSellingPriceZMW('');
+          setSellingPriceUSD('');
+        }
+      }
+    } else {
+      // New variant - check if formData has basePrice
+      const basePriceValue = typeof formData.basePrice === 'string' 
+        ? parseFloat(formData.basePrice) 
+        : (formData.basePrice || 0);
+      
+      if (basePriceValue > 0) {
+        setBasePriceZMW(basePriceValue.toFixed(2));
+        setBasePriceUSD((basePriceValue / USD_TO_ZMW_RATE).toFixed(2));
+      } else {
+        setBasePriceZMW('');
+        setBasePriceUSD('');
+      }
+      
+      // Initialize selling price currency fields
+      const priceValue = typeof formData.price === 'string' 
+        ? parseFloat(formData.price) 
+        : (formData.price || 0);
+      
+      if (priceValue > 0) {
+        setSellingPriceZMW(priceValue.toFixed(2));
+        setSellingPriceUSD((priceValue / USD_TO_ZMW_RATE).toFixed(2));
+      } else {
+        // Calculate from base price if price not set
+        const calculatedPrice = basePriceValue * (1 + 16 / 100);
+        if (calculatedPrice > 0) {
+          setSellingPriceZMW(calculatedPrice.toFixed(2));
+          setSellingPriceUSD((calculatedPrice / USD_TO_ZMW_RATE).toFixed(2));
+        } else {
+          setSellingPriceZMW('');
+          setSellingPriceUSD('');
+        }
+      }
+    }
+  }, [variant?.basePrice, variant?.price, variant?.id]); // Initialize when variant changes
 
   // Pre-populate form with product specs and pricing when creating new variant
   useEffect(() => {
@@ -1031,11 +1109,10 @@ function VariantForm({ productId, productName, variant, onSave, onCancel }: Vari
         if (product) {
           // Pre-populate pricing from product
           const productBasePrice = product.basePrice || 0;
-          const productTaxRate = product.taxRate || 16;
           const productDiscountPercent = product.discountPercent || 0;
           
-          // Calculate selling price from base price + VAT
-          const calculatedSellingPrice = productBasePrice * (1 + productTaxRate / 100);
+          // Calculate selling price from base price + VAT (always 16%)
+          const calculatedSellingPrice = productBasePrice * (1 + 16 / 100);
           
           // Calculate discounted price from selling price - discount %
           const calculatedDiscountedPrice = calculatedSellingPrice * (1 - productDiscountPercent / 100);
@@ -1043,11 +1120,17 @@ function VariantForm({ productId, productName, variant, onSave, onCancel }: Vari
           setFormData(prev => ({
             ...prev,
             basePrice: productBasePrice || prev.basePrice,
-            taxRate: productTaxRate || prev.taxRate,
+            taxRate: 16, // VAT is always 16%
             discountPercent: productDiscountPercent || prev.discountPercent,
             price: product.price || calculatedSellingPrice || prev.price,
             discountedPrice: product.discountedPrice || (calculatedDiscountedPrice > 0 ? calculatedDiscountedPrice : calculatedSellingPrice) || prev.discountedPrice,
           }));
+          
+          // Initialize currency fields from product base price
+          if (productBasePrice > 0) {
+            setBasePriceZMW(productBasePrice.toFixed(2));
+            setBasePriceUSD((productBasePrice / USD_TO_ZMW_RATE).toFixed(2));
+          }
         }
         
         // Pre-populate specs
@@ -1154,7 +1237,7 @@ function VariantForm({ productId, productName, variant, onSave, onCancel }: Vari
         sku: formData.sku.trim(),
         attributes: formData.specs, // Map specs to attributes for backend API
         basePrice: formData.basePrice ? parseFloat(formData.basePrice.toString()) : undefined,
-        taxRate: formData.taxRate ? parseFloat(formData.taxRate.toString()) : undefined,
+        taxRate: 16, // VAT is always 16%
         discountPercent: formData.discountPercent ? parseFloat(formData.discountPercent.toString()) : undefined,
         price: formData.price ? parseFloat(formData.price.toString()) : undefined,
         discountedPrice: formData.discountedPrice ? parseFloat(formData.discountedPrice.toString()) : undefined,
@@ -1337,40 +1420,139 @@ function VariantForm({ productId, productName, variant, onSave, onCancel }: Vari
           {(() => {
             // Computed values
             const basePrice = parseFloat(formData.basePrice?.toString() || '0') || 0;
-            const vatPercent = parseFloat(formData.taxRate?.toString() || '16') || 16;
-            const sellingPrice = basePrice * (1 + vatPercent / 100);
+            const vatPercent = 16; // VAT is always 16%
+            // Use actual price from formData or calculate from base price
+            const priceValue = parseFloat(formData.price?.toString() || '0') || 0;
+            const sellingPrice = priceValue > 0 ? priceValue : (basePrice * (1 + vatPercent / 100));
             const discountPercent = parseFloat(formData.discountPercent?.toString() || '0') || 0;
             const discountPrice = sellingPrice * (1 - discountPercent / 100);
 
             return (
               <div className="space-y-5">
-                {/* Base Price */}
+                {/* Base Price - Dual Currency Fields */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Base Price *</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* USD Field */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">United States Dollar (USD)</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">$</span>
                   <input
                     type="number"
-                    value={formData.basePrice || ''}
+                        value={basePriceUSD}
                     onChange={(e) => {
-                      const value = parseFloat(e.target.value) || 0;
-                      const taxRateValue = parseFloat(formData.taxRate?.toString() || '16') || 16;
-                      const newSellingPrice = value * (1 + taxRateValue / 100);
+                          const usdValue = e.target.value;
+                          setBasePriceUSD(usdValue);
+                          
+                          if (usdValue === '' || usdValue === null || usdValue === undefined) {
+                            setBasePriceZMW('');
+                            setSellingPriceZMW('');
+                            setSellingPriceUSD('');
+                            setFormData(prev => ({
+                              ...prev,
+                              basePrice: '',
+                              price: '',
+                              discountedPrice: '',
+                            }));
+                            return;
+                          }
+                          
+                          const usdNum = parseFloat(usdValue);
+                          if (!isNaN(usdNum) && usdNum >= 0) {
+                            // Convert USD to ZMW
+                            const zmwValue = (usdNum * USD_TO_ZMW_RATE).toFixed(2);
+                            setBasePriceZMW(zmwValue);
+                            
+                            // Update basePrice (stored in ZMW)
+                            const basePriceValue = parseFloat(zmwValue);
+                            const taxRateValue = 16; // VAT is always 16%
+                            const newSellingPrice = basePriceValue * (1 + taxRateValue / 100);
                       const discountPercentValue = parseFloat(formData.discountPercent?.toString() || '0') || 0;
                       const newDiscountPrice = discountPercentValue > 0 
                         ? newSellingPrice * (1 - discountPercentValue / 100)
                         : newSellingPrice;
                       
+                            // Update selling price currency fields
+                            setSellingPriceZMW(newSellingPrice.toFixed(2));
+                            setSellingPriceUSD((newSellingPrice / USD_TO_ZMW_RATE).toFixed(2));
+                      
                       setFormData(prev => ({
                         ...prev,
-                        basePrice: value,
+                              basePrice: basePriceValue,
                         price: newSellingPrice.toFixed(2),
                         discountedPrice: newDiscountPrice.toFixed(2),
                       }));
+                          }
                     }}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    className="w-full pl-7 pr-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     placeholder="0.00"
                     min="0"
                     step="0.01"
                   />
+                      </div>
+                </div>
+
+                    {/* ZMW Field */}
+                <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Zambian Kwacha (ZMW)</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">K</span>
+                  <input
+                    type="number"
+                        value={basePriceZMW}
+                    onChange={(e) => {
+                          const zmwValue = e.target.value;
+                          setBasePriceZMW(zmwValue);
+                          
+                          if (zmwValue === '' || zmwValue === null || zmwValue === undefined) {
+                            setBasePriceUSD('');
+                            setSellingPriceZMW('');
+                            setSellingPriceUSD('');
+                            setFormData(prev => ({
+                              ...prev,
+                              basePrice: '',
+                              price: '',
+                              discountedPrice: '',
+                            }));
+                            return;
+                          }
+                          
+                          const zmwNum = parseFloat(zmwValue);
+                          if (!isNaN(zmwNum) && zmwNum >= 0) {
+                            // Convert ZMW to USD
+                            const usdValue = (zmwNum / USD_TO_ZMW_RATE).toFixed(2);
+                            setBasePriceUSD(usdValue);
+                            
+                            // Update basePrice (stored in ZMW)
+                            const taxRateValue = 16; // VAT is always 16%
+                            const newSellingPrice = zmwNum * (1 + taxRateValue / 100);
+                      const discountPercentValue = parseFloat(formData.discountPercent?.toString() || '0') || 0;
+                      const newDiscountPrice = discountPercentValue > 0
+                        ? newSellingPrice * (1 - discountPercentValue / 100)
+                        : newSellingPrice;
+                      
+                            // Update selling price currency fields
+                            setSellingPriceZMW(newSellingPrice.toFixed(2));
+                            setSellingPriceUSD((newSellingPrice / USD_TO_ZMW_RATE).toFixed(2));
+                      
+                      setFormData(prev => ({
+                        ...prev,
+                              basePrice: zmwNum,
+                        price: newSellingPrice.toFixed(2),
+                        discountedPrice: newDiscountPrice.toFixed(2),
+                      }));
+                          }
+                    }}
+                    className="w-full pl-7 pr-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                        placeholder="0.00"
+                    min="0"
+                    step="0.01"
+                  />
+                      </div>
+                    </div>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">Exchange rate: 1 USD = {USD_TO_ZMW_RATE.toFixed(2)} ZMW</p>
                 </div>
 
                 {/* VAT */}
@@ -1378,42 +1560,49 @@ function VariantForm({ productId, productName, variant, onSave, onCancel }: Vari
                   <label className="block text-sm font-medium text-gray-700 mb-2">Value Added Tax (VAT) (%)</label>
                   <input
                     type="number"
-                    value={formData.taxRate || 16}
-                    onChange={(e) => {
-                      const value = parseFloat(e.target.value) || 16;
-                      const basePriceValue = parseFloat(formData.basePrice?.toString() || '0') || 0;
-                      const newSellingPrice = basePriceValue * (1 + value / 100);
-                      const discountPercentValue = parseFloat(formData.discountPercent?.toString() || '0') || 0;
-                      const newDiscountPrice = discountPercentValue > 0
-                        ? newSellingPrice * (1 - discountPercentValue / 100)
-                        : newSellingPrice;
-                      
-                      setFormData(prev => ({
-                        ...prev,
-                        taxRate: value,
-                        price: newSellingPrice.toFixed(2),
-                        discountedPrice: newDiscountPrice.toFixed(2),
-                      }));
-                    }}
-                    className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                    placeholder="16"
-                    min="0"
-                    max="100"
-                    step="0.01"
-                  />
-                </div>
-
-                {/* Selling Price (computed) */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Selling Price</label>
-                  <input
-                    type="text"
-                    value={sellingPrice.toFixed(2)}
+                    value={16}
                     readOnly
                     className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-600 focus:outline-none cursor-not-allowed"
-                    placeholder="Calculated automatically"
+                    placeholder="16"
                   />
-                  <p className="mt-1 text-xs text-gray-500">Calculated from Base Price + VAT</p>
+                  <p className="mt-1 text-xs text-gray-500">VAT is fixed at 16%</p>
+                </div>
+
+                {/* Selling Price - Dual Currency Fields (Read-Only) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Selling Price</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* USD Field */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">United States Dollar (USD)</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">$</span>
+                        <input
+                          type="text"
+                          value={sellingPriceUSD || '0.00'}
+                          readOnly
+                          className="w-full pl-7 pr-3 py-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-600 focus:outline-none cursor-not-allowed"
+                          placeholder="0.00"
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* ZMW Field */}
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Zambian Kwacha (ZMW)</label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">K</span>
+                        <input
+                          type="text"
+                          value={sellingPriceZMW || '0.00'}
+                          readOnly
+                          className="w-full pl-7 pr-3 py-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-600 focus:outline-none cursor-not-allowed"
+                          placeholder="0.00"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <p className="mt-1 text-xs text-gray-500">Calculated from Base Price + VAT (16%). Exchange rate: 1 USD = {USD_TO_ZMW_RATE.toFixed(2)} ZMW</p>
                 </div>
 
                 {/* Discount Percent */}
@@ -1425,7 +1614,7 @@ function VariantForm({ productId, productName, variant, onSave, onCancel }: Vari
                     onChange={(e) => {
                       const value = parseFloat(e.target.value) || 0;
                       const basePriceValue = parseFloat(formData.basePrice?.toString() || '0') || 0;
-                      const vatPercentValue = parseFloat(formData.taxRate?.toString() || '16') || 16;
+                      const vatPercentValue = 16; // VAT is always 16%
                       const currentSellingPrice = basePriceValue * (1 + vatPercentValue / 100);
                       const newDiscountPrice = currentSellingPrice * (1 - value / 100);
                       

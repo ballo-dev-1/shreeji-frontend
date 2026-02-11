@@ -5,11 +5,13 @@ import { XMarkIcon } from '@heroicons/react/24/outline';
 import { Package, Truck, CreditCard, FileText } from 'lucide-react';
 import api from '@/app/lib/admin/api';
 import toast from 'react-hot-toast';
+import { ALL_ORDER_STATUSES, getEnabledOrderStatusOptions } from '@/app/lib/order-statuses';
 
 // Status color helper functions (matching customer order page)
 const getStatusColor = (status: string) => {
   switch (status?.toLowerCase()) {
     case 'delivered':
+    case 'fulfilled':
       return 'bg-green-100 text-green-800';
     case 'shipped':
       return 'bg-blue-100 text-blue-800';
@@ -63,17 +65,8 @@ interface EditOrderModalProps {
   onClose: () => void;
   order: Order | null;
   onSave: () => void;
+  enabledOrderStatuses?: string[] | null;
 }
-
-const ORDER_STATUSES = [
-  { value: 'pending', label: 'Pending' },
-  { value: 'confirmed', label: 'Confirmed' },
-  { value: 'processing', label: 'Processing' },
-  { value: 'shipped', label: 'Shipped' },
-  { value: 'delivered', label: 'Delivered' },
-  { value: 'cancelled', label: 'Cancelled' },
-  { value: 'refunded', label: 'Refunded' },
-];
 
 const PAYMENT_STATUSES = [
   { value: 'pending', label: 'Pending' },
@@ -84,7 +77,13 @@ const PAYMENT_STATUSES = [
   { value: 'partially-refunded', label: 'Partially Refunded' },
 ];
 
-export default function EditOrderModal({ isOpen, onClose, order, onSave }: EditOrderModalProps) {
+export default function EditOrderModal({
+  isOpen,
+  onClose,
+  order,
+  onSave,
+  enabledOrderStatuses,
+}: EditOrderModalProps) {
   const [formData, setFormData] = useState({
     orderStatus: '',
     paymentStatus: '',
@@ -99,6 +98,25 @@ export default function EditOrderModal({ isOpen, onClose, order, onSave }: EditO
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [orderDetails, setOrderDetails] = useState<any>(null);
+
+  // Compute which order status options should be shown, based on settings.
+  const rawStatusOptions = getEnabledOrderStatusOptions(enabledOrderStatuses);
+  const currentStatusValue = formData.orderStatus?.toLowerCase() || '';
+  const hasCurrentInOptions =
+    !!currentStatusValue &&
+    rawStatusOptions.some((option) => option.value === currentStatusValue);
+
+  const orderStatusOptions = !currentStatusValue || hasCurrentInOptions
+    ? rawStatusOptions
+    : [
+        ...rawStatusOptions,
+        {
+          value: currentStatusValue,
+          label:
+            currentStatusValue.charAt(0).toUpperCase() +
+            currentStatusValue.slice(1),
+        },
+      ];
 
   // Load order details when modal opens
   useEffect(() => {
@@ -362,8 +380,9 @@ export default function EditOrderModal({ isOpen, onClose, order, onSave }: EditO
             {/* Body */}
             <div className="p-6">
               {loading && !orderDetails ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+                <div className="space-y-2 animate-pulse py-8">
+                  <div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
+                  <div className="h-1 bg-gray-200 rounded w-24 mx-auto"></div>
                 </div>
               ) : (
                 <div className="space-y-6">
@@ -387,7 +406,7 @@ export default function EditOrderModal({ isOpen, onClose, order, onSave }: EditO
                             className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-500 focus:border-primary-500 sm:text-sm bg-white"
                           >
                             <option value="">Select Status</option>
-                            {ORDER_STATUSES.map((status) => (
+                            {orderStatusOptions.map((status) => (
                               <option key={status.value} value={status.value}>
                                 {status.label}
                               </option>

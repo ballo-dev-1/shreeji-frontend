@@ -58,7 +58,10 @@ export default function PortalProfilePage() {
   if (authLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f5f1e8]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="space-y-4 animate-pulse">
+          <div className="h-12 w-12 bg-gray-300 rounded-full mx-auto"></div>
+          <div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
+        </div>
       </div>
     )
   }

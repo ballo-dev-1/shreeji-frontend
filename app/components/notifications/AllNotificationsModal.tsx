@@ -161,9 +161,9 @@ export default function AllNotificationsModal({ isOpen, onClose }: AllNotificati
           className="overflow-y-auto flex-1 min-h-0"
         >
           {loading && allNotifications.length === 0 ? (
-            <div className="p-12 text-center text-gray-500">
-              <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-gray-400" />
-              <p>Loading notifications...</p>
+            <div className="p-12 text-center space-y-2 animate-pulse">
+              <div className="h-8 w-8 bg-gray-200 rounded-full mx-auto"></div>
+              <p className="text-gray-500">Loading notifications...</p>
             </div>
           ) : error && allNotifications.length === 0 ? (
             <div className="p-12 text-center text-red-500">
@@ -191,8 +191,8 @@ export default function AllNotificationsModal({ isOpen, onClose }: AllNotificati
               {/* Sentinel for infinite scroll */}
               <div ref={sentinelRef} className="h-10 flex items-center justify-center">
                 {loadingMore && (
-                  <div className="flex items-center gap-2 text-gray-500 text-sm">
-                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  <div className="flex items-center gap-2 text-gray-500 text-sm animate-pulse">
+                    <div className="h-4 w-4 bg-gray-200 rounded"></div>
                     <span>Loading more...</span>
                   </div>
                 )}

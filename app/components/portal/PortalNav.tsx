@@ -50,15 +50,14 @@ export default function PortalNav({ sidebarOpen = false }: PortalNavProps) {
   return (
     <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
       <div className="flex items-center justify-center h-16 px-4 dark:border-gray-800">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3 w-full">
           <Image
-            src="/images/Shreeji icon.png"
+            src="/logos/Shreeji Logos 1a.png"
             alt="Shreeji Logo"
-            width={32}
-            height={32}
-            className="object-contain"
+            width={700}
+            height={700}
+            className="object-contain !w-full h-auto scale-125 mt-5"
           />
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">Client Portal</h1>
         </div>
       </div>
       

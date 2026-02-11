@@ -13,6 +13,7 @@ import api from '@/app/lib/admin/api'
 import toast from 'react-hot-toast'
 import { currencyFormatter } from '@/app/components/checkout/currency-formatter'
 import { mapFormToCouponPayload, type CouponFormData } from './couponMapper'
+import { TableSkeleton } from '@/app/components/ui/Skeletons'
 
 interface Coupon {
   id: number
@@ -158,8 +159,9 @@ export default function CouponManagement() {
   if (loading) {
     return (
       <Layout currentPage="Coupons" pageTitle="Coupon Management">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="space-y-6 animate-pulse">
+          <div className="h-8 bg-gray-300 rounded w-64"></div>
+          <TableSkeleton rows={8} columns={6} />
         </div>
       </Layout>
     )

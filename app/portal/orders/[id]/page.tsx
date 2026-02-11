@@ -11,6 +11,7 @@ import { getMainProductImage } from '@/app/lib/admin/image-mapping'
 import { currencyFormatter } from '@/app/components/checkout/currency-formatter'
 import CancelOrderModal from '@/app/components/portal/CancelOrderModal'
 import ReturnRequestModal from '@/app/components/portal/ReturnRequestModal'
+import { OrderDetailsSkeleton } from '@/app/components/ui/Skeletons'
 
 // Process image URL to ensure it's properly formatted for Next.js Image component
 // Handles filenames with spaces by encoding them properly
@@ -88,8 +89,8 @@ export default function OrderDetailsPage() {
   const canCancelOrder = () => {
     if (!order) return false
     
-    // Can't cancel if already cancelled, shipped, or delivered
-    if (['cancelled', 'shipped', 'delivered'].includes(order.orderStatus?.toLowerCase())) {
+    // Can't cancel if already cancelled, shipped, delivered, or fulfilled
+    if (['cancelled', 'shipped', 'delivered', 'fulfilled'].includes(order.orderStatus?.toLowerCase())) {
       return false
     }
 
@@ -105,13 +106,15 @@ export default function OrderDetailsPage() {
 
   const canRequestReturn = () => {
     if (!order) return false
-    // Can only request return for delivered orders
-    return order.orderStatus?.toLowerCase() === 'delivered'
+    // Can only request return for delivered or fulfilled orders
+    const status = order.orderStatus?.toLowerCase()
+    return status === 'delivered' || status === 'fulfilled'
   }
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'delivered':
+      case 'fulfilled':
         return 'bg-green-100 text-green-800'
       case 'shipped':
         return 'bg-blue-100 text-blue-800'
@@ -139,8 +142,10 @@ export default function OrderDetailsPage() {
 
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f1e8]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="min-h-screen bg-[#f5f1e8] pt-24">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <OrderDetailsSkeleton />
+        </div>
       </div>
     )
   }
@@ -451,8 +456,8 @@ export default function OrderDetailsPage() {
                       debit_card: 'Debit Card',
                       bank_transfer: 'Bank Transfer',
                       mobile_money: 'Mobile Money',
-                      cash_on_delivery: 'Cash on Pick Up', // Backward compatibility
-                      cash_on_pickup: 'Cash on Pick Up',
+                      cash_on_delivery: 'Payment on Pickup', // Backward compatibility
+                      cash_on_pickup: 'Payment on Pickup',
                     };
 
                     const paymentMethod = paymentMethodLabels[payment.paymentMethod] || payment.paymentMethod || 'Unknown';
