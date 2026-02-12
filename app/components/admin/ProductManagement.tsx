@@ -39,6 +39,9 @@ interface Product {
   maxStockLevel?: number
   stockStatus?: 'in-stock' | 'low-stock' | 'out-of-stock' | 'discontinued' | string
   basePrice?: number
+  basePriceUsd?: number
+  sellingPriceUsd?: number
+  exchangeRate?: number
   taxRate?: number
   discountPercent?: number
   weight?: number
