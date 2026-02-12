@@ -5,36 +5,15 @@ import Link from 'next/link'
 import { ShoppingBag, X, Minus, Plus } from 'lucide-react'
 import { useCart } from '@/app/contexts/CartContext'
 import { currencyFormatter } from './currency-formatter'
-import { getProductImages, getMainProductImage } from '@/app/lib/admin/image-mapping'
+import { getProductImages, getMainProductImage, normalizeImageUrl } from '@/app/lib/admin/image-mapping'
 
 // Process image URL to ensure it's properly formatted for Next.js Image component
-// Handles filenames with spaces by encoding them properly
 function processImageUrl(url: string): string {
   if (!url) return url
-  
-  // Convert HTTP to HTTPS for mixed content security
-  // For image server that doesn't support HTTPS, proxy through Next.js
-  if (url.startsWith('http://164.92.249.220:9000/')) {
-    // Extract the path after the base URL
-    const imagePath = url.replace('http://164.92.249.220:9000/', '');
-    url = `/api/images/${imagePath}`;
-  } else if (url.startsWith('http://')) {
-    // For other HTTP URLs, try to convert to HTTPS
-    url = url.replace('http://', 'https://');
-  }
-  
-  // If it's already an absolute URL, return as-is
+  url = normalizeImageUrl(url)
   if (url.startsWith('http')) return url
-  
-  // Handle relative paths
-  if (!url.startsWith('/')) {
-    url = `/${url}`
-  }
-  
-  // Remove leading double slashes
+  if (!url.startsWith('/')) url = `/${url}`
   url = url.replace(/^\/\//, '/')
-  
-  // If filename contains spaces, encode them properly (%20)
   if (url.includes(' ') && !url.includes('%20')) {
     const urlParts = url.split('/')
     const filename = urlParts[urlParts.length - 1]
@@ -43,7 +22,6 @@ function processImageUrl(url: string): string {
       url = urlParts.join('/')
     }
   }
-  
   return url
 }
 

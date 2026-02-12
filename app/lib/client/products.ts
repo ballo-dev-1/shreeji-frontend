@@ -2,7 +2,7 @@
 // Replaces productsData.js functions with NestJS API calls
 
 import clientApi from './api';
-import { processProductImages } from '@/app/lib/admin/image-mapping';
+import { processProductImages, normalizeImageUrl } from '@/app/lib/admin/image-mapping';
 
 // Transform NestJS product format to match local productsData.js format
 function transformProduct(nestProduct: any): any {
@@ -37,17 +37,7 @@ function transformProduct(nestProduct: any): any {
           if (!url || typeof url !== 'string') {
             return null;
           }
-          
-          // Convert HTTP to HTTPS for mixed content security
-          // For image server that doesn't support HTTPS, proxy through Next.js
-          if (url.startsWith('http://164.92.249.220:9000/')) {
-            // Extract the path after the base URL
-            const imagePath = url.replace('http://164.92.249.220:9000/', '');
-            url = `/api/images/${imagePath}`;
-          } else if (url.startsWith('http://')) {
-            // For other HTTP URLs, try to convert to HTTPS
-            url = url.replace('http://', 'https://');
-          }
+          url = normalizeImageUrl(url);
           
           // If URL is relative and starts with /, it should work with Next.js
           // If it's from backend/Imghippo, it should already be absolute

@@ -7,7 +7,7 @@ import clientApi from '@/app/lib/client/api'
 import { ArrowLeft, Package, MapPin, CreditCard, Truck, XCircle, RotateCcw } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { getMainProductImage } from '@/app/lib/admin/image-mapping'
+import { getMainProductImage, normalizeImageUrl } from '@/app/lib/admin/image-mapping'
 import { currencyFormatter } from '@/app/components/checkout/currency-formatter'
 import CancelOrderModal from '@/app/components/portal/CancelOrderModal'
 import ReturnRequestModal from '@/app/components/portal/ReturnRequestModal'
@@ -17,29 +17,19 @@ import { OrderDetailsSkeleton } from '@/app/components/ui/Skeletons'
 // Handles filenames with spaces by encoding them properly
 function processImageUrl(url: string): string {
   if (!url) return url
-  
-  // Convert HTTP to HTTPS for mixed content security
-  // For image server that doesn't support HTTPS, proxy through Next.js 
-  if (url.startsWith('http://164.92.249.220:9000/')) {
-    // Extract the path after the base URL
-    const imagePath = url.replace('http://164.92.249.220:9000/', '');
-    url = `/api/images/${imagePath}`;
-  } else if (url.startsWith('http://')) {
-    // For other HTTP URLs, try to convert to HTTPS
-    url = url.replace('http://', 'https://');
-  }
-  
+  url = normalizeImageUrl(url)
+
   // If it's already an absolute URL, return as-is
   if (url.startsWith('http')) return url
-  
+
   // Handle relative paths
   if (!url.startsWith('/')) {
     url = `/${url}`
   }
-  
+
   // Remove leading double slashes
   url = url.replace(/^\/\//, '/')
-  
+
   // If filename contains spaces, encode them properly (%20)
   if (url.includes(' ') && !url.includes('%20')) {
     const urlParts = url.split('/')

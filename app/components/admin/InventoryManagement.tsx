@@ -17,7 +17,7 @@ import {
   ChevronRightIcon
 } from '@heroicons/react/24/outline';
 import api from '@/app/lib/admin/api';
-import { processProductImages } from '@/app/lib/admin/image-mapping';
+import { processProductImages, normalizeImageUrl } from '@/app/lib/admin/image-mapping';
 import Layout from './Layout'
 import EditInventoryModal from './EditInventoryModal'
 import InventoryTransferModal from './InventoryTransferModal'
@@ -1143,7 +1143,7 @@ export default function InventoryManagement() {
                             </button>
                           )}
                           <img
-                            src={product.images && product.images.length > 0 ? product.images[0].url : 'https://via.placeholder.com/40x40?text=No+Image'}
+                            src={product.images && product.images.length > 0 ? normalizeImageUrl(product.images[0].url) : 'https://via.placeholder.com/40x40?text=No+Image'}
                             alt={product.images && product.images.length > 0 ? product.images[0].alt : product.name}
                             className="w-10 h-10 rounded-lg object-cover mr-3 flex-shrink-0"
                             onError={(e) => {

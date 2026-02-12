@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { XMarkIcon, ExclamationTriangleIcon, PlusIcon, MinusIcon, PhotoIcon } from '@heroicons/react/24/outline';
 import api from '@/app/lib/admin/api';
+import { normalizeImageUrl } from '@/app/lib/admin/image-mapping';
 import toast from 'react-hot-toast';
 
 interface Product {
@@ -374,7 +375,7 @@ export default function EditInventoryModal({
                   >
                     {image.url ? (
                       <img
-                        src={image.url}
+                        src={normalizeImageUrl(image.url)}
                         alt={image.alt || `Thumbnail ${index + 1}`}
                         className="w-full h-full object-contain"
                         onError={(e) => {

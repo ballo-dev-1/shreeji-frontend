@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { normalizeImageUrl } from "@/app/lib/admin/image-mapping";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -142,7 +143,7 @@ export default function ViewProductModal({
                     <div className="relative">
                       <div className="overflow-hidden rounded-2xl border border-dashed border-gray-200 bg-gray-50">
                         <img
-                          src={selectedImage.url}
+                          src={normalizeImageUrl(selectedImage.url)}
                           alt={selectedImage.alt || product.name}
                           className="h-80 w-full object-contain"
                           onError={(event) => {
@@ -214,7 +215,7 @@ export default function ViewProductModal({
                             }`}
                           >
                             <img
-                              src={image.url}
+                              src={normalizeImageUrl(image.url)}
                               alt={image.alt || `${product.name} ${index + 1}`}
                               className="h-20 w-full object-cover"
                               onError={(event) => {

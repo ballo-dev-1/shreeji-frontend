@@ -39,30 +39,68 @@ export function getAvailableProducts(): string[] {
   return Object.keys(imageMapping.mappings);
 }
 
+const BACKEND_BASE =
+  (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_ECOM_API_URL?.replace?.(/\/$/, '')) ||
+  '';
+
+// Extract MinIO object name from path part of legacy URLs
+function extractObjectName(pathPart: string): string {
+  let s = pathPart.replace(/^\//, '');
+  if (s.includes('api/images/shreeji-uploads/uploads/')) {
+    return 'uploads/' + s.split('api/images/shreeji-uploads/uploads/')[1];
+  }
+  if (s.startsWith('shreeji-uploads/uploads/')) {
+    return 'uploads/' + s.slice('shreeji-uploads/uploads/'.length);
+  }
+  if (s.startsWith('shreeji-uploads/')) {
+    return s.slice('shreeji-uploads/'.length);
+  }
+  return s;
+}
+
+/**
+ * Normalize image URLs: rewrite legacy MinIO :9000 URLs to backend proxy,
+ * and old IP:9000 to /api/images proxy. Use for any img src from the API.
+ */
+export function normalizeImageUrl(url: string): string {
+  if (!url || typeof url !== 'string') return url;
+  const u = url.trim();
+
+  // Already our backend proxy URL
+  if (u.includes('/files/serve?')) return u;
+
+  // Legacy backend MinIO URL (https or http) with :9000 -> backend /files/serve
+  if (u.includes(':9000') && BACKEND_BASE) {
+    try {
+      const baseHost = new URL(BACKEND_BASE).hostname;
+      if (u.includes(baseHost + ':9000')) {
+        const pathPart = u.replace(/^https?:\/\/[^/]+/, '');
+        const objectName = extractObjectName(pathPart);
+        if (objectName) {
+          return `${BACKEND_BASE}/files/serve?path=${encodeURIComponent(objectName)}`;
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // Old MinIO IP:9000 -> Next.js /api/images proxy
+  if (u.startsWith('http://164.92.249.220:9000/')) {
+    return `/api/images/${u.replace('http://164.92.249.220:9000/', '')}`;
+  }
+
+  // Convert HTTP to HTTPS for mixed content
+  if (u.startsWith('http://')) {
+    return u.replace('http://', 'https://');
+  }
+  return u;
+}
+
 // Convert HTTP URLs to HTTPS for mixed content security
 // For servers that don't support HTTPS, proxy through Next.js
 function ensureHttps(url: string): string {
-  if (!url || typeof url !== 'string') return url;
-  
-  // If it's already HTTPS, return as-is
-  if (url.startsWith('https://')) {
-    return url;
-  }
-  
-  // If it's HTTP and from the image server, proxy through Next.js
-  if (url.startsWith('http://164.92.249.220:9000/')) {
-    // Extract the path after the base URL
-    const imagePath = url.replace('http://164.92.249.220:9000/', '');
-    // Return the proxied URL
-    return `/api/images/${imagePath}`;
-  }
-  
-  // For other HTTP URLs, try to convert to HTTPS
-  if (url.startsWith('http://')) {
-    return url.replace('http://', 'https://');
-  }
-  
-  return url;
+  return normalizeImageUrl(url);
 }
 
 // Enhanced image processing that prioritizes uploaded images from backend

@@ -12,7 +12,7 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline'
 import api from '@/app/lib/admin/api'
-import { processProductImages } from '@/app/lib/admin/image-mapping'
+import { processProductImages, normalizeImageUrl } from '@/app/lib/admin/image-mapping'
 import EditProductModal from './EditProductModal'
 import toast from 'react-hot-toast'
 import { ProductGridSkeleton, TableSkeleton } from '@/app/components/ui/Skeletons'
@@ -933,7 +933,7 @@ function ProductCard({ product, onToggleActive, onEdit }: {
     >
       <div className="aspect-w-16 aspect-h-9 bg-gray-200">
         <img
-          src={mainImage.url}
+          src={normalizeImageUrl(mainImage.url)}
           alt={mainImage.alt || product.name}
           className="w-full h-48 object-cover"
           onError={(e) => {
@@ -1016,7 +1016,7 @@ function ProductTable({ products, onToggleActive, onEdit }: {
                   <td className="table-cell">
                     <div className="flex items-center">
                       <img
-                        src={mainImage.url}
+                        src={normalizeImageUrl(mainImage.url)}
                         alt={mainImage.alt || product.name}
                         className="w-12 h-12 rounded-lg object-cover mr-4"
                         onError={(e) => {
