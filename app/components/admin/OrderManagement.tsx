@@ -362,7 +362,7 @@ export default function OrderManagement() {
     try {
       await api.updateOrder(orderId, { orderStatus: newStatus });
       toast.success('Order status updated');
-      await fetchOrders();
+      await refreshOrdersSilently();
     } catch (error: any) {
       toast.error(error.message || 'Failed to update status');
     } finally {
@@ -376,7 +376,7 @@ export default function OrderManagement() {
     try {
       await api.updateOrder(orderId, { paymentStatus: newPaymentStatus });
       toast.success('Payment status updated');
-      await fetchOrders();
+      await refreshOrdersSilently();
     } catch (error: any) {
       toast.error(error.message || 'Failed to update payment status');
     } finally {
@@ -679,7 +679,7 @@ export default function OrderManagement() {
                           disabled={updatingOrderId === (order.orderId ?? order.id)}
                           onChange={(e) => handleStatusChange(order.orderId ?? order.id, e.target.value)}
                           onClick={(e) => e.stopPropagation()}
-                          className="absolute inset-0 w-full cursor-pointer appearance-none rounded border border-gray-300 bg-white text-transparent focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="absolute inset-0 w-full cursor-pointer appearance-none rounded bg-white text-transparent focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {orderStatusFilterOptions.map((opt) => (
                             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -701,7 +701,7 @@ export default function OrderManagement() {
                           disabled={updatingOrderId === (order.orderId ?? order.id)}
                           onChange={(e) => handlePaymentStatusChange(order.orderId ?? order.id, e.target.value)}
                           onClick={(e) => e.stopPropagation()}
-                          className="absolute inset-0 w-full cursor-pointer appearance-none rounded border border-gray-300 bg-white text-transparent focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="absolute inset-0 w-full cursor-pointer appearance-none rounded bg-white text-transparent focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           {PAYMENT_STATUSES.map((opt) => (
                             <option key={opt.value} value={opt.value}>{opt.label}</option>

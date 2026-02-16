@@ -232,16 +232,7 @@ export default function Layout({ children, currentPage = 'Dashboard', pageTitle 
                       {user?.firstName?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || 'A'}
                     </span>
                   </div>
-                  <div className="hidden sm:block">
-                    <p className="text-sm font-medium text-gray-900">
-                      {user?.firstName && user?.lastName 
-                        ? `${user.firstName} ${user.lastName}` 
-                        : user?.firstName || user?.email || 'Admin User'}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {user?.email || 'admin@shreeji.com'}
-                    </p>
-                  </div>
+                 
                 </button>
 
                 {/* User dropdown menu */}
