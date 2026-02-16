@@ -78,7 +78,7 @@ export default function ProfileButton() {
                   logout()
                   setOpen(false)
                 }}
-                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-gray-900 hover:bg-gray-50"
+                className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-white hover:bg-white/20"
               >
                 <LogOut className="h-4 w-4 shrink-0" />
                 <span>Sign out</span>
