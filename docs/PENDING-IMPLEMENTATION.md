@@ -302,6 +302,11 @@ This document tracks all pending tasks and next steps required to make the ecomm
 - [x] Order status change notifications (email, SMS, in-app)
 - [x] SMS service with Twilio/AWS SNS support (mock implementation ready)
 - [x] Notification preferences with SMS support
+- [x] **SSE-driven order status updates** (Feb 2025)
+  - [x] NotificationContext emits `order-status-changed` when order-related notifications arrive via SSE
+  - [x] Portal order details, orders list, and dashboard refresh on order status change
+  - [x] Admin OrderManagement and Dashboard refresh on order status change
+  - [x] Backend creates admin notification when order status changes (for real-time admin UI updates)
 
 ### 🔄 Pending
 - [ ] **Email Templates**

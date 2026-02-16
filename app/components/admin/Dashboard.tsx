@@ -193,13 +193,18 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchDashboardData()
-    
-    // Refresh dashboard data every 30 seconds
-    const interval = setInterval(() => {
-      fetchDashboardData()
-    }, 30000)
-    
-    return () => clearInterval(interval)
+
+    // Refresh when order status changes via SSE notification
+    const handler = () => fetchDashboardData()
+    window.addEventListener('order-status-changed', handler)
+
+    // Fallback: refresh dashboard data every 30 seconds
+    const interval = setInterval(() => fetchDashboardData(), 30000)
+
+    return () => {
+      window.removeEventListener('order-status-changed', handler)
+      clearInterval(interval)
+    }
   }, [])
 
   if (loading) {

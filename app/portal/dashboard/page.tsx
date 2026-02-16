@@ -60,13 +60,18 @@ export default function PortalDashboardPage() {
     if (isAuthenticated) {
       // Initial fetch with loading indicator
       fetchOrders(true)
-      
-      // Refresh orders every 30 seconds without loading indicator
-      const interval = setInterval(() => {
-        fetchOrders(false)
-      }, 30000)
-      
-      return () => clearInterval(interval)
+
+      // Refresh when order status changes via SSE notification
+      const handler = () => fetchOrders(false)
+      window.addEventListener('order-status-changed', handler)
+
+      // Fallback: refresh orders every 30 seconds without loading indicator
+      const interval = setInterval(() => fetchOrders(false), 30000)
+
+      return () => {
+        window.removeEventListener('order-status-changed', handler)
+        clearInterval(interval)
+      }
     }
   }, [isAuthenticated, fetchOrders])
 

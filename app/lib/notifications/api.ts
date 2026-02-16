@@ -180,10 +180,11 @@ class NotificationsApiClient {
 
   /**
    * Build the SSE stream URL for the given token.
-   * Uses the same proxy logic as other API calls.
+   * Bypasses the Next.js proxy: the proxy buffers the full response and breaks
+   * streaming. SSE requires a direct connection to the backend for real-time events.
    */
   getSSEUrl(token: string): string {
-    return getApiUrl(`/notifications/stream?token=${encodeURIComponent(token)}`);
+    return `${this.baseURL}/notifications/stream?token=${encodeURIComponent(token)}`;
   }
 }
 

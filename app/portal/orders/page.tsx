@@ -24,13 +24,19 @@ export default function PortalOrdersPage() {
   useEffect(() => {
     if (isAuthenticated) {
       fetchOrders()
-      
-      // Refresh orders every 30 seconds
-      const interval = setInterval(() => {
-        fetchOrders()
-      }, 30000)
-      
-      return () => clearInterval(interval)
+
+      // Refresh when order status changes via SSE notification
+      const handler = () => fetchOrders()
+      window.addEventListener('order-status-changed', handler)
+      const cleanup = () => window.removeEventListener('order-status-changed', handler)
+
+      // Fallback: refresh orders every 30 seconds
+      const interval = setInterval(() => fetchOrders(), 30000)
+
+      return () => {
+        cleanup()
+        clearInterval(interval)
+      }
     }
   }, [isAuthenticated])
 

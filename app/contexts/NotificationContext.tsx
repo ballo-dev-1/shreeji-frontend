@@ -343,6 +343,23 @@ export function NotificationProvider({
 
             // Update total count
             setTotalNotifications((prev) => prev + 1);
+
+            // Emit order-status-changed for real-time order UI updates
+            const orderId =
+              newNotification.data?.orderId ??
+              newNotification.data?.order_id ??
+              newNotification.data?.order?.id;
+            const isOrderRelated =
+              orderId != null ||
+              /order/i.test(newNotification.type ?? '') ||
+              /order/i.test(newNotification.target ?? '');
+            if (isOrderRelated && typeof window !== 'undefined') {
+              window.dispatchEvent(
+                new CustomEvent('order-status-changed', {
+                  detail: { orderId: orderId ?? null },
+                }),
+              );
+            }
           }
         } catch (err) {
           console.error('Failed to parse SSE message:', err);

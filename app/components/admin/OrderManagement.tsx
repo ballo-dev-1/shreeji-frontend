@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { PlusIcon, TrashIcon, MagnifyingGlassIcon, XCircleIcon, ArrowDownTrayIcon } from '@heroicons/react/20/solid';
+import { PlusIcon, TrashIcon, MagnifyingGlassIcon, XCircleIcon, ArrowDownTrayIcon, ChevronDownIcon } from '@heroicons/react/20/solid';
 import clsx from 'clsx';
 import Layout from './Layout'
 import api from '@/app/lib/admin/api'
@@ -10,6 +10,16 @@ import CancelOrderModal from './CancelOrderModal'
 import { currencyFormatter } from '@/app/components/checkout/currency-formatter'
 import { TableSkeleton } from '@/app/components/ui/Skeletons'
 import { ALL_ORDER_STATUSES, getEnabledOrderStatusOptions } from '@/app/lib/order-statuses';
+import toast from 'react-hot-toast';
+
+const PAYMENT_STATUSES = [
+  { value: 'pending', label: 'Pending' },
+  { value: 'paid', label: 'Paid' },
+  { value: 'partially-paid', label: 'Partially Paid' },
+  { value: 'failed', label: 'Failed' },
+  { value: 'refunded', label: 'Refunded' },
+  { value: 'partially-refunded', label: 'Partially Refunded' },
+];
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -54,6 +64,7 @@ export default function OrderManagement() {
   const [orderToCancel, setOrderToCancel] = useState<any>(null);
   const [analytics, setAnalytics] = useState<any>(null);
   const [exporting, setExporting] = useState(false);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | number | null>(null);
 
   // Order status visibility settings (from general.enabledOrderStatuses)
   const [enabledOrderStatuses, setEnabledOrderStatuses] = useState<string[] | null>(null);
@@ -208,6 +219,13 @@ export default function OrderManagement() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagination.page, filters.status, filters.paymentStatus, filters.startDate, filters.endDate]);
 
+  // Refresh when order status changes via SSE notification (real-time admin updates)
+  useEffect(() => {
+    const handler = () => refreshOrdersSilently();
+    window.addEventListener('order-status-changed', handler);
+    return () => window.removeEventListener('order-status-changed', handler);
+  }, [refreshOrdersSilently]);
+
   // Load order status visibility settings from backend (general.enabledOrderStatuses)
   useEffect(() => {
     let mounted = true;
@@ -336,6 +354,34 @@ export default function OrderManagement() {
     });
     setSearchTerm('');
     setPagination(prev => ({ ...prev, page: 1 }));
+  };
+
+  const handleStatusChange = async (orderId: string | number, newStatus: string) => {
+    if (!orderId) return;
+    setUpdatingOrderId(orderId);
+    try {
+      await api.updateOrder(orderId, { orderStatus: newStatus });
+      toast.success('Order status updated');
+      await fetchOrders();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update status');
+    } finally {
+      setUpdatingOrderId(null);
+    }
+  };
+
+  const handlePaymentStatusChange = async (orderId: string | number, newPaymentStatus: string) => {
+    if (!orderId) return;
+    setUpdatingOrderId(orderId);
+    try {
+      await api.updateOrder(orderId, { paymentStatus: newPaymentStatus });
+      toast.success('Payment status updated');
+      await fetchOrders();
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to update payment status');
+    } finally {
+      setUpdatingOrderId(null);
+    }
   };
 
   const handleSelectOrder = (orderId: string) => {
@@ -621,15 +667,49 @@ export default function OrderManagement() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {currencyFormatter(Number(order.total || 0))}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={clsx('inline-flex px-2 py-1 text-xs font-semibold rounded-full', statusColors[order.status])}>
-                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                    </span>
+                  <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-1.5">
+                      <span className={clsx('inline-flex px-2 py-1 text-xs font-semibold rounded-full shrink-0', statusColors[order.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800')}>
+                        {order.status?.charAt(0).toUpperCase() + order.status?.slice(1) || order.status}
+                      </span>
+                      <div className="relative inline-flex h-7 w-7 flex-shrink-0 items-center">
+                        <select
+                          aria-label="Update order status"
+                          value={order.status || ''}
+                          disabled={updatingOrderId === (order.orderId ?? order.id)}
+                          onChange={(e) => handleStatusChange(order.orderId ?? order.id, e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="absolute inset-0 w-full cursor-pointer appearance-none rounded border border-gray-300 bg-white text-transparent focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {orderStatusFilterOptions.map((opt) => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          ))}
+                        </select>
+                        <ChevronDownIcon className="pointer-events-none absolute right-1 h-4 w-4 text-gray-500" />
+                      </div>
+                    </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={clsx('inline-flex px-2 py-1 text-xs font-semibold rounded-full', paymentStatusColors[order.paymentStatus])}>
-                      {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
-                    </span>
+                  <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center gap-1.5">
+                      <span className={clsx('inline-flex px-2 py-1 text-xs font-semibold rounded-full shrink-0', paymentStatusColors[order.paymentStatus as keyof typeof paymentStatusColors] || 'bg-gray-100 text-gray-800')}>
+                        {PAYMENT_STATUSES.find(p => p.value === order.paymentStatus)?.label ?? (order.paymentStatus?.charAt(0).toUpperCase() + order.paymentStatus?.slice(1)?.replace(/-/g, ' ') ?? order.paymentStatus)}
+                      </span>
+                      <div className="relative inline-flex h-7 w-7 flex-shrink-0 items-center">
+                        <select
+                          aria-label="Update payment status"
+                          value={order.paymentStatus || ''}
+                          disabled={updatingOrderId === (order.orderId ?? order.id)}
+                          onChange={(e) => handlePaymentStatusChange(order.orderId ?? order.id, e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="absolute inset-0 w-full cursor-pointer appearance-none rounded border border-gray-300 bg-white text-transparent focus:border-primary-500 focus:ring-1 focus:ring-primary-500 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {PAYMENT_STATUSES.map((opt) => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                          ))}
+                        </select>
+                        <ChevronDownIcon className="pointer-events-none absolute right-1 h-4 w-4 text-gray-500" />
+                      </div>
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {order.trackingNumber ? (

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useClientAuth } from '@/app/contexts/ClientAuthContext'
 import { getLoginUrl } from '@/app/lib/client/redirectToLogin'
@@ -59,13 +59,8 @@ export default function OrderDetailsPage() {
     }
   }, [authLoading, isAuthenticated, router])
 
-  useEffect(() => {
-    if (isAuthenticated && id) {
-      fetchOrder()
-    }
-  }, [isAuthenticated, id])
-
-  const fetchOrder = async () => {
+  const fetchOrder = useCallback(async () => {
+    if (!id) return
     try {
       setLoading(true)
       const response = await clientApi.getOrder(id as string)
@@ -75,7 +70,27 @@ export default function OrderDetailsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [id])
+
+  useEffect(() => {
+    if (isAuthenticated && id) {
+      fetchOrder()
+    }
+  }, [isAuthenticated, id, fetchOrder])
+
+  // Refetch when order status changes via SSE notification
+  useEffect(() => {
+    const handler = (e: CustomEvent<{ orderId: number | null }>) => {
+      const eventOrderId = e.detail?.orderId
+      if (eventOrderId == null) return
+      const currentId = typeof id === 'string' ? id : String(id)
+      if (String(eventOrderId) === currentId) {
+        fetchOrder()
+      }
+    }
+    window.addEventListener('order-status-changed', handler as EventListener)
+    return () => window.removeEventListener('order-status-changed', handler as EventListener)
+  }, [id, fetchOrder])
 
   const canCancelOrder = () => {
     if (!order) return false
