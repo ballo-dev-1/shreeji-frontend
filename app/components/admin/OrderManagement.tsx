@@ -692,7 +692,7 @@ export default function OrderManagement() {
                   <td className="px-6 py-4 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                     <div className="flex items-center gap-1.5">
                       <span className={clsx('inline-flex px-2 py-1 text-xs font-semibold rounded-full shrink-0', paymentStatusColors[order.paymentStatus as keyof typeof paymentStatusColors] || 'bg-gray-100 text-gray-800')}>
-                        {PAYMENT_STATUSES.find(p => p.value === order.paymentStatus)?.label ?? (order.paymentStatus?.charAt(0).toUpperCase() + order.paymentStatus?.slice(1)?.replace(/-/g, ' ') ?? order.paymentStatus)}
+                        {PAYMENT_STATUSES.find(p => p.value === order.paymentStatus)?.label ?? (order.paymentStatus ? order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1).replace(/-/g, ' ') : '')}
                       </span>
                       <div className="relative inline-flex h-7 w-7 flex-shrink-0 items-center">
                         <select
