@@ -1114,11 +1114,11 @@ export default function SettingsPage() {
             </button>
           </div>
 
-          {/* Payment on Pickup */}
+          {/* Cash on Pickup */}
           <div className="flex items-center justify-between">
             <div>
-              <h5 className="text-sm font-medium text-gray-900">Payment on Pickup</h5>
-              <p className="text-sm text-gray-500">Enable payment on pickup</p>
+              <h5 className="text-sm font-medium text-gray-900">Cash on Pickup</h5>
+              <p className="text-sm text-gray-500">Enable cash on pickup</p>
             </div>
             <button
               type="button"

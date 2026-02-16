@@ -70,12 +70,12 @@ export class EmailService {
     const emailContent = {
       to: teamEmail,
       cc: data.customerEmail,
-      subject: `🛒 New Payment on Pickup Order: ${data.orderNumber}`,
+      subject: `🛒 New Cash on Pickup Order: ${data.orderNumber}`,
       html: this.generateCashOnPickupEmailHtml(data),
       text: this.generateCashOnPickupEmailText(data),
     };
 
-    console.log('Payment on Pickup Notification Email:', JSON.stringify(emailContent, null, 2));
+    console.log('Cash on Pickup Notification Email:', JSON.stringify(emailContent, null, 2));
 
     // TODO: Integrate with actual email service
     // Example with Resend:
@@ -117,7 +117,7 @@ export class EmailService {
         <body>
           <div class="container">
             <div class="header">
-              <h1>🛒 New Payment on Pickup Order</h1>
+              <h1>🛒 New Cash on Pickup Order</h1>
               <p>Order Number: ${data.orderNumber}</p>
             </div>
             <div class="content">
@@ -209,7 +209,7 @@ export class EmailService {
     });
 
     return `
-🛒 New Payment on Pickup Order: ${data.orderNumber}
+🛒 New Cash on Pickup Order: ${data.orderNumber}
 
 ⚠️ ACTION REQUIRED: Please prepare this order for pickup and notify the customer when ready.
 

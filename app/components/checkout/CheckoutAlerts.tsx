@@ -138,7 +138,7 @@ export default function CheckoutAlerts({ cartError, formError, success, paymentM
 
               {paymentMethod === 'cop' && success.paymentStatus === 'pending' && (
                 <div className='mt-3 rounded bg-white p-3 text-sm'>
-                  <p className='font-semibold'>Payment on Pickup Confirmed</p>
+                  <p className='font-semibold'>Cash on Pickup Confirmed</p>
                   <p className='mt-1'>Please have the exact amount ready when you pick up your order.</p>
                 </div>
               )}

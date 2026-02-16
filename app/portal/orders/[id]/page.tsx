@@ -447,8 +447,8 @@ export default function OrderDetailsPage() {
                       debit_card: 'Debit Card',
                       bank_transfer: 'Bank Transfer',
                       mobile_money: 'Mobile Money',
-                      cash_on_delivery: 'Payment on Pickup', // Backward compatibility
-                      cash_on_pickup: 'Payment on Pickup',
+                      cash_on_delivery: 'Cash on Pickup', // Backward compatibility
+                      cash_on_pickup: 'Cash on Pickup',
                     };
 
                     const paymentMethod = paymentMethodLabels[payment.paymentMethod] || payment.paymentMethod || 'Unknown';

@@ -124,6 +124,7 @@ function SpecInput({
   const [isOpen, setIsOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const selectedFromDropdownRef = useRef(false);
 
   // Update query when specKey changes externally
   useEffect(() => {
@@ -155,6 +156,9 @@ function SpecInput({
   };
 
   const handleSelect = (value: string) => {
+    // #region agent log
+    fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'EditProductModal.tsx:handleSelect',message:'handleSelect called',data:{value,specKey},timestamp:Date.now(),hypothesisId:'H1-H5'})}).catch(()=>{});
+    // #endregion
     if (value && value.trim() !== '') {
       onKeyChange(specKey, value.trim());
       setQuery(value.trim());
@@ -164,6 +168,9 @@ function SpecInput({
 
   const handleAddNew = () => {
     const trimmedQuery = query.trim();
+    // #region agent log
+    fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'EditProductModal.tsx:handleAddNew',message:'handleAddNew called',data:{trimmedQuery,specKey},timestamp:Date.now(),hypothesisId:'H1-H2-H5'})}).catch(()=>{});
+    // #endregion
     if (trimmedQuery) {
       onKeyChange(specKey, trimmedQuery);
       setQuery(trimmedQuery);
@@ -178,12 +185,23 @@ function SpecInput({
   const handleInputBlur = (e: React.FocusEvent) => {
     // Delay to allow click events on dropdown items
     setTimeout(() => {
-      if (!dropdownRef.current?.contains(document.activeElement)) {
+      const contains = dropdownRef.current?.contains(document.activeElement);
+      const q = query.trim();
+      const willAddNew = !contains && q !== specKey && q !== '';
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'EditProductModal.tsx:blurTimeout',message:'blur timeout ran',data:{query:q,specKey,contains,willAddNew,activeTag:document.activeElement?.tagName},timestamp:Date.now(),hypothesisId:'H1-H3-H4'})}).catch(()=>{});
+      // #endregion
+      if (selectedFromDropdownRef.current) {
+        setIsOpen(false);
+        selectedFromDropdownRef.current = false;
+        return;
+      }
+      if (!contains) {
         setIsOpen(false);
         // If query doesn't match specKey, update it
-        if (query.trim() !== specKey && query.trim() !== '') {
+        if (q !== specKey && q !== '') {
           handleAddNew();
-        } else if (query.trim() === '') {
+        } else if (q === '') {
           setQuery(specKey || '');
         }
       }
@@ -260,6 +278,7 @@ function SpecInput({
               {filteredSpecs.map((name) => (
                 <div
                   key={name}
+                  onMouseDown={() => { selectedFromDropdownRef.current = true; }}
                   onClick={() => handleSelect(name)}
                   className={`relative cursor-pointer select-none py-2 pl-10 pr-4 ${
                     specKey === name
@@ -277,6 +296,7 @@ function SpecInput({
               ))}
               {isCustomSpec && specKey && !filteredSpecs.includes(specKey) && (
                 <div
+                  onMouseDown={() => { selectedFromDropdownRef.current = true; }}
                   onClick={() => handleSelect(specKey)}
                   className={`relative cursor-pointer select-none py-2 pl-10 pr-4 ${
                     'bg-primary-600 text-white font-medium'
@@ -290,6 +310,7 @@ function SpecInput({
               )}
               {showAddNew && (
                 <div
+                  onMouseDown={() => { selectedFromDropdownRef.current = true; }}
                   onClick={handleAddNew}
                   className="relative cursor-pointer select-none py-2 pl-10 pr-4 text-primary-600 hover:bg-primary-50 font-medium"
                 >
