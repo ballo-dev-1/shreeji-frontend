@@ -44,7 +44,6 @@ const Footer = () => {
               Terms & Conditions
             </Link>
           </p>
-          <p>Privacy & Policy</p>
         </div>
 
         <div className="footer-social w-full sm:w-[22%] flex-1 flex flex-col gap-5 mb-10 sm:mb-0 items-center md:items-start">
