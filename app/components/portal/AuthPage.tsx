@@ -122,9 +122,9 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
               }
               router.replace(returnUrl);
             } else {
-              // Use router.replace instead of window.location.href to avoid full page reload
-              // Remove token from URL to clean it up
-              router.replace('/portal/dashboard');
+              // Full-page redirect so the next load reads token/user from localStorage and
+              // auth context hydrates correctly, avoiding race with ProtectedRoute on dashboard
+              window.location.replace('/portal/dashboard');
             }
           }, 100);
         })

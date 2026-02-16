@@ -48,8 +48,8 @@ export default function PortalNav({ sidebarOpen = false }: PortalNavProps) {
   }
 
   return (
-    <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
-      <div className="flex items-center justify-center h-16 px-4 dark:border-gray-800">
+    <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 bg-white dark:bg-[#131313]`}>
+      <div className="flex items-center justify-center h-16 px-4 dark:border-gray-800 overflow-hidden">
         <div className="flex items-center space-x-3 w-full">
           <Image
             src="/logos/Shreeji Logos 1a.png"
@@ -61,7 +61,7 @@ export default function PortalNav({ sidebarOpen = false }: PortalNavProps) {
         </div>
       </div>
       
-      <nav className="mt-8">
+      <nav className="mt-8 relative z-10">
         <div className="px-4 space-y-2">
           {navItems.map((item) => {
             const Icon = item.icon
