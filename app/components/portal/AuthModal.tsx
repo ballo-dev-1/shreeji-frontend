@@ -151,9 +151,13 @@ export default function AuthModal({
       window.location.protocol === 'https:' && 
       API_URL.startsWith('http://');
     
-    const googleAuthUrl = shouldUseProxy 
+    const baseUrl = shouldUseProxy 
       ? `/api/backend/auth/google`
       : `${API_URL}/auth/google`;
+    const redirect_uri = typeof window !== 'undefined' ? window.location.origin + '/portal/login' : '';
+    const googleAuthUrl = redirect_uri
+      ? `${baseUrl}?redirect_uri=${encodeURIComponent(redirect_uri)}`
+      : baseUrl;
     
     // Redirect immediately to backend Google OAuth endpoint
     // Use setTimeout with 0 delay to ensure it runs after current execution stack

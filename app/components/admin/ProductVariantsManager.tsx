@@ -943,7 +943,7 @@ function AttributeInput({
               {filteredSpecs.map((name) => (
                 <div
                   key={name}
-                  onMouseDown={() => { selectedFromDropdownRef.current = true; }}
+                  onMouseDown={(e) => { e.preventDefault(); selectedFromDropdownRef.current = true; }}
                   onClick={() => handleSelect(name)}
                   className={`relative cursor-pointer select-none py-2 pl-10 pr-4 ${
                     attributeKey === name
@@ -961,7 +961,7 @@ function AttributeInput({
               ))}
               {isCustomSpec && attributeKey && !filteredSpecs.includes(attributeKey) && (
                 <div
-                  onMouseDown={() => { selectedFromDropdownRef.current = true; }}
+                  onMouseDown={(e) => { e.preventDefault(); selectedFromDropdownRef.current = true; }}
                   onClick={() => handleSelect(attributeKey)}
                   className={`relative cursor-pointer select-none py-2 pl-10 pr-4 ${
                     'bg-primary-600 text-white font-medium'
@@ -975,7 +975,7 @@ function AttributeInput({
               )}
               {showAddNew && (
                 <div
-                  onMouseDown={() => { selectedFromDropdownRef.current = true; }}
+                  onMouseDown={(e) => { e.preventDefault(); selectedFromDropdownRef.current = true; }}
                   onClick={handleAddNew}
                   className="relative cursor-pointer select-none py-2 pl-10 pr-4 text-primary-600 hover:bg-primary-50 font-medium"
                 >

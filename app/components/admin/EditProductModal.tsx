@@ -278,7 +278,7 @@ function SpecInput({
               {filteredSpecs.map((name) => (
                 <div
                   key={name}
-                  onMouseDown={() => { selectedFromDropdownRef.current = true; }}
+                  onMouseDown={(e) => { e.preventDefault(); selectedFromDropdownRef.current = true; }}
                   onClick={() => handleSelect(name)}
                   className={`relative cursor-pointer select-none py-2 pl-10 pr-4 ${
                     specKey === name
@@ -296,7 +296,7 @@ function SpecInput({
               ))}
               {isCustomSpec && specKey && !filteredSpecs.includes(specKey) && (
                 <div
-                  onMouseDown={() => { selectedFromDropdownRef.current = true; }}
+                  onMouseDown={(e) => { e.preventDefault(); selectedFromDropdownRef.current = true; }}
                   onClick={() => handleSelect(specKey)}
                   className={`relative cursor-pointer select-none py-2 pl-10 pr-4 ${
                     'bg-primary-600 text-white font-medium'
@@ -310,7 +310,7 @@ function SpecInput({
               )}
               {showAddNew && (
                 <div
-                  onMouseDown={() => { selectedFromDropdownRef.current = true; }}
+                  onMouseDown={(e) => { e.preventDefault(); selectedFromDropdownRef.current = true; }}
                   onClick={handleAddNew}
                   className="relative cursor-pointer select-none py-2 pl-10 pr-4 text-primary-600 hover:bg-primary-50 font-medium"
                 >
@@ -371,6 +371,7 @@ function AttributeInput({
   const [newOption, setNewOption] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const selectedFromDropdownRef = useRef(false);
 
   // Update query when attributeKey changes externally
   useEffect(() => {
@@ -421,6 +422,11 @@ function AttributeInput({
 
   const handleInputBlur = (e: React.FocusEvent) => {
     setTimeout(() => {
+      if (selectedFromDropdownRef.current) {
+        setIsOpen(false);
+        selectedFromDropdownRef.current = false;
+        return;
+      }
       if (!dropdownRef.current?.contains(document.activeElement)) {
         setIsOpen(false);
         if (query.trim() !== attributeKey && query.trim() !== '') {
@@ -514,6 +520,7 @@ function AttributeInput({
                 {filteredAttributes.map((name) => (
                   <div
                     key={name}
+                    onMouseDown={(e) => { e.preventDefault(); selectedFromDropdownRef.current = true; }}
                     onClick={() => handleSelect(name)}
                     className={`relative cursor-pointer select-none py-2 pl-10 pr-4 ${
                       attributeKey === name
@@ -531,6 +538,7 @@ function AttributeInput({
                 ))}
                 {isCustomAttribute && attributeKey && !filteredAttributes.includes(attributeKey) && (
                   <div
+                    onMouseDown={(e) => { e.preventDefault(); selectedFromDropdownRef.current = true; }}
                     onClick={() => handleSelect(attributeKey)}
                     className={`relative cursor-pointer select-none py-2 pl-10 pr-4 ${
                       'bg-primary-600 text-white font-medium'
@@ -544,6 +552,7 @@ function AttributeInput({
                 )}
                 {showAddNew && (
                   <div
+                    onMouseDown={(e) => { e.preventDefault(); selectedFromDropdownRef.current = true; }}
                     onClick={handleAddNew}
                     className="relative cursor-pointer select-none py-2 pl-10 pr-4 text-primary-600 hover:bg-primary-50 font-medium"
                   >
