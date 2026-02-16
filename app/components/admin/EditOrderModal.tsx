@@ -528,7 +528,12 @@ export default function EditOrderModal({
                     )
                   )}
 
-                  {/* Shipping & Tracking Section */}
+                  {/* Shipping & Tracking Section - hide for pickup orders */}
+                  {!(
+                    orderDetails?.paymentMethod === 'cash_on_pickup' ||
+                    orderDetails?.payments?.[0]?.paymentMethod === 'cash_on_pickup' ||
+                    orderDetails?.preferredPickupDate
+                  ) && (
                   <div className="mb-6 border-t border-gray-200 pt-6">
                     <div className="flex items-center gap-3 mb-4">
                       <Truck className="h-5 w-5 text-[var(--shreeji-primary)]" />
@@ -604,6 +609,7 @@ export default function EditOrderModal({
                       </div>
                     </div>
                   </div>
+                  )}
 
                   {/* Notes Section */}
                   <div className="border-t border-gray-200 pt-6">
