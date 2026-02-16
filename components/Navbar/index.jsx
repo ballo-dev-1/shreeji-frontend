@@ -126,6 +126,11 @@ const Navbar = () => {
       setIsScrolled(true);
       return;
     }
+
+    if (pathname === "/terms-and-conditions") {
+      setIsScrolled(true);
+      return;
+    }
     
     if (window.innerWidth < 1024) {
       setIsScrolled(true);

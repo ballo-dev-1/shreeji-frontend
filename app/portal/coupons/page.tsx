@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useClientAuth } from '@/app/contexts/ClientAuthContext'
+import { getLoginUrl } from '@/app/lib/client/redirectToLogin'
 import clientApi from '@/app/lib/client/api'
 import { TicketIcon, DocumentDuplicateIcon, CheckIcon } from '@heroicons/react/24/outline'
 import toast from 'react-hot-toast'
@@ -31,7 +32,7 @@ export default function CouponsPage() {
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push('/portal/login')
+      router.push(getLoginUrl())
     }
   }, [authLoading, isAuthenticated, router])
 

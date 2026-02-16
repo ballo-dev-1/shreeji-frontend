@@ -10,6 +10,7 @@ import {
   EnvelopeIcon
 } from '@heroicons/react/24/outline';
 import { useClientAuth } from '@/app/contexts/ClientAuthContext';
+import { isSafeReturnUrl } from '@/app/lib/client/redirectToLogin';
 import { PortalLayoutSkeleton } from '@/app/components/ui/Skeletons';
 import logo2 from '@/public/logos/Shreeji icon.png';
 import '@/components/home/HeroSection/style.scss';
@@ -113,7 +114,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
             const returnUrl = typeof window !== 'undefined' ? localStorage.getItem('authReturnUrl') : null;
             const shouldRedirect = typeof window !== 'undefined' ? localStorage.getItem('shouldRedirectAfterAuth') === 'true' : false;
             
-            if (shouldRedirect && returnUrl && !returnUrl.startsWith('/portal/')) {
+            if (shouldRedirect && returnUrl && isSafeReturnUrl(returnUrl) && !returnUrl.startsWith('/portal/')) {
               // Clear flags and redirect to stored URL
               if (typeof window !== 'undefined') {
                 localStorage.removeItem('shouldRedirectAfterAuth');
@@ -149,10 +150,11 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
         ? sessionStorage.getItem('returnUrl') 
         : null;
       
-      const returnUrl = returnUrlParam || 
-                       (shouldRedirectFromModal && returnUrlFromLocalStorage ? returnUrlFromLocalStorage : null) ||
-                       returnUrlFromSession;
-      
+      let returnUrl = returnUrlParam || 
+                     (shouldRedirectFromModal && returnUrlFromLocalStorage ? returnUrlFromLocalStorage : null) ||
+                     returnUrlFromSession;
+      if (returnUrl && !isSafeReturnUrl(returnUrl)) returnUrl = null;
+
       // Clear the return URLs
       if (typeof window !== 'undefined') {
         if (!returnUrlParam && returnUrlFromSession) {
@@ -163,7 +165,7 @@ export default function AuthPage({ defaultMode = 'login' }: AuthPageProps) {
           localStorage.removeItem('authReturnUrl');
         }
       }
-      
+
       // Only redirect to dashboard if no returnUrl exists
       // If returnUrl exists and is not a portal page, redirect there
       // Otherwise, if returnUrl is a portal page, stay there

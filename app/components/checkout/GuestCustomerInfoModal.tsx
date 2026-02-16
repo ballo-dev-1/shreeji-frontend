@@ -5,6 +5,7 @@ import { X, User, LogIn, UserPlus } from 'lucide-react'
 import { CheckoutCustomerInput } from '@/app/lib/ecommerce/api'
 import toast from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
+import { getLoginUrl } from '@/app/lib/client/redirectToLogin'
 
 interface GuestCustomerInfoModalProps {
   isOpen: boolean
@@ -116,15 +117,12 @@ export default function GuestCustomerInfoModal({
   }
 
   const handleSignIn = () => {
-    if (typeof window !== 'undefined') {
-      sessionStorage.setItem('returnUrl', '/checkout')
-    }
-    router.push('/portal/login')
+    router.push(getLoginUrl('/checkout'));
   }
 
   const handleSignUp = () => {
     if (typeof window !== 'undefined') {
-      sessionStorage.setItem('returnUrl', '/checkout')
+      sessionStorage.setItem('returnUrl', '/checkout');
     }
     router.push('/portal/register')
   }

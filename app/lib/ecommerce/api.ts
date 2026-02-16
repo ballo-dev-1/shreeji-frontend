@@ -95,6 +95,7 @@ export interface CheckoutRequest {
   mobileMoneyDetails?: CheckoutMobileMoneyDetails;
   pickupDetails?: CheckoutPickupDetails;
   notes?: string;
+  couponCode?: string;
 }
 
 export interface CheckoutResponse {

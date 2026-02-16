@@ -1,5 +1,6 @@
 // Client API - Connects to NestJS backend for orders, profile, and addresses
 import clientAuth from './auth';
+import { getLoginUrl } from './redirectToLogin';
 
 const API_URL = process.env.NEXT_PUBLIC_ECOM_API_URL?.replace(/\/$/, '') || 'http://localhost:4000';
 
@@ -54,16 +55,12 @@ class ClientApiClient {
         // Clear authentication
         clientAuth.logout();
         
-        // Redirect to login page
+        // Redirect to login with returnUrl so user can resume after login
         if (typeof window !== 'undefined') {
-          // Store current URL to redirect back after login
-          const currentPath = window.location.pathname;
+          const currentPath = window.location.pathname + window.location.search;
           if (!currentPath.includes('/portal/login')) {
-            sessionStorage.setItem('returnUrl', currentPath);
+            window.location.href = getLoginUrl(currentPath);
           }
-          
-          // Redirect to login
-          window.location.href = '/portal/login';
         }
         
         throw new Error('Session expired. Please log in again.');

@@ -1,17 +1,26 @@
 'use client'
 
+import { useState } from 'react'
 import { useCart } from '@/app/contexts/CartContext'
 import { currencyFormatter } from './currency-formatter'
 import { generateQuotePDF } from '@/utils/quoteGenerator'
-import { Download } from 'lucide-react'
+import { Download, Tag, X } from 'lucide-react'
+import clientApi from '@/app/lib/client/api'
 
 interface OrderDetailsSidebarProps {
   fulfillmentType?: 'pickup' | 'delivery'
   currentStep?: number
+  couponCode?: string | null
+  onCouponChange?: (code: string | null) => void
 }
 
-export default function OrderDetailsSidebar({ fulfillmentType = 'pickup', currentStep = 1 }: OrderDetailsSidebarProps) {
+export default function OrderDetailsSidebar({ fulfillmentType = 'pickup', currentStep = 1, couponCode, onCouponChange }: OrderDetailsSidebarProps) {
   const { cart } = useCart()
+  const [couponInput, setCouponInput] = useState('')
+  const [couponError, setCouponError] = useState<string | null>(null)
+  const [couponValidating, setCouponValidating] = useState(false)
+  const [appliedDiscount, setAppliedDiscount] = useState<number | null>(null)
+  const [showCouponSection, setShowCouponSection] = useState(false)
 
   if (!cart) {
     return (
@@ -52,6 +61,40 @@ export default function OrderDetailsSidebar({ fulfillmentType = 'pickup', curren
     generateQuotePDF(cart, fulfillmentType)
   }
 
+  const subtotalForCoupon = cart?.subtotal ?? discountedTotal
+  const productIds = cart?.items?.map((item) => item.productId).filter((id): id is number => typeof id === 'number') ?? []
+
+  const handleApplyCoupon = async () => {
+    const code = couponInput.trim()
+    if (!code) return
+    setCouponError(null)
+    setCouponValidating(true)
+    try {
+      const result = await clientApi.validateCoupon(code, subtotalForCoupon, productIds.length ? productIds : undefined)
+      if (result.valid && result.discount != null) {
+        setAppliedDiscount(result.discount)
+        onCouponChange?.(code)
+        setCouponInput('')
+      } else {
+        setCouponError(result.error ?? 'This coupon is not valid.')
+      }
+    } catch (err) {
+      setCouponError(err instanceof Error ? err.message : 'Failed to validate coupon.')
+    } finally {
+      setCouponValidating(false)
+    }
+  }
+
+  const handleRemoveCoupon = () => {
+    setAppliedDiscount(null)
+    setCouponError(null)
+    setCouponInput('')
+    onCouponChange?.(null)
+  }
+
+  const displayCouponDiscount = couponCode ? (appliedDiscount ?? 0) : 0
+  const totalWithCoupon = totalAmount - displayCouponDiscount
+
   return (
     <div className='rounded-lg border-t-4 border-[var(--shreeji-primary)] bg-white p-6 shadow-sm'>
       <div className='mb-4 flex items-center justify-between'>
@@ -83,6 +126,68 @@ export default function OrderDetailsSidebar({ fulfillmentType = 'pickup', curren
           </span>
         </div>
 
+        {/* Coupon code section */}
+        <div className='border-t border-gray-100 pt-3'>
+          {!couponCode ? (
+            <>
+              <button
+                type='button'
+                onClick={() => setShowCouponSection(!showCouponSection)}
+                className='flex items-center gap-2 text-sm font-medium text-[var(--shreeji-primary)] hover:underline'
+              >
+                <Tag className='h-4 w-4' />
+                {showCouponSection ? 'Hide coupon' : 'Have a coupon?'}
+              </button>
+              {showCouponSection && (
+                <div className='mt-2 space-y-2'>
+                  <div className='flex gap-2'>
+                    <input
+                      type='text'
+                      value={couponInput}
+                      onChange={(e) => { setCouponInput(e.target.value); setCouponError(null) }}
+                      onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                      placeholder='Enter code'
+                      className='flex-1 rounded border border-gray-300 px-3 py-2 text-sm focus:border-[var(--shreeji-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--shreeji-primary)]'
+                      disabled={couponValidating}
+                    />
+                    <button
+                      type='button'
+                      onClick={handleApplyCoupon}
+                      disabled={couponValidating || !couponInput.trim()}
+                      className='rounded bg-[var(--shreeji-primary)] px-3 py-2 text-sm font-medium text-white transition-colors hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50'
+                    >
+                      {couponValidating ? '…' : 'Apply'}
+                    </button>
+                  </div>
+                  {couponError && <p className='text-xs text-red-600'>{couponError}</p>}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className='flex items-center justify-between rounded-lg bg-green-50 px-3 py-2'>
+              <span className='text-sm font-medium text-gray-800'>{couponCode}</span>
+              {appliedDiscount != null && appliedDiscount > 0 && (
+                <span className='text-sm font-medium text-green-600'>-{currencyFormatter(appliedDiscount, cart.currency)}</span>
+              )}
+              <button
+                type='button'
+                onClick={handleRemoveCoupon}
+                className='rounded p-1 text-gray-500 hover:bg-green-100 hover:text-gray-700'
+                aria-label='Remove coupon'
+              >
+                <X className='h-4 w-4' />
+              </button>
+            </div>
+          )}
+        </div>
+
+        {displayCouponDiscount > 0 && (
+          <div className='flex justify-between'>
+            <span className='text-gray-600'>Coupon discount</span>
+            <span className='font-medium text-green-600'>-{currencyFormatter(displayCouponDiscount, cart.currency)}</span>
+          </div>
+        )}
+
         {currentStep >= 2 && fulfillmentType === 'delivery' && (
           <div className='flex justify-between'>
             <span className='text-gray-600'>Delivery charges</span>
@@ -99,7 +204,7 @@ export default function OrderDetailsSidebar({ fulfillmentType = 'pickup', curren
             <p className='font-semibold text-gray-900'>Total Cost</p>
             <p className='text-xs text-gray-500'>(Incl VAT)</p>
           </div>
-          <span className='text-lg font-bold text-gray-900'>{currencyFormatter(totalAmount, cart.currency)}</span>
+          <span className='text-lg font-bold text-gray-900'>{currencyFormatter(totalWithCoupon, cart.currency)}</span>
         </div>
       </div>
 

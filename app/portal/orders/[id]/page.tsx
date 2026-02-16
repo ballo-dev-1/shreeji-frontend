@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { useClientAuth } from '@/app/contexts/ClientAuthContext'
+import { getLoginUrl } from '@/app/lib/client/redirectToLogin'
 import clientApi from '@/app/lib/client/api'
 import { ArrowLeft, Package, MapPin, CreditCard, Truck, XCircle, RotateCcw } from 'lucide-react'
 import Image from 'next/image'
@@ -54,7 +55,7 @@ export default function OrderDetailsPage() {
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push('/portal/login')
+      router.push(getLoginUrl())
     }
   }, [authLoading, isAuthenticated, router])
 

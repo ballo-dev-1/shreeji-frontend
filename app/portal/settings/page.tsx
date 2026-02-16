@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useClientAuth } from '@/app/contexts/ClientAuthContext'
+import { getLoginUrl } from '@/app/lib/client/redirectToLogin'
 import clientApi from '@/app/lib/client/api'
 import { 
   UserIcon, 
@@ -94,7 +95,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push('/portal/login')
+      router.push(getLoginUrl())
     }
   }, [authLoading, isAuthenticated, router])
 

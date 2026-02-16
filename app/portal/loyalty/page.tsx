@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Gift, Clock } from 'lucide-react'
 import clientApi from '@/app/lib/client/api'
 import { useClientAuth } from '@/app/contexts/ClientAuthContext'
+import { getLoginUrl } from '@/app/lib/client/redirectToLogin'
 import { useRouter } from 'next/navigation'
 
 interface LoyaltyTransaction {
@@ -24,7 +25,7 @@ export default function LoyaltyPage() {
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      router.push('/portal/login')
+      router.push(getLoginUrl())
     }
   }, [isAuthenticated, loading, router])
 

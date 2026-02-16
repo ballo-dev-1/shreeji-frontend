@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useClientAuth } from '@/app/contexts/ClientAuthContext'
+import { getLoginUrl } from '@/app/lib/client/redirectToLogin'
 import clientApi from '@/app/lib/client/api'
 import {
   EnvelopeIcon,
@@ -68,7 +69,7 @@ export default function CommunicationsPage() {
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push('/portal/login')
+      router.push(getLoginUrl())
     }
   }, [authLoading, isAuthenticated, router])
 

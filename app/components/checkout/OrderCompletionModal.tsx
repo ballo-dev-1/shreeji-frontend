@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { X, CheckCircle, Clock, AlertCircle, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import { getBankDetails, type BankDetails } from '@/app/lib/ecommerce/api'
+import { getLoginUrl } from '@/app/lib/client/redirectToLogin'
 
 interface OrderCompletionModalProps {
   isOpen: boolean
@@ -195,7 +196,7 @@ export default function OrderCompletionModal({
                   Create Account to Track Order
                 </Link>
                 <Link
-                  href={`/portal/login?returnUrl=/portal/orders/${orderId}`}
+                  href={getLoginUrl(`/portal/orders/${orderId}`)}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border border-[var(--shreeji-primary)] text-[var(--shreeji-primary)] rounded-lg hover:bg-[var(--shreeji-primary)] hover:text-white transition font-medium"
                 >
                   Already have an account? Login
@@ -203,7 +204,7 @@ export default function OrderCompletionModal({
               </>
             ) : (
               <Link
-                href={`/portal/login?returnUrl=/portal/orders/${orderId}`}
+                href={getLoginUrl(`/portal/orders/${orderId}`)}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[var(--shreeji-primary)] text-white rounded-lg hover:opacity-90 transition font-medium"
               >
                 <ExternalLink className="h-5 w-5" />

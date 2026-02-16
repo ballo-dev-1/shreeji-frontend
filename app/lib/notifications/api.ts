@@ -1,4 +1,5 @@
 import clientAuth from '../client/auth';
+import adminAuth from '../admin/auth';
 
 const API_URL = process.env.NEXT_PUBLIC_ECOM_API_URL?.replace(/\/$/, '') || 'http://localhost:4000';
 
@@ -10,7 +11,7 @@ function shouldUseProxy(): boolean {
   return isHttps && backendIsHttp;
 }
 
-function getApiUrl(path: string): string {
+export function getApiUrl(path: string): string {
   if (shouldUseProxy()) {
     // Use Next.js API proxy route
     return `/api/backend${path}`;
@@ -41,6 +42,8 @@ export interface NotificationPreferences {
   inAppEnabled: boolean;
 }
 
+export type NotificationRole = 'customer' | 'admin';
+
 class NotificationsApiClient {
   private baseURL: string;
 
@@ -48,18 +51,24 @@ class NotificationsApiClient {
     this.baseURL = API_URL;
   }
 
-  private getAuthHeaders(): Record<string, string> {
-    const token = clientAuth.getStoredToken();
+  private getAuthHeaders(role: NotificationRole = 'customer'): Record<string, string> {
+    const token = role === 'admin'
+      ? adminAuth.getStoredToken()
+      : clientAuth.getStoredToken();
     return {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     };
   }
 
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  private async request<T>(
+    endpoint: string,
+    options: RequestInit = {},
+    role: NotificationRole = 'customer',
+  ): Promise<T> {
     const url = getApiUrl(endpoint);
     const headers = {
-      ...this.getAuthHeaders(),
+      ...this.getAuthHeaders(role),
       ...(options.headers as Record<string, string> || {}),
     };
 
@@ -88,6 +97,8 @@ class NotificationsApiClient {
     return response.json();
   }
 
+  // ─── Customer Notification Methods ──────────────────────────────
+
   async getNotifications(page = 1, pageSize = 20): Promise<{ data: Notification[]; total: number }> {
     const response = await this.request<{ data: Notification[]; total: number }>(
       `/notifications?page=${page}&pageSize=${pageSize}`,
@@ -112,6 +123,44 @@ class NotificationsApiClient {
     });
   }
 
+  // ─── Admin Notification Methods ─────────────────────────────────
+
+  async getAdminNotifications(page = 1, pageSize = 20): Promise<{ data: Notification[]; total: number }> {
+    const response = await this.request<{ data: Notification[]; total: number }>(
+      `/notifications/admin?page=${page}&pageSize=${pageSize}`,
+      {},
+      'admin',
+    );
+    return response;
+  }
+
+  async getAdminUnreadCount(): Promise<number> {
+    const response = await this.request<{ count: number }>(
+      '/notifications/admin/unread',
+      {},
+      'admin',
+    );
+    return response.count;
+  }
+
+  async markAdminAsRead(id: number): Promise<Notification> {
+    return this.request<Notification>(
+      `/notifications/admin/${id}/read`,
+      { method: 'PUT' },
+      'admin',
+    );
+  }
+
+  async markAllAdminAsRead(): Promise<void> {
+    await this.request(
+      '/notifications/admin/read-all',
+      { method: 'PUT' },
+      'admin',
+    );
+  }
+
+  // ─── Preferences ───────────────────────────────────────────────
+
   async getPreferences(): Promise<{ data: NotificationPreferences[] }> {
     return this.request<{ data: NotificationPreferences[] }>('/notifications/preferences');
   }
@@ -126,8 +175,17 @@ class NotificationsApiClient {
       body: JSON.stringify({ type, emailEnabled, inAppEnabled }),
     });
   }
+
+  // ─── SSE Connection ────────────────────────────────────────────
+
+  /**
+   * Build the SSE stream URL for the given token.
+   * Uses the same proxy logic as other API calls.
+   */
+  getSSEUrl(token: string): string {
+    return getApiUrl(`/notifications/stream?token=${encodeURIComponent(token)}`);
+  }
 }
 
 export const notificationsApi = new NotificationsApiClient();
 export default notificationsApi;
-

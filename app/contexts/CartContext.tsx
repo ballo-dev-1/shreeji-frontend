@@ -24,6 +24,7 @@ export interface CheckoutInput {
   shippingAddress: CheckoutAddressInput
   billingAddress?: CheckoutAddressInput
   paymentMethod: string
+  couponCode?: string
   cardDetails?: {
     cardId?: string
     number?: string

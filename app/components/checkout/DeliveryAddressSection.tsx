@@ -2,6 +2,7 @@
 
 import { Package, Pencil, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { getLoginUrl } from '@/app/lib/client/redirectToLogin'
 import GuestAddressForm from './GuestAddressForm'
 import { CheckoutAddressInput } from '@/app/lib/ecommerce/api'
 
@@ -91,11 +92,7 @@ export default function DeliveryAddressSection({
               Please{' '}
               <button
                 onClick={() => {
-                  // Store the return URL so we can redirect back after login
-                  if (typeof window !== 'undefined') {
-                    sessionStorage.setItem('returnUrl', '/checkout')
-                  }
-                  router.push('/portal/login')
+                  router.push(getLoginUrl('/checkout'));
                 }}
                 className='text-[var(--shreeji-primary)] hover:underline font-medium'
               >

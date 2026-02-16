@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { User } from 'lucide-react'
 import { useClientAuth } from '@/app/contexts/ClientAuthContext'
+import { getLoginUrl } from '@/app/lib/client/redirectToLogin'
 
 export default function ProfileButton() {
   const { isAuthenticated, loading } = useClientAuth()
@@ -12,8 +13,8 @@ export default function ProfileButton() {
     return null
   }
 
-  // Link to dashboard if authenticated, login if not
-  const href = isAuthenticated ? '/portal/dashboard' : '/portal/login'
+  // Link to dashboard if authenticated, login with return URL if not
+  const href = isAuthenticated ? '/portal/dashboard' : getLoginUrl()
 
   return (
     <Link

@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useClientAuth } from '@/app/contexts/ClientAuthContext';
+import { getLoginUrl } from '@/app/lib/client/redirectToLogin';
 import { FullPageLoadingSkeleton } from '@/app/components/ui/Skeletons';
 
 interface ProtectedRouteProps {
@@ -16,11 +17,7 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      // Store the current path to redirect back after login
-      if (pathname && !pathname.includes('/portal/login')) {
-        sessionStorage.setItem('returnUrl', pathname);
-      }
-      router.push('/portal/login');
+      router.push(getLoginUrl(pathname || undefined));
     }
   }, [isAuthenticated, loading, router, pathname]);
 

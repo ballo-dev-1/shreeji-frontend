@@ -2,7 +2,7 @@
 
 This checklist tracks all pending implementation tasks. Check off items as they are completed.
 
-**Last Updated:** January 2025
+**Last Updated:** February 2026
 
 ---
 
@@ -76,6 +76,15 @@ This checklist tracks all pending implementation tasks. Check off items as they 
   - [ ] Add audit logging for card operations
 
 ### Notifications & Communications
+- [x] **Real-time in-app notifications (SSE)**
+  - [x] Backend: Server-Sent Events endpoint (`GET /notifications/stream`) with JWT query param
+  - [x] Backend: NotificationsSseService (customer + admin connections), event emission on create
+  - [x] Backend: Admin notification REST API (list, unread count, mark read)
+  - [x] Frontend: Role-aware NotificationContext (customer vs admin)
+  - [x] Frontend: EventSource connection with reconnection and cleanup
+  - [x] Admin and customer notification bell/dropdown/modal working for both roles
+  - **Note:** SSE does not stream through the current Next.js proxy (buffers response); use direct backend URL when frontend is HTTPS and backend is HTTP, or update proxy to stream for `text/event-stream`
+
 - [ ] **SMS Notifications (Frontend Integration)**
   - [ ] Order confirmation SMS (frontend integration)
   - [ ] Shipping updates SMS (frontend integration)
@@ -271,6 +280,7 @@ This checklist tracks all pending implementation tasks. Check off items as they 
 - Inventory management (warehouses, reservations, alerts, reports)
 - Admin features (dashboard, reports, settings, coupons, user management)
 - Notifications (email, SMS service, in-app)
+- **Real-time notifications via SSE** (customer + admin, role-aware context, admin REST API, reconnection and fallback polling)
 
 ### In Progress 🔄
 - Payment webhooks

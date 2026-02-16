@@ -34,20 +34,44 @@ const Footer = () => {
 
         <div className="footer-info w-full sm:w-[22%] flex-1 flex flex-col gap-5 mb-10 sm:mb-0 text-center md:text-left">
           <h2>Information</h2>
-          <p>About Us</p>
+          <p>
+            <Link href="/about-us" className="hover:underline">
+              About Us
+            </Link>
+          </p>
+          <p>
+            <Link href="/terms-and-conditions" className="hover:underline">
+              Terms & Conditions
+            </Link>
+          </p>
           <p>Privacy & Policy</p>
-          <p>Terms & Conditions</p>
         </div>
 
         <div className="footer-social w-full sm:w-[22%] flex-1 flex flex-col gap-5 mb-10 sm:mb-0 items-center md:items-start">
           <h2>Our Socials</h2>
           <p className="flex items-center gap-2">
-            <Linkedin strokeWidth={1} color="#807045" />
-            <span className="pt-1">LinkedIn</span>
+            <a
+              href="https://zm.linkedin.com/company/shreeji-investments-ltd"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 hover:underline"
+              aria-label="SHREEJI on LinkedIn"
+            >
+              <Linkedin strokeWidth={1} color="#807045" />
+              <span className="pt-1">LinkedIn</span>
+            </a>
           </p>
           <p className="flex items-center gap-2">
-            <Facebook color="#807045" strokeWidth={1} />
-            <span className="py-1">Facebook</span>
+            <a
+              href="https://www.facebook.com/Shreeji.Zambia/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 hover:underline"
+              aria-label="SHREEJI on Facebook"
+            >
+              <Facebook color="#807045" strokeWidth={1} />
+              <span className="py-1">Facebook</span>
+            </a>
           </p>
         </div>
 

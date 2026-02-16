@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useClientAuth } from '@/app/contexts/ClientAuthContext'
+import { getLoginUrl } from '@/app/lib/client/redirectToLogin'
 import clientApi from '@/app/lib/client/api'
 
 export default function PortalProfilePage() {
@@ -20,7 +21,7 @@ export default function PortalProfilePage() {
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push('/portal/login')
+      router.push(getLoginUrl())
     }
   }, [authLoading, isAuthenticated, router])
 
@@ -52,7 +53,7 @@ export default function PortalProfilePage() {
 
   const handleLogout = () => {
     logout()
-    router.push('/portal/login')
+    router.push(getLoginUrl())
   }
 
   if (authLoading || loading) {

@@ -20,6 +20,7 @@ import OrderCompletionModal from '@/app/components/checkout/OrderCompletionModal
 import GuestCustomerInfoModal from '@/app/components/checkout/GuestCustomerInfoModal'
 import { ShoppingBag, Gift } from 'lucide-react'
 import clientApi from '@/app/lib/client/api'
+import { getLoginUrl } from '@/app/lib/client/redirectToLogin'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
@@ -70,6 +71,7 @@ export default function CheckoutPage() {
   const [showGuestCustomerModal, setShowGuestCustomerModal] = useState(false)
   const [guestCustomerData, setGuestCustomerData] = useState<CheckoutCustomerInput | null>(null)
   const [guestShippingAddress, setGuestShippingAddress] = useState<CheckoutAddressInput | null>(null)
+  const [couponCode, setCouponCode] = useState<string | null>(null)
 
   // Restore checkout progress on mount
   useEffect(() => {
@@ -460,6 +462,10 @@ export default function CheckoutPage() {
         checkoutPayload.pointsToRedeem = pointsToUse
       }
 
+      if (couponCode?.trim()) {
+        checkoutPayload.couponCode = couponCode.trim()
+      }
+
       // Only include cardDetails if payment method is card and details exist
       if (backendPaymentMethod === 'credit_card' && paymentDetails.cardDetails) {
         // Only include if it has either cardId or all required card fields
@@ -708,7 +714,12 @@ export default function CheckoutPage() {
 
           {/* Right Column - Order Details Sidebar */}
           <div className='order-first lg:order-last lg:sticky lg:top-20 lg:self-start space-y-6'>
-            <OrderDetailsSidebar fulfillmentType={fulfillmentType} currentStep={currentStep} />
+            <OrderDetailsSidebar
+              fulfillmentType={fulfillmentType}
+              currentStep={currentStep}
+              couponCode={couponCode}
+              onCouponChange={setCouponCode}
+            />
             
             {/* Loyalty Points Section - Only show on Step 3 */}
             {currentStep === 3 && (
@@ -771,11 +782,7 @@ export default function CheckoutPage() {
                       <p className='text-sm font-medium text-gray-900'>You need to be logged in to use loyalty points</p>
                       <button
                         onClick={() => {
-                          // Store the return URL so we can redirect back after login
-                          if (typeof window !== 'undefined') {
-                            sessionStorage.setItem('returnUrl', '/checkout')
-                          }
-                          router.push('/portal/login')
+                          router.push(getLoginUrl('/checkout'));
                         }}
                         className='w-full px-4 py-2 bg-[var(--shreeji-primary)] text-white rounded-lg hover:bg-[#544829] transition-colors font-medium text-sm'
                       >

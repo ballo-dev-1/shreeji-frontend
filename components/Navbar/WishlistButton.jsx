@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Heart } from 'lucide-react'
 import { useClientAuth } from '@/app/contexts/ClientAuthContext'
+import { getLoginUrl } from '@/app/lib/client/redirectToLogin'
 import clientApi from '@/app/lib/client/api'
 
 export default function WishlistButton() {
@@ -76,8 +77,8 @@ export default function WishlistButton() {
     return null
   }
 
-  // Link to wishlist if authenticated, login if not
-  const href = isAuthenticated ? '/portal/wishlist' : '/portal/login'
+  // Link to wishlist if authenticated, login with return URL if not
+  const href = isAuthenticated ? '/portal/wishlist' : getLoginUrl()
 
   return (
     <Link
