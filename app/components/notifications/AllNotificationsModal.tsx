@@ -185,7 +185,7 @@ export default function AllNotificationsModal({ isOpen, onClose }: AllNotificati
             <>
               <div className="divide-y divide-gray-200">
                 {allNotifications.map((notification) => (
-                  <NotificationItem key={notification.id} notification={notification} />
+                  <NotificationItem key={notification.id} notification={notification} onNavigate={onClose} />
                 ))}
               </div>
               {/* Sentinel for infinite scroll */}

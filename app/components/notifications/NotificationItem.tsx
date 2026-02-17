@@ -2,15 +2,77 @@
 
 import { Notification } from '../../lib/notifications/api';
 import { useNotifications } from '../../contexts/NotificationContext';
+import { NotificationRole } from '../../contexts/NotificationContext';
+import { useRouter, usePathname } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { CheckCircle2, Circle } from 'lucide-react';
 
-interface NotificationItemProps {
-  notification: Notification;
+function getNotificationPath(
+  notification: Notification,
+  role: NotificationRole,
+): string | null {
+  const data = notification.data ?? {};
+  const orderId = data.orderId ?? data.order_id ?? data.order?.id;
+  const customerId = data.customerId ?? data.customer_id;
+  const type = notification.type ?? '';
+  const target = notification.target ?? '';
+
+  const ORDER_TYPES = [
+    'order_placed',
+    'order_status_changed',
+    'order_shipped',
+    'order_delivered',
+    'order_cancelled',
+    'payment_received',
+    'payment_failed',
+  ];
+
+  if (role === 'admin') {
+    if (orderId != null && (ORDER_TYPES.includes(type) || type === 'admin_alert')) {
+      return `/admin/orders/${orderId}`;
+    }
+    if (type === 'low_inventory') {
+      return '/admin/inventory/alerts';
+    }
+    if (type === 'new_customer' && customerId != null) {
+      return `/admin/customers/${customerId}`;
+    }
+    if (orderId != null) {
+      return `/admin/orders/${orderId}`;
+    }
+    return null;
+  }
+
+  if (role === 'customer') {
+    if (orderId != null && ORDER_TYPES.includes(type)) {
+      return `/portal/orders/${orderId}`;
+    }
+    if (type === 'welcome') {
+      return '/portal/dashboard';
+    }
+    if (orderId != null) {
+      return `/portal/orders/${orderId}`;
+    }
+    return null;
+  }
+
+  return null;
 }
 
-export default function NotificationItem({ notification }: NotificationItemProps) {
-  const { markAsRead } = useNotifications();
+interface NotificationItemProps {
+  notification: Notification;
+  onNavigate?: () => void;
+}
+
+export default function NotificationItem({ notification, onNavigate }: NotificationItemProps) {
+  const { markAsRead, role } = useNotifications();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Use current page context to determine navigation target:
+  // if on /admin/* pages, use admin routes; otherwise use customer routes.
+  const effectiveRole: NotificationRole =
+    pathname?.startsWith('/admin') ? 'admin' : role === 'admin' ? 'customer' : role;
 
   const handleClick = async () => {
     if (!notification.read) {
@@ -19,6 +81,12 @@ export default function NotificationItem({ notification }: NotificationItemProps
       } catch (error) {
         console.error('Failed to mark notification as read:', error);
       }
+    }
+
+    const path = getNotificationPath(notification, effectiveRole);
+    if (path) {
+      onNavigate?.();
+      router.push(path);
     }
   };
 
@@ -42,6 +110,8 @@ export default function NotificationItem({ notification }: NotificationItemProps
     }
   };
 
+  const path = getNotificationPath(notification, effectiveRole);
+
   return (
     <div
       onClick={handleClick}
@@ -53,7 +123,7 @@ export default function NotificationItem({ notification }: NotificationItemProps
         <div className="flex-shrink-0 text-2xl">{getNotificationIcon()}</div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
-            <p className={`text-sm font-medium ${!notification.read ? 'text-gray-900' : 'text-gray-700'}`}>
+            <p className={`text-sm font-medium ${!notification.read ? 'text-gray-900' : 'text-gray-700'} ${path ? 'hover:underline' : ''}`}>
               {notification.title}
             </p>
             {notification.read ? (
@@ -71,4 +141,3 @@ export default function NotificationItem({ notification }: NotificationItemProps
     </div>
   );
 }
-

@@ -8,15 +8,17 @@ import React, {
   useCallback,
   useRef,
 } from 'react';
+import { usePathname } from 'next/navigation';
 import { notificationsApi, Notification } from '../lib/notifications/api';
 import { useClientAuth } from './ClientAuthContext';
 import { useAuth } from './AuthContext';
 import clientAuth from '../lib/client/auth';
 import adminAuth from '../lib/admin/auth';
 
-type NotificationRole = 'customer' | 'admin' | null;
+export type NotificationRole = 'customer' | 'admin' | null;
 
 interface NotificationContextType {
+  role: NotificationRole;
   notifications: Notification[];
   unreadCount: number;
   loading: boolean;
@@ -54,12 +56,18 @@ export function NotificationProvider({
   const { isAuthenticated: isCustomerAuth } = useClientAuth();
   const { isAuthenticated: isAdminAuth } = useAuth();
 
-  // Determine which role is active
-  const role: NotificationRole = isAdminAuth
-    ? 'admin'
+  const pathname = usePathname();
+  const isOnAdminPage = pathname?.startsWith('/admin') ?? false;
+
+  // Determine which role is active — route-aware when both are authenticated.
+  // On /admin/* pages use admin role; everywhere else prefer customer role.
+  const role: NotificationRole = isOnAdminPage
+    ? (isAdminAuth ? 'admin' : null)
     : isCustomerAuth
       ? 'customer'
-      : null;
+      : isAdminAuth
+        ? 'admin'
+        : null;
 
   const isAuthenticated = role !== null;
 
@@ -443,6 +451,7 @@ export function NotificationProvider({
   return (
     <NotificationContext.Provider
       value={{
+        role,
         notifications,
         unreadCount,
         loading,

@@ -69,7 +69,7 @@ export default function NotificationDropdown({ onClose, onShowAll }: Notificatio
         ) : (
           <div className="divide-y divide-gray-200">
             {notifications.map((notification) => (
-              <NotificationItem key={notification.id} notification={notification} />
+              <NotificationItem key={notification.id} notification={notification} onNavigate={onClose} />
             ))}
           </div>
         )}
