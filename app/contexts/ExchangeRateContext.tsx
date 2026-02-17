@@ -35,86 +35,18 @@ async function getManualRateFromSettings(): Promise<number | null> {
     const settings = (response as any)?.data || response
     const rawValue = settings?.manualExchangeRateZmwPerUsd
 
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        location: 'app/contexts/ExchangeRateContext.tsx:getManualRateFromSettings',
-        message: 'Manual exchange rate setting loaded',
-        data: {
-          hasSettings: !!settings,
-          rawValue,
-        },
-        runId: 'run1',
-        hypothesisId: 'H1',
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {})
-    // #endregion
-
     if (rawValue === undefined || rawValue === null || rawValue === '') {
       return null
     }
 
     const parsed = parseFloat(String(rawValue))
     if (Number.isNaN(parsed) || parsed <= 0) {
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          location: 'app/contexts/ExchangeRateContext.tsx:getManualRateFromSettings',
-          message: 'Manual exchange rate invalid, falling back',
-          data: {
-            rawValue,
-            parsed,
-          },
-          runId: 'run1',
-          hypothesisId: 'H2',
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {})
-      // #endregion
       return null
     }
-
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        location: 'app/contexts/ExchangeRateContext.tsx:getManualRateFromSettings',
-        message: 'Manual exchange rate parsed successfully',
-        data: {
-          parsed,
-        },
-        runId: 'run1',
-        hypothesisId: 'H1',
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {})
-    // #endregion
 
     return parsed
   } catch (error) {
     console.error('Failed to load manual exchange rate setting:', error)
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        location: 'app/contexts/ExchangeRateContext.tsx:getManualRateFromSettings:catch',
-        message: 'Error loading manual exchange rate setting',
-        data: {
-          errorMessage: error instanceof Error ? error.message : String(error),
-        },
-        runId: 'run1',
-        hypothesisId: 'H3',
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {})
-    // #endregion
     return null
   }
 }
@@ -224,22 +156,6 @@ export function ExchangeRateProvider({ children }: { children: ReactNode }) {
 
     // 1) Prefer manual exchange rate from admin settings when configured
     const manualRate = await getManualRateFromSettings()
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        location: 'app/contexts/ExchangeRateContext.tsx:refreshRate',
-        message: 'refreshRate evaluated manualRate',
-        data: {
-          manualRate,
-        },
-        runId: 'run1',
-        hypothesisId: 'H1',
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {})
-    // #endregion
 
     if (manualRate && manualRate > 0) {
       setRate(manualRate)
@@ -254,22 +170,6 @@ export function ExchangeRateProvider({ children }: { children: ReactNode }) {
       }
 
       setLoading(false)
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          location: 'app/contexts/ExchangeRateContext.tsx:refreshRate',
-          message: 'Using manual exchange rate, skipping external API',
-          data: {
-            rate: manualRate,
-          },
-          runId: 'run1',
-          hypothesisId: 'H1',
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {})
-      // #endregion
       return
     }
 
@@ -289,46 +189,12 @@ export function ExchangeRateProvider({ children }: { children: ReactNode }) {
       } catch (error) {
         console.error('Failed to fetch quota:', error)
       }
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          location: 'app/contexts/ExchangeRateContext.tsx:refreshRate',
-          message: 'Using cached exchange rate, skipping external API',
-          data: {
-            cachedRate: cached.rate,
-          },
-          runId: 'run1',
-          hypothesisId: 'H2',
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {})
-      // #endregion
       return
     }
 
     // 3) Fetch from external API when no manual or cached rate exists
     const result = await fetchExchangeRate()
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        location: 'app/contexts/ExchangeRateContext.tsx:refreshRate',
-        message: 'Fetched exchange rate from external API',
-        data: {
-          success: result.success,
-          rate: result.rate,
-          error: result.error || null,
-        },
-        runId: 'run1',
-        hypothesisId: 'H3',
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {})
-    // #endregion
-    
+
     // Increment quota only if API call was made (not using cache)
     try {
       const quota = await incrementQuotaOnBackend()

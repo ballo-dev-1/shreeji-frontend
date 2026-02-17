@@ -165,9 +165,6 @@ export default function CheckoutPage() {
     const hasToken = typeof window !== 'undefined' && clientAuth.isAuthenticated()
     if (!isAuthenticated && !hasToken) {
       if (!guestCustomerData || !guestCustomerData.email || !guestCustomerData.firstName || !guestCustomerData.lastName) {
-        // #region agent log
-        fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:useEffect:guestBlock1',message:'useEffect showing modal - no guest data',data:{currentStep,isAuthenticated,authLoading,loading},timestamp:Date.now(),hypothesisId:'H6'})}).catch(()=>{});
-        // #endregion
         setCurrentStep(1)
         // Optionally show the modal
         setShowGuestCustomerModal(true)
@@ -178,9 +175,6 @@ export default function CheckoutPage() {
       const email = guestCustomerData.email?.trim() || ''
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
       if (!emailRegex.test(email) || guestCustomerData.firstName.trim().length < 2 || guestCustomerData.lastName.trim().length < 2) {
-        // #region agent log
-        fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:useEffect:guestBlock2',message:'useEffect showing modal - invalid guest data',data:{currentStep,isAuthenticated,authLoading},timestamp:Date.now(),hypothesisId:'H6'})}).catch(()=>{});
-        // #endregion
         setCurrentStep(1)
         setShowGuestCustomerModal(true)
         return
@@ -274,9 +268,6 @@ export default function CheckoutPage() {
 
     // Validate current step before proceeding
     if (currentStep === 1) {
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:handleNext:step1',message:'Next clicked on step 1',data:{isAuthenticated,authLoading,userId:user?.id,userEmail:user?.email,guestCustomerData:!!guestCustomerData,willShowModal:!isAuthenticated},timestamp:Date.now(),hypothesisId:'H1,H2,H3,H4'})}).catch(()=>{});
-      // #endregion
       // Step 1: Review - show guest customer info modal if not authenticated
       // Guard: if context says unauthenticated but auth module has a token, context may be stale - skip modal
       const hasToken = typeof window !== 'undefined' && clientAuth.isAuthenticated()
@@ -554,45 +545,22 @@ export default function CheckoutPage() {
   }
 
   const canProceedToNext = (): boolean => {
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:526',message:'canProceedToNext called',data:{currentStep,fulfillmentType,selectedAddressId,isAuthenticated,hasGuestAddress:!!guestShippingAddress,guestAddressComplete:!!(guestShippingAddress?.addressLine1&&guestShippingAddress?.city&&guestShippingAddress?.postalCode&&guestShippingAddress?.country),paymentMethod,hasCardDetails:!!paymentDetails.cardDetails,hasMobileMoneyDetails:!!paymentDetails.mobileMoneyDetails,hasPickupDetails:!!paymentDetails.pickupDetails},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
-    // #endregion
     switch (currentStep) {
       case 1:
-        // #region agent log
-        fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:529',message:'Step 1: returning true',data:{result:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
-        // #endregion
         return true // Review always valid
       case 2:
-        // #region agent log
-        const step2Result = fulfillmentType === 'pickup' || selectedAddressId !== null;
-        fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:531',message:'Step 2: checking address',data:{fulfillmentType,isPickup:fulfillmentType==='pickup',selectedAddressId,hasSelectedAddress:selectedAddressId!==null,isAuthenticated,hasGuestAddress:!!guestShippingAddress,guestAddressData:guestShippingAddress?{hasAddressLine1:!!guestShippingAddress.addressLine1,hasCity:!!guestShippingAddress.city,hasPostalCode:!!guestShippingAddress.postalCode,hasCountry:!!guestShippingAddress.country}:null,result:step2Result},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
-        // #endregion
-        return step2Result
+        return fulfillmentType === 'pickup' || selectedAddressId !== null;
       case 3:
         if (paymentMethod === 'cop') {
-          // #region agent log
-          const copResult = !!(
+          return !!(
             paymentDetails.pickupDetails?.preferredPickupDate && 
             paymentDetails.pickupDetails?.preferredPickupTime &&
             paymentDetails.pickupDetails?.idType &&
             paymentDetails.pickupDetails?.idNumber
           );
-          fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:533',message:'Step 3: checking COP details',data:{paymentMethod,hasPickupDate:!!paymentDetails.pickupDetails?.preferredPickupDate,hasPickupTime:!!paymentDetails.pickupDetails?.preferredPickupTime,hasIdType:!!paymentDetails.pickupDetails?.idType,hasIdNumber:!!paymentDetails.pickupDetails?.idNumber,result:copResult},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H2'})}).catch(()=>{});
-          // #endregion
-          return copResult
         }
-        // #region agent log
-        const step3OtherResult = paymentMethod !== '';
-        const cardValid = paymentMethod === 'card' ? !!(paymentDetails.cardDetails?.cardId || (paymentDetails.cardDetails?.number && paymentDetails.cardDetails?.expiryMonth && paymentDetails.cardDetails?.expiryYear && paymentDetails.cardDetails?.cvv && paymentDetails.cardDetails?.cardholderName)) : true;
-        const mobileMoneyValid = paymentMethod === 'mobile_money' ? !!(paymentDetails.mobileMoneyDetails?.provider && paymentDetails.mobileMoneyDetails?.phoneNumber) : true;
-        fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:542',message:'Step 3: checking other payment methods',data:{paymentMethod,hasPaymentMethod:paymentMethod!=='',isCard:paymentMethod==='card',isMobileMoney:paymentMethod==='mobile_money',cardValid,mobileMoneyValid,hasCardDetails:!!paymentDetails.cardDetails,hasMobileMoneyDetails:!!paymentDetails.mobileMoneyDetails,cardDetails:paymentDetails.cardDetails?{hasCardId:!!paymentDetails.cardDetails.cardId,hasNumber:!!paymentDetails.cardDetails.number,hasExpiryMonth:!!paymentDetails.cardDetails.expiryMonth,hasExpiryYear:!!paymentDetails.cardDetails.expiryYear,hasCvv:!!paymentDetails.cardDetails.cvv,hasCardholderName:!!paymentDetails.cardDetails.cardholderName}:null,mobileMoneyDetails:paymentDetails.mobileMoneyDetails?{hasProvider:!!paymentDetails.mobileMoneyDetails.provider,hasPhoneNumber:!!paymentDetails.mobileMoneyDetails.phoneNumber}:null,currentResult:step3OtherResult,shouldBeValid:cardValid&&mobileMoneyValid},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H2'})}).catch(()=>{});
-        // #endregion
-        return step3OtherResult
+        return paymentMethod !== '';
       default:
-        // #region agent log
-        fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:544',message:'Default case: returning false',data:{currentStep,result:false},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H1'})}).catch(()=>{});
-        // #endregion
         return false
     }
   }

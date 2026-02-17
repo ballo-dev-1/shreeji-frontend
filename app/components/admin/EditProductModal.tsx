@@ -156,9 +156,6 @@ function SpecInput({
   };
 
   const handleSelect = (value: string) => {
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'EditProductModal.tsx:handleSelect',message:'handleSelect called',data:{value,specKey},timestamp:Date.now(),hypothesisId:'H1-H5'})}).catch(()=>{});
-    // #endregion
     if (value && value.trim() !== '') {
       onKeyChange(specKey, value.trim());
       setQuery(value.trim());
@@ -168,9 +165,6 @@ function SpecInput({
 
   const handleAddNew = () => {
     const trimmedQuery = query.trim();
-    // #region agent log
-    fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'EditProductModal.tsx:handleAddNew',message:'handleAddNew called',data:{trimmedQuery,specKey},timestamp:Date.now(),hypothesisId:'H1-H2-H5'})}).catch(()=>{});
-    // #endregion
     if (trimmedQuery) {
       onKeyChange(specKey, trimmedQuery);
       setQuery(trimmedQuery);
@@ -188,9 +182,6 @@ function SpecInput({
       const contains = dropdownRef.current?.contains(document.activeElement);
       const q = query.trim();
       const willAddNew = !contains && q !== specKey && q !== '';
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'EditProductModal.tsx:blurTimeout',message:'blur timeout ran',data:{query:q,specKey,contains,willAddNew,activeTag:document.activeElement?.tagName},timestamp:Date.now(),hypothesisId:'H1-H3-H4'})}).catch(()=>{});
-      // #endregion
       if (selectedFromDropdownRef.current) {
         setIsOpen(false);
         selectedFromDropdownRef.current = false;

@@ -101,12 +101,9 @@ const ProductPreview = ({product, index, additionalClass}) => {
           )}
         </div>
       <div className="flex-center gap-2 sm:gap-3 md:gap-4 pb-8 sm:pb-10 md:pb-14">
-        {product.name && (() => {
-          // #region agent log
-          fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProductPreview/index.jsx:104',message:'Product title rendered',data:{productName:product.name,productNameLength:product.name?.length,currentLineClamp:'line-clamp-1'},timestamp:Date.now(),runId:'post-fix',hypothesisId:'A'})}).catch(()=>{});
-          // #endregion
-          return <h1 className="products-page-product__title text-lg sm:text-xl md:text-2xl font-semibold line-clamp-1">{product.name}</h1>;
-        })()}
+        {product.name && (
+          <h1 className="products-page-product__title text-lg sm:text-xl md:text-2xl font-semibold line-clamp-1">{product.name}</h1>
+        )}
         <div className="flex flex-col items-center gap-1">
           {rawPrice && (
             <div className="text-base sm:text-lg md:text-xl font-semibold text-[#fef3c7]">

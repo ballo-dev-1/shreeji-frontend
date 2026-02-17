@@ -25,38 +25,23 @@ export function ClientAuthProvider({ children }: { children: ReactNode }) {
       
       // Check if we have a stored token
       const hasToken = clientAuth.isAuthenticated();
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ClientAuthContext:checkAuth:start',message:'Auth check starting',data:{hasToken},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
-      // #endregion
       if (hasToken) {
         // Validate the token and get user data
         const isValid = await clientAuth.validateToken();
         
         if (isValid) {
           const currentUser = await clientAuth.getCurrentUser();
-          // #region agent log
-          fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ClientAuthContext:checkAuth:success',message:'Auth valid, user set',data:{userId:currentUser?.id},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
-          // #endregion
           setUser(currentUser);
         } else {
-          // #region agent log
-          fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ClientAuthContext:checkAuth:invalid',message:'Token invalid, clearing',data:{},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
-          // #endregion
           // Token is invalid, clear it
           clientAuth.logout();
           setUser(null);
         }
       } else {
-        // #region agent log
-        fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ClientAuthContext:checkAuth:noToken',message:'No token found',data:{},timestamp:Date.now(),hypothesisId:'H2,H4'})}).catch(()=>{});
-        // #endregion
         // No token, ensure user is null
         setUser(null);
       }
     } catch (error) {
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ClientAuthContext:checkAuth:error',message:'Auth check error',data:{error:String(error)},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
-      // #endregion
       console.error('Client auth check error:', error);
       clientAuth.logout();
       setUser(null);
