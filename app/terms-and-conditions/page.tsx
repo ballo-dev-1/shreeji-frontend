@@ -95,36 +95,36 @@ export default function TermsPage() {
                     {item.label}
                   </Link>
                 )}
-                <p className="text-gray-600 text-sm mt-1">{item.description}</p>
+                <p className="text-black text-sm mt-1">{item.description}</p>
               </li>
             ))}
           </ul>
 
-          <h1 className="text-3xl font-bold text-[var(--shreeji-primary)] mb-4">
+          <h1 className="text-3xl font-bold text-[#7b6731] mb-4">
             Terms & Conditions
           </h1>
-          <p className="text-gray-600 mb-10">
+          <p className="text-black mb-10">
             Please review our policies below. By using our website and services,
             you agree to these terms.
           </p>
 
-          <article className="prose prose-gray w-full min-w-0 max-w-4xl break-words [overflow-wrap:anywhere] [&_p]:break-words [&_li]:break-words [&_h3]:break-words [&_h4]:break-words">
-          <h2 className="text-2xl font-bold text-[var(--shreeji-primary)] mb-2">
+          <article className="prose prose-gray w-full min-w-0 max-w-none break-words text-black [overflow-wrap:anywhere] [&_section]:w-full [&_p]:break-words [&_li]:break-words [&_h3]:break-words [&_h4]:break-words">
+          <h2 className="text-2xl font-bold text-[#7b6731] mb-2">
             REFUND, RETURNS & CANCELLATION POLICY
           </h2>
 
           <section id="refund" className="mb-8 scroll-mt-24">
-            <h3 className="text-xl font-semibold text-[var(--shreeji-primary)] mb-3">
+            <h3 className="text-xl font-bold text-[#7b6731] mb-3">
               1. Policy Scope
             </h3>
-            <p className="text-gray-700 mb-3">
+            <p className="text-black mb-3">
               This Refund, Returns & Cancellation Policy governs all purchases
               made through SHREEJI Investments Limited&apos;s website, digital
               platforms, physical locations, and authorised sales channels. By
               completing a purchase, the customer agrees to this policy in full.
             </p>
-            <p className="text-gray-700 mb-3">This policy applies to:</p>
-            <ul className="list-disc pl-6 space-y-1 text-gray-700">
+            <p className="text-black mb-3">This policy applies to:</p>
+            <ul className="list-disc pl-6 space-y-1 text-black">
               <li>IT equipment and related hardware</li>
               <li>Printing, branding, and customised production services</li>
               <li>Business process outsourcing services</li>
@@ -137,31 +137,31 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-8">
-            <h3 className="text-xl font-semibold text-[var(--shreeji-primary)] mb-3">
+            <h3 className="text-xl font-bold text-[#7b6731] mb-3">
               2. General Refund Principle
             </h3>
-            <p className="text-gray-700 mb-3">
+            <p className="text-black mb-3">
               All sales are considered final unless a refund request meets the
               eligibility conditions outlined in this policy. Refunds are
               granted solely at the discretion of SHREEJI Investments Limited
               following validation of the transaction and claim.
             </p>
-            <p className="text-gray-700">
+            <p className="text-black">
               Approval of refunds does not constitute an admission of liability.
             </p>
           </section>
 
           <section className="mb-8">
-            <h3 className="text-xl font-semibold text-[var(--shreeji-primary)] mb-3">
+            <h3 className="text-xl font-bold text-[#7b6731] mb-3">
               3. Valid Grounds for Refund Consideration
             </h3>
-            <p className="text-gray-700 mb-3">
+            <p className="text-black mb-3">
               Refund requests may be considered only where:
             </p>
-            <h4 className="text-lg font-medium text-[var(--shreeji-primary)] mt-4 mb-2">
+            <h4 className="text-lg font-bold text-[#7b6731] mt-4 mb-2">
               3.1 Product Issues
             </h4>
-            <ul className="list-disc pl-6 space-y-1 text-gray-700 mb-4">
+            <ul className="list-disc pl-6 space-y-1 text-black mb-4">
               <li>
                 Goods delivered are materially defective, damaged at delivery, or
                 non-functional
@@ -173,10 +173,10 @@ export default function TermsPage() {
               <li>Incorrect items supplied due to SHREEJI error</li>
               <li>Verified incomplete delivery of paid-for items</li>
             </ul>
-            <h4 className="text-lg font-medium text-[var(--shreeji-primary)] mt-4 mb-2">
+            <h4 className="text-lg font-bold text-[#7b6731] mt-4 mb-2">
               3.2 Service Delivery Issues
             </h4>
-            <ul className="list-disc pl-6 space-y-1 text-gray-700 mb-4">
+            <ul className="list-disc pl-6 space-y-1 text-black mb-4">
               <li>
                 Paid service not delivered within agreed contractual timelines
                 without reasonable cause
@@ -190,10 +190,10 @@ export default function TermsPage() {
                 feasible
               </li>
             </ul>
-            <h4 className="text-lg font-medium text-[var(--shreeji-primary)] mt-4 mb-2">
+            <h4 className="text-lg font-bold text-[#7b6731] mt-4 mb-2">
               3.3 Payment or Transaction Errors
             </h4>
-            <ul className="list-disc pl-6 space-y-1 text-gray-700">
+            <ul className="list-disc pl-6 space-y-1 text-black">
               <li>Duplicate payments confirmed through financial records</li>
               <li>Verified billing or system processing error</li>
               <li>
@@ -204,13 +204,13 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-8">
-            <h3 className="text-xl font-semibold text-[var(--shreeji-primary)] mb-3">
+            <h3 className="text-xl font-bold text-[#7b6731] mb-3">
               4. Non-Refundable Transactions
             </h3>
-            <p className="text-gray-700 mb-3">
+            <p className="text-black mb-3">
               Refunds shall NOT be issued under the following circumstances:
             </p>
-            <ul className="list-disc pl-6 space-y-1 text-gray-700">
+            <ul className="list-disc pl-6 space-y-1 text-black">
               <li>Change of mind, preference, or subjective dissatisfaction</li>
               <li>
                 Customised, branded, printed, configured, or special-order
@@ -241,11 +241,11 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-8">
-            <h3 className="text-xl font-semibold text-[var(--shreeji-primary)] mb-3">
+            <h3 className="text-xl font-bold text-[#7b6731] mb-3">
               5. Refund Request Procedure
             </h3>
-            <p className="text-gray-700 mb-3">To request a refund:</p>
-            <ul className="list-disc pl-6 space-y-1 text-gray-700 mb-3">
+            <p className="text-black mb-3">To request a refund:</p>
+            <ul className="list-disc pl-6 space-y-1 text-black mb-3">
               <li>
                 Written notice must be submitted within 7 calendar days of
                 delivery or service completion.
@@ -260,19 +260,19 @@ export default function TermsPage() {
                 channels as listed on the website.
               </li>
             </ul>
-            <p className="text-gray-700">
+            <p className="text-black">
               Failure to follow this process may result in automatic rejection.
             </p>
           </section>
 
           <section className="mb-8">
-            <h3 className="text-xl font-semibold text-[var(--shreeji-primary)] mb-3">
+            <h3 className="text-xl font-bold text-[#7b6731] mb-3">
               6. Inspection, Verification & Approval
             </h3>
-            <p className="text-gray-700 mb-3">
+            <p className="text-black mb-3">
               SHREEJI Investments Limited reserves the right to:
             </p>
-            <ul className="list-disc pl-6 space-y-1 text-gray-700 mb-3">
+            <ul className="list-disc pl-6 space-y-1 text-black mb-3">
               <li>Inspect returned products before approving refunds</li>
               <li>Request additional documentation or verification</li>
               <li>Conduct technical or financial validation checks</li>
@@ -280,18 +280,18 @@ export default function TermsPage() {
                 Reject claims deemed fraudulent, incomplete, or unverifiable
               </li>
             </ul>
-            <p className="text-gray-700">
+            <p className="text-black">
               Refund approval timelines may vary depending on investigation
               requirements.
             </p>
           </section>
 
           <section className="mb-8">
-            <h3 className="text-xl font-semibold text-[var(--shreeji-primary)] mb-3">
+            <h3 className="text-xl font-bold text-[#7b6731] mb-3">
               7. Refund Method & Processing Time
             </h3>
-            <p className="text-gray-700 mb-3">Where approved:</p>
-            <ul className="list-disc pl-6 space-y-1 text-gray-700 mb-3">
+            <p className="text-black mb-3">Where approved:</p>
+            <ul className="list-disc pl-6 space-y-1 text-black mb-3">
               <li>
                 Refunds will generally be processed within 7–21 business days
               </li>
@@ -303,20 +303,20 @@ export default function TermsPage() {
                 correction; Store credit or account credit
               </li>
             </ul>
-            <p className="text-gray-700">
+            <p className="text-black">
               Banking, mobile money, or payment gateway delays are outside
               SHREEJI&apos;s control.
             </p>
           </section>
 
           <section className="mb-8">
-            <h3 className="text-xl font-semibold text-[var(--shreeji-primary)] mb-3">
+            <h3 className="text-xl font-bold text-[#7b6731] mb-3">
               8. Returns Conditions
             </h3>
-            <p className="text-gray-700 mb-3">
+            <p className="text-black mb-3">
               Where product return is required:
             </p>
-            <ul className="list-disc pl-6 space-y-1 text-gray-700">
+            <ul className="list-disc pl-6 space-y-1 text-black">
               <li>Items must be unused unless defective</li>
               <li>
                 Original packaging, accessories, manuals, and proof of purchase
@@ -334,28 +334,28 @@ export default function TermsPage() {
           </section>
 
           <section id="cancellation" className="mb-8 scroll-mt-24">
-            <h3 className="text-xl font-semibold text-[var(--shreeji-primary)] mb-3">
+            <h3 className="text-xl font-bold text-[#7b6731] mb-3">
               9. Cancellation Policy
             </h3>
-            <p className="text-gray-700 mb-3">Orders may only be cancelled:</p>
-            <ul className="list-disc pl-6 space-y-1 text-gray-700 mb-3">
+            <p className="text-black mb-3">Orders may only be cancelled:</p>
+            <ul className="list-disc pl-6 space-y-1 text-black mb-3">
               <li>Before procurement, production, or dispatch begins</li>
               <li>With written confirmation from SHREEJI</li>
             </ul>
-            <p className="text-gray-700">
+            <p className="text-black">
               Cancellation fees may apply to cover administrative, procurement,
               or production costs already incurred.
             </p>
           </section>
 
           <section className="mb-8">
-            <h3 className="text-xl font-semibold text-[var(--shreeji-primary)] mb-3">
+            <h3 className="text-xl font-bold text-[#7b6731] mb-3">
               10. Limitation of Liability
             </h3>
-            <p className="text-gray-700 mb-3">
+            <p className="text-black mb-3">
               To the fullest extent permitted by applicable law:
             </p>
-            <ul className="list-disc pl-6 space-y-1 text-gray-700">
+            <ul className="list-disc pl-6 space-y-1 text-black">
               <li>
                 SHREEJI Investments Limited shall not be liable for indirect,
                 incidental, or consequential losses
@@ -372,13 +372,13 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-8">
-            <h3 className="text-xl font-semibold text-[var(--shreeji-primary)] mb-3">
+            <h3 className="text-xl font-bold text-[#7b6731] mb-3">
               11. Fraud Prevention & Compliance
             </h3>
-            <p className="text-gray-700 mb-3">
+            <p className="text-black mb-3">
               SHREEJI Investments Limited reserves the right to:
             </p>
-            <ul className="list-disc pl-6 space-y-1 text-gray-700">
+            <ul className="list-disc pl-6 space-y-1 text-black">
               <li>Decline suspicious transactions or refund claims</li>
               <li>Report fraudulent activity to relevant authorities</li>
               <li>Suspend accounts associated with abuse of refund policies</li>
@@ -386,10 +386,10 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-8">
-            <h3 className="text-xl font-semibold text-[var(--shreeji-primary)] mb-3">
+            <h3 className="text-xl font-bold text-[#7b6731] mb-3">
               12. Policy Amendments
             </h3>
-            <p className="text-gray-700">
+            <p className="text-black">
               This policy may be amended without prior notice. The version
               published on SHREEJI Investments Limited&apos;s official website
               at the time of purchase shall apply.
@@ -397,10 +397,10 @@ export default function TermsPage() {
           </section>
 
           <section className="mb-8">
-            <h3 className="text-xl font-semibold text-[var(--shreeji-primary)] mb-3">
+            <h3 className="text-xl font-bold text-[#7b6731] mb-3">
               13. Governing Law
             </h3>
-            <p className="text-gray-700">
+            <p className="text-black">
               This policy shall be governed by and interpreted in accordance
               with the laws of the Republic of Zambia, unless otherwise
               contractually agreed.
@@ -408,18 +408,18 @@ export default function TermsPage() {
           </section>
 
           <section id="shipping" className="mb-8 scroll-mt-24">
-            <h3 className="text-xl font-semibold text-[var(--shreeji-primary)] mb-3">
+            <h3 className="text-xl font-bold text-[#7b6731] mb-3">
               Shipping/Delivery Policy
             </h3>
-            <p className="text-lg text-gray-600 mb-10">
+            <p className="text-lg text-black mb-10">
               SHREEJI Investments Limited
             </p>
 
             <section className="mb-8">
-              <h4 className="text-lg font-medium text-[var(--shreeji-primary)] mb-3">
+              <h4 className="text-lg font-bold text-[#7b6731] mb-3">
                 1. Policy Scope
               </h4>
-              <p className="text-gray-700 mb-3">
+              <p className="text-black mb-3">
                 This Shipping &amp; Delivery Policy governs the delivery of
                 goods and related services for all purchases made through
                 SHREEJI Investments Limited&apos;s website, digital platforms,
@@ -432,10 +432,10 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h4 className="text-lg font-medium text-[var(--shreeji-primary)] mb-3">
+              <h4 className="text-lg font-bold text-[#7b6731] mb-3">
                 2. Delivery Methods and Areas
               </h4>
-              <p className="text-gray-700 mb-3">
+              <p className="text-black mb-3">
                 SHREEJI delivers within the Republic of Zambia unless otherwise
                 agreed. Delivery may be by courier, third-party logistics
                 partner, or customer collection from SHREEJI&apos;s premises
@@ -445,7 +445,7 @@ export default function TermsPage() {
                 available by separate agreement; contact{" "}
                 <a
                   href="mailto:sales@shreeji.co.zm"
-                  className="text-[var(--shreeji-primary)] hover:underline"
+                  className="text-[#7b6731] hover:underline"
                 >
                   sales@shreeji.co.zm
                 </a>{" "}
@@ -454,10 +454,10 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h4 className="text-lg font-medium text-[var(--shreeji-primary)] mb-3">
+              <h4 className="text-lg font-bold text-[#7b6731] mb-3">
                 3. Delivery Timelines
               </h4>
-              <p className="text-gray-700 mb-3">
+              <p className="text-black mb-3">
                 Estimated delivery times are given in business days from the
                 date of order confirmation or dispatch and are indicative only.
                 Standard delivery is typically within 5–15 business days for
@@ -472,10 +472,10 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h4 className="text-lg font-medium text-[var(--shreeji-primary)] mb-3">
+              <h4 className="text-lg font-bold text-[#7b6731] mb-3">
                 4. Shipping and Delivery Costs
               </h4>
-              <p className="text-gray-700 mb-3">
+              <p className="text-black mb-3">
                 Unless otherwise stated (e.g. promotional free delivery), the
                 customer is responsible for shipping and delivery costs. Costs
                 may be shown at checkout or communicated before order
@@ -487,10 +487,10 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h4 className="text-lg font-medium text-[var(--shreeji-primary)] mb-3">
+              <h4 className="text-lg font-bold text-[#7b6731] mb-3">
                 5. Order Processing and Dispatch
               </h4>
-              <p className="text-gray-700 mb-3">
+              <p className="text-black mb-3">
                 Orders are processed subject to stock availability and payment
                 confirmation. Dispatch occurs after production (where
                 applicable) and quality checks. You may receive an order or
@@ -503,10 +503,10 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h4 className="text-lg font-medium text-[var(--shreeji-primary)] mb-3">
+              <h4 className="text-lg font-bold text-[#7b6731] mb-3">
                 6. Tracking and Notifications
               </h4>
-              <p className="text-gray-700 mb-3">
+              <p className="text-black mb-3">
                 Where available, tracking information will be provided by email
                 or through the platform used for the order. It is the
                 customer&apos;s responsibility to ensure contact details are
@@ -517,10 +517,10 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h4 className="text-lg font-medium text-[var(--shreeji-primary)] mb-3">
+              <h4 className="text-lg font-bold text-[#7b6731] mb-3">
                 7. Risk and Title
               </h4>
-              <p className="text-gray-700 mb-3">
+              <p className="text-black mb-3">
                 Risk of loss or damage to goods passes to the customer upon
                 delivery to the address specified on the order (or to the
                 carrier for collection by the customer, if applicable). Title
@@ -530,10 +530,10 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h4 className="text-lg font-medium text-[var(--shreeji-primary)] mb-3">
+              <h4 className="text-lg font-bold text-[#7b6731] mb-3">
                 8. Delivery Address and Failed Delivery
               </h4>
-              <p className="text-gray-700 mb-3">
+              <p className="text-black mb-3">
                 The customer must provide an accurate, complete delivery
                 address and ensure someone is available to receive the order
                 where required. If delivery fails due to incorrect address,
@@ -546,10 +546,10 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h4 className="text-lg font-medium text-[var(--shreeji-primary)] mb-3">
+              <h4 className="text-lg font-bold text-[#7b6731] mb-3">
                 9. Collection from SHREEJI
               </h4>
-              <p className="text-gray-700 mb-3">
+              <p className="text-black mb-3">
                 Where collection from SHREEJI&apos;s premises is chosen or
                 offered, the customer must collect within the period
                 communicated. Identification and proof of order may be
@@ -559,10 +559,10 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h4 className="text-lg font-medium text-[var(--shreeji-primary)] mb-3">
+              <h4 className="text-lg font-bold text-[#7b6731] mb-3">
                 10. Limitation of Liability
               </h4>
-              <p className="text-gray-700 mb-3">
+              <p className="text-black mb-3">
                 To the fullest extent permitted by applicable law, SHREEJI
                 Investments Limited shall not be liable for indirect,
                 incidental, or consequential losses arising from delivery
@@ -577,10 +577,10 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h4 className="text-lg font-medium text-[var(--shreeji-primary)] mb-3">
+              <h4 className="text-lg font-bold text-[#7b6731] mb-3">
                 11. Policy Amendments
               </h4>
-              <p className="text-gray-700 mb-3">
+              <p className="text-black mb-3">
                 This policy may be amended without prior notice. The version
                 published on SHREEJI Investments Limited&apos;s official
                 website at the time of the relevant order shall apply.
@@ -588,10 +588,10 @@ export default function TermsPage() {
             </section>
 
             <section className="mb-8">
-              <h4 className="text-lg font-medium text-[var(--shreeji-primary)] mb-3">
+              <h4 className="text-lg font-bold text-[#7b6731] mb-3">
                 12. Governing Law
               </h4>
-              <p className="text-gray-700">
+              <p className="text-black">
                 This policy shall be governed by and interpreted in accordance
                 with the laws of the Republic of Zambia, unless otherwise
                 contractually agreed.
