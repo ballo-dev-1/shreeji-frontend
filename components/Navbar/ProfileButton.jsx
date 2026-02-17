@@ -16,7 +16,7 @@ const HOVER_DELAY_MS = 150
 export default function ProfileButton() {
   const router = useRouter()
   const { user, isAuthenticated, loading, logout } = useClientAuth()
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(false)
   const leaveTimeoutRef = useRef(null)
 
   const handleEnter = () => {

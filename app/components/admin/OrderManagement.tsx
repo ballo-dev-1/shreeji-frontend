@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { PlusIcon, TrashIcon, MagnifyingGlassIcon, XCircleIcon, ArrowDownTrayIcon, ChevronDownIcon } from '@heroicons/react/20/solid';
 import clsx from 'clsx';
 import Layout from './Layout'
 import api from '@/app/lib/admin/api'
-import EditOrderModal from './EditOrderModal'
 import CancelOrderModal from './CancelOrderModal'
 import { currencyFormatter } from '@/app/components/checkout/currency-formatter'
 import { TableSkeleton } from '@/app/components/ui/Skeletons'
@@ -43,6 +43,7 @@ const paymentStatusColors = {
 };
 
 export default function OrderManagement() {
+  const router = useRouter();
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
@@ -58,8 +59,6 @@ export default function OrderManagement() {
     pageSize: 100,
     total: 0,
   });
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [orderToCancel, setOrderToCancel] = useState<any>(null);
   const [analytics, setAnalytics] = useState<any>(null);
@@ -634,10 +633,7 @@ export default function OrderManagement() {
                 filteredOrders.map((order) => (
                 <tr
                   key={order.id}
-                  onClick={() => {
-                    setSelectedOrder(order);
-                    setIsEditModalOpen(true);
-                  }}
+                  onClick={() => router.push(`/admin/orders/${order.orderId}`)}
                   className={clsx(
                     'cursor-pointer',
                     selectedOrders.includes(order.id) && 'bg-gray-50'
@@ -800,20 +796,6 @@ export default function OrderManagement() {
           </div>
         )}
       </div>
-
-      {/* Edit Order Modal */}
-      <EditOrderModal
-        isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false);
-          setSelectedOrder(null);
-        }}
-        order={selectedOrder}
-        onSave={() => {
-          fetchOrders();
-        }}
-        enabledOrderStatuses={enabledOrderStatuses ?? undefined}
-      />
 
       {/* Cancel Order Modal */}
       {orderToCancel && (
