@@ -108,6 +108,19 @@ function GuestOrderContent() {
       ])
       const html2canvas = html2canvasMod.default
       const { jsPDF } = jsPDFMod
+      let logoDataUrl = ''
+      try {
+        const logoRes = await fetch('/logos/Shreeji%20Logos%201b.png')
+        if (logoRes.ok) {
+          const blob = await logoRes.blob()
+          logoDataUrl = await new Promise<string>((resolve, reject) => {
+            const r = new FileReader()
+            r.onload = () => resolve(r.result as string)
+            r.onerror = reject
+            r.readAsDataURL(blob)
+          })
+        }
+      } catch (_) { /* ignore logo load */ }
       const el = orderCardRef.current
       const downloadBtn = el.querySelector('[data-download-order-btn]') as HTMLElement | null
       if (downloadBtn) downloadBtn.style.visibility = 'hidden'
