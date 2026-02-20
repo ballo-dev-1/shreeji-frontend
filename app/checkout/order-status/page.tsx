@@ -320,8 +320,8 @@ function GuestOrderContent() {
                   })}
                 </p>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <span data-pdf-status className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(order.orderStatus)}`}>
+              <div data-pdf-header-right className="flex items-center gap-2 flex-shrink-0">
+                <span data-pdf-status data-pdf-header-status className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(order.orderStatus)}`}>
                   {order.orderStatus || 'pending'}
                 </span>
                 <button
