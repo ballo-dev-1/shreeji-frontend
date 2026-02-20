@@ -153,6 +153,7 @@ function GuestOrderContent() {
           } catch (_) { /* ignore */ }
           const style = clonedDoc.createElement('style')
           style.textContent = `
+            #pdf-capture-root { padding: 32px 48px 32px 24px !important; box-sizing: border-box !important; min-width: 800px !important; }
             #pdf-capture-root .bg-white, #pdf-capture-root.bg-white { background-color: #ffffff !important; }
             #pdf-capture-root .bg-gray-100 { background-color: #f3f4f6 !important; }
             #pdf-capture-root .bg-gray-200 { background-color: #e5e7eb !important; }
@@ -180,6 +181,9 @@ function GuestOrderContent() {
             #pdf-capture-root [data-pdf-hide-image] { display: none !important; }
             #pdf-capture-root [data-pdf-icon-align] { transform: translateY(4px) !important; }
             #pdf-capture-root [data-pdf-table-head] { background-color: #f3f4f6 !important; }
+            #pdf-capture-root [data-download-order-btn] { display: none !important; }
+            #pdf-capture-root [data-pdf-header-right] { margin-left: auto !important; justify-content: flex-end !important; width: 100% !important; max-width: 320px !important; }
+            #pdf-capture-root [data-pdf-header-status] { margin-left: auto !important; }
           `
           clonedDoc.head.appendChild(style)
           const walk = (node: Element) => {
