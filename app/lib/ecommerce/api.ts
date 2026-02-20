@@ -166,7 +166,11 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       // Also include status code in error message for better error detection
       const errorMessage = message || `Request failed: ${response.status} ${response.statusText}`
       const fullErrorMessage = `${errorMessage} (${response.status})`
-      
+      // #region agent log
+      if (url.includes('/checkout')) {
+        fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:checkout-fail',message:'Checkout API non-ok',data:{status:response.status,errorMessage,url,runId:'pay-click'},timestamp:Date.now(),hypothesisId:'B,D'})}).catch(()=>{});
+      }
+      // #endregion
       if (response.status !== 404 || !url.includes('/products/')) {
         console.error(`API request failed: ${response.status} ${response.statusText}`, { url, message: errorMessage })
       }
@@ -259,4 +263,19 @@ export interface EnabledPaymentMethods {
 
 export async function getEnabledPaymentMethods(): Promise<EnabledPaymentMethods> {
   return request<EnabledPaymentMethods>('/payments/enabled-methods');
+}
+
+export interface DpoVerifyResponse {
+  success: boolean;
+  orderId?: number;
+  orderNumber?: string;
+  paymentStatus?: string;
+  message?: string;
+}
+
+export async function verifyDpoPayment(transactionToken: string): Promise<DpoVerifyResponse> {
+  return request<DpoVerifyResponse>('/payments/dpo/verify', {
+    method: 'POST',
+    body: JSON.stringify({ transactionToken }),
+  });
 }

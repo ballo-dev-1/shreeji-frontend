@@ -121,13 +121,18 @@ const Navbar = () => {
   useEffect(() => {
     if (typeof window === "undefined") return;
     
-    // Always set scrolled to true on checkout page
-    if (pathname === "/checkout") {
+    // Always set scrolled to true on checkout and guest order status page
+    if (pathname === "/checkout" || pathname?.startsWith?.("/checkout/order-status")) {
       setIsScrolled(true);
       return;
     }
 
     if (pathname === "/terms-and-conditions") {
+      setIsScrolled(true);
+      return;
+    }
+
+    if (pathname === "/checkout/order-status?orderNumber") {
       setIsScrolled(true);
       return;
     }

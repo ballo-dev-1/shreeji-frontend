@@ -39,7 +39,16 @@ export default function CheckoutPage() {
   const { user, isAuthenticated, loading: authLoading } = useClientAuth()
   const [currentStep, setCurrentStep] = useState(1)
   const [formError, setFormError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<{ orderNumber: string; orderId: number; paymentStatus: string; redirectUrl?: string; requiresAction?: boolean } | null>(null)
+  const [success, setSuccess] = useState<{
+    orderNumber: string
+    orderId: number
+    paymentStatus: string
+    redirectUrl?: string
+    requiresAction?: boolean
+    guestEmail?: string
+    guestFirstName?: string
+    guestLastName?: string
+  } | null>(null)
   const [fulfillmentType, setFulfillmentType] = useState<'pickup' | 'delivery'>('pickup')
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
   const [addresses, setAddresses] = useState<any[]>([])
@@ -493,7 +502,13 @@ export default function CheckoutPage() {
         }
       }
 
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:pre-checkout',message:'Before checkout call',data:{cartId:cart?.id,paymentMethod:backendPaymentMethod,runId:'pay-click'},timestamp:Date.now(),hypothesisId:'A,E'})}).catch(()=>{});
+      // #endregion
       const response = await checkout(checkoutPayload)
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:post-checkout',message:'Checkout response',data:{paymentStatus:response?.paymentStatus,redirectUrl:!!response?.redirectUrl,requiresAction:response?.requiresAction,orderId:response?.orderId,orderNumber:response?.orderNumber,runId:'pay-click'},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
+      // #endregion
 
       // Handle payment redirect (for DPO gateway)
       if (response.redirectUrl && response.requiresAction) {
@@ -509,6 +524,14 @@ export default function CheckoutPage() {
         return
       }
 
+      // Order created but payment failed (e.g. DPO createToken failed) — show clear feedback
+      if (response.orderNumber && response.orderId && (response.paymentStatus === 'failed' || response.paymentStatus === 'declined')) {
+        toast.error(
+          'Payment could not be completed. You can try again from your order page or use a different payment method.',
+          { duration: 6000 }
+        )
+      }
+
       // Check authentication status and handle accordingly
       if (response.orderNumber && response.orderId) {
         // Clear guest data after successful checkout
@@ -521,11 +544,14 @@ export default function CheckoutPage() {
           // Redirect authenticated users to order detail page
           router.push(`/portal/orders/${response.orderId}`)
         } else {
-          // Show modal for non-authenticated users
+          // Show modal for non-authenticated users; pass guest info in success so modal has it after we clear guestCustomerData
           setSuccess({
             orderNumber: response.orderNumber,
             orderId: response.orderId,
             paymentStatus: response.paymentStatus,
+            guestEmail: guestCustomerData?.email,
+            guestFirstName: guestCustomerData?.firstName,
+            guestLastName: guestCustomerData?.lastName,
           })
           setShowOrderCompletionModal(true)
         }
@@ -539,6 +565,9 @@ export default function CheckoutPage() {
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Checkout failed. Please try again.'
+      // #region agent log
+      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:catch',message:'Checkout error',data:{errorMessage,runId:'pay-click'},timestamp:Date.now(),hypothesisId:'B,D'})}).catch(()=>{});
+      // #endregion
       toast.error(errorMessage)
       setFormError(errorMessage)
     }
@@ -810,9 +839,9 @@ export default function CheckoutPage() {
           orderId={success.orderId}
           paymentStatus={success.paymentStatus}
           paymentMethod={paymentMethod}
-          guestEmail={!isAuthenticated ? guestCustomerData?.email : undefined}
-          guestFirstName={!isAuthenticated ? guestCustomerData?.firstName : undefined}
-          guestLastName={!isAuthenticated ? guestCustomerData?.lastName : undefined}
+          guestEmail={success.guestEmail}
+          guestFirstName={success.guestFirstName}
+          guestLastName={success.guestLastName}
         />
       )}
     </div>

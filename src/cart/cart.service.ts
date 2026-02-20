@@ -152,11 +152,9 @@ export class CartService {
 
   private recalculate(cart: Cart) {
     cart.subtotal = cart.items.reduce((sum, item) => sum + item.subtotal, 0);
-    cart.taxTotal = cart.items.reduce((sum, item) => {
-      const itemTax = item.taxRate ? (item.subtotal * item.taxRate) / 100 : 0;
-      return sum + itemTax;
-    }, 0);
-    cart.total = cart.subtotal + cart.taxTotal;
+    // Product prices are VAT-inclusive; do not add tax on top
+    cart.taxTotal = 0;
+    cart.total = cart.subtotal;
     cart.updatedAt = new Date().toISOString();
   }
 }

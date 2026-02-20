@@ -54,6 +54,15 @@ export default function OrderDetailsSidebar({ fulfillmentType = 'pickup', curren
   const subtotal = cart.subtotal || discountedTotal
   const totalAmount = cart.total || subtotal
 
+  // #region agent log
+  const itemsSubtotalSum = cart.items.reduce((s, i) => s + (i.subtotal ?? 0), 0)
+  fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OrderDetailsSidebar.tsx:OrderDetails',message:'Order details totals',data:{cartSubtotal:cart.subtotal,cartTaxTotal:cart.taxTotal,cartTotal:cart.total,subtotalUsed:subtotal,totalAmountUsed:totalAmount,usedTotalFallback:!(cart.total),itemsSubtotalSum,subtotalMatchesItems:Math.abs((cart.subtotal||0)-itemsSubtotalSum)<0.01,vatRatio:cart.subtotal?((cart.taxTotal||0)/cart.subtotal)*100:null},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
+  fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OrderDetailsSidebar.tsx:Order details',message:'VAT and fallback check',data:{hasTaxTotal:typeof cart.taxTotal==='number',taxTotal:cart.taxTotal,totalEqualsSubtotalPlusTax:Math.abs((cart.subtotal||0)+(cart.taxTotal||0)-(cart.total||0))<0.01},timestamp:Date.now(),hypothesisId:'D'})}).catch(()=>{});
+  if (cart.subtotal && cart.subtotal > 0 && cart.taxTotal != null) {
+    fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OrderDetailsSidebar.tsx:VAT rate',message:'VAT ratio check',data:{subtotal:cart.subtotal,taxTotal:cart.taxTotal,vatPercent:(cart.taxTotal/cart.subtotal)*100},timestamp:Date.now(),hypothesisId:'E'})}).catch(()=>{});
+  }
+  // #endregion
+
   const handleDownloadQuote = () => {
     if (!cart || cart.items.length === 0) {
       return
@@ -192,6 +201,13 @@ export default function OrderDetailsSidebar({ fulfillmentType = 'pickup', curren
           <div className='flex justify-between'>
             <span className='text-gray-600'>Delivery charges</span>
             <span className='font-medium text-green-600'>Free</span>
+          </div>
+        )}
+
+        {(cart.taxTotal ?? 0) > 0 && (
+          <div className='flex justify-between'>
+            <span className='text-gray-600'>Value Added Tax (VAT)</span>
+            <span className='font-medium text-gray-900'>{currencyFormatter(cart.taxTotal ?? 0, cart.currency)}</span>
           </div>
         )}
       </div>

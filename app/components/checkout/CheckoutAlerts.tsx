@@ -10,10 +10,11 @@ interface CheckoutAlertsProps {
   formError: string | null
   success: { orderNumber: string; orderId: number; paymentStatus: string; redirectUrl?: string; requiresAction?: boolean } | null
   paymentMethod?: string
+  guestEmail?: string
   onRetry?: () => void
 }
 
-export default function CheckoutAlerts({ cartError, formError, success, paymentMethod, onRetry }: CheckoutAlertsProps) {
+export default function CheckoutAlerts({ cartError, formError, success, paymentMethod, guestEmail, onRetry }: CheckoutAlertsProps) {
   const [bankDetails, setBankDetails] = useState<BankDetails | null>(null)
   const [loadingBankDetails, setLoadingBankDetails] = useState(false)
 
@@ -145,17 +146,21 @@ export default function CheckoutAlerts({ cartError, formError, success, paymentM
 
               <div className='mt-4 flex gap-3'>
                 <Link
-                  href={`/portal/orders/${success.orderId}`}
+                  href={guestEmail
+                    ? `/checkout/order-status?orderNumber=${encodeURIComponent(success.orderNumber)}&email=${encodeURIComponent(guestEmail)}`
+                    : `/portal/orders/${success.orderId}`}
                   className='rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700'
                 >
                   View Order Details
                 </Link>
-                <Link
-                  href='/portal/orders'
-                  className='rounded border border-green-600 px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50'
-                >
-                  View All Orders
-                </Link>
+                {!guestEmail && (
+                  <Link
+                    href='/portal/orders'
+                    className='rounded border border-green-600 px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50'
+                  >
+                    View All Orders
+                  </Link>
+                )}
               </div>
             </div>
           </div>

@@ -100,7 +100,14 @@ export default function OrderSummarySection() {
           let discountedPrice = displayPrice
           let discount = 0
           let discountPercent = 0
-          
+
+          // #region agent log
+          if (cart.items.indexOf(item) === 0) {
+            const rowTotal = (displayPrice || 0) * item.quantity
+            fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'OrderSummarySection.tsx:product row',message:'First item price vs subtotal',data:{displayPrice,unitPrice:item.unitPrice,quantity:item.quantity,rowTotal,itemSubtotal:item.subtotal,match:Math.abs(rowTotal-(item.subtotal||0))<0.01,taxRate:item.taxRate},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
+          }
+          // #endregion
+
           if (isVariant) {
             // For variants, unitPrice is already the correct price to display
             // Don't show discount based on original product price

@@ -139,7 +139,7 @@ export default function SettingsPage() {
   });
   const [dpoSettings, setDpoSettings] = useState({
     companyToken: '',
-    apiUrl: 'https://secure.3gdirectpay.com/payv3.php',
+    apiUrl: 'https://secure.3gdirectpay.com/API/v6/',
     serviceType: '5525',
     redirectUrl: '',
     backUrl: '',
@@ -201,7 +201,7 @@ export default function SettingsPage() {
         });
         setDpoSettings({
           companyToken: dpo?.companyToken ?? '',
-          apiUrl: dpo?.apiUrl ?? 'https://secure.3gdirectpay.com/payv3.php',
+          apiUrl: dpo?.apiUrl ?? 'https://secure.3gdirectpay.com/API/v6/',
           serviceType: dpo?.serviceType ?? '5525',
           redirectUrl: dpo?.redirectUrl ?? '',
           backUrl: dpo?.backUrl ?? '',
@@ -233,7 +233,7 @@ export default function SettingsPage() {
         });
         setInitialDpoSettings({
           companyToken: dpo?.companyToken ?? '',
-          apiUrl: dpo?.apiUrl ?? 'https://secure.3gdirectpay.com/payv3.php',
+          apiUrl: dpo?.apiUrl ?? 'https://secure.3gdirectpay.com/API/v6/',
           serviceType: dpo?.serviceType ?? '5525',
           redirectUrl: dpo?.redirectUrl ?? '',
           backUrl: dpo?.backUrl ?? '',

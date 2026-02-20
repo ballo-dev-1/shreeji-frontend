@@ -24,6 +24,18 @@ This document tracks all pending tasks and next steps required to make the ecomm
 - [x] Payment gateway integration (DPO)
 - [x] Order creation and confirmation
 - [x] VAT percentage display in order details
+- [x] **DPO Payment Gateway - Full XML Integration (Feb 2026)**
+  - [x] Fixed DPO gateway to use proper XML format (was sending JSON/form-encoded)
+  - [x] Fixed API URL from `payv3.php` (payment page) to `API/v6/` (API endpoint)
+  - [x] Implemented CreateToken XML with `<API3G>`, `<Transaction>`, `<Services>` blocks
+  - [x] Implemented VerifyToken XML with proper result code mapping (000=paid, 001=authorized, 900=pending, 901=declined, 903/904=failed)
+  - [x] Added `POST /payments/dpo/verify` endpoint for frontend to call after DPO redirect
+  - [x] Added `getPaymentByTransactionId` method to PaymentsService
+  - [x] Created `/checkout/success` page to handle DPO payment redirect
+  - [x] Added `verifyDpoPayment()` frontend API function
+  - [x] Fixed default DPO API URL in admin settings and backend settings defaults
+  - [x] Configured test credentials (CompanyToken, ServiceType) in backend .env
+  - [x] Added comprehensive test coverage (TDD): gateway spec (15 tests), controller spec (6 tests), frontend API test (4 tests), success page test (6 tests)
 
 ### 🔄 Pending
 - [ ] **Payment Gateway Webhooks**

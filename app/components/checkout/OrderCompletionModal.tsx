@@ -89,7 +89,9 @@ export default function OrderCompletionModal({
       >
         {/* Header */}
         <div className="p-6 border-b border-gray-200 flex items-center justify-between sticky top-0 bg-white z-10">
-          <h2 className="text-2xl font-bold text-gray-900">Order Confirmed!</h2>
+          <h2 className="text-2xl font-bold text-gray-900">
+            {(paymentStatus === 'failed' || paymentStatus === 'declined') ? 'Order placed – payment failed' : 'Order Confirmed!'}
+          </h2>
           <button
             onClick={onClose}
             className="p-1 hover:bg-gray-100 rounded-full transition"
@@ -185,19 +187,25 @@ export default function OrderCompletionModal({
           )}
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200">
+          <div className="flex flex-col flex-wrap gap-3 pt-4 border-t border-gray-200">
             {guestEmail ? (
               <>
                 <Link
-                  href={`/portal/register?email=${encodeURIComponent(guestEmail)}&firstName=${encodeURIComponent(guestFirstName || '')}&lastName=${encodeURIComponent(guestLastName || '')}&returnUrl=/portal/orders/${orderId}`}
+                  href={`/checkout/order-status?orderNumber=${encodeURIComponent(orderNumber)}&email=${encodeURIComponent(guestEmail)}`}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[var(--shreeji-primary)] text-white rounded-lg hover:opacity-90 transition font-medium"
                 >
                   <ExternalLink className="h-5 w-5" />
-                  Create Account to Track Order
+                  View order details
+                </Link>
+                <Link
+                  href={`/portal/register?email=${encodeURIComponent(guestEmail)}&firstName=${encodeURIComponent(guestFirstName || '')}&lastName=${encodeURIComponent(guestLastName || '')}&returnUrl=/portal/orders/${orderId}`}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border border-[var(--shreeji-primary)] text-[var(--shreeji-primary)] rounded-lg hover:bg-[var(--shreeji-primary)] hover:text-white transition font-medium"
+                >
+                  Create account to track order
                 </Link>
                 <Link
                   href={getLoginUrl(`/portal/orders/${orderId}`)}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border border-[var(--shreeji-primary)] text-[var(--shreeji-primary)] rounded-lg hover:bg-[var(--shreeji-primary)] hover:text-white transition font-medium"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium"
                 >
                   Already have an account? Login
                 </Link>
@@ -222,9 +230,11 @@ export default function OrderCompletionModal({
           {/* Info Message */}
           <div className="rounded-lg bg-gray-50 border border-gray-200 p-4">
             <p className="text-sm text-gray-600">
-              <strong>Note:</strong> You can view your order details and track its status by logging
-              into your account. If you don't have an account, you can create one using the email
-              address used for this order.
+              {guestEmail ? (
+                <>We&apos;ve sent an email with your order details to <strong>{guestEmail}</strong>. You can also view and track your order above without logging in.</>
+              ) : (
+                <>You can view your order details and track its status by logging into your account.</>
+              )}
             </p>
           </div>
         </div>

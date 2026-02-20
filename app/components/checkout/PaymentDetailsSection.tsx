@@ -322,6 +322,7 @@ export default function PaymentDetailsSection({
                         type='text'
                         placeholder='CVV'
                         maxLength={4}
+                        autoComplete='cc-csc'
                         onChange={(e) => {
                           const value = e.target.value.replace(/\D/g, '').slice(0, 4)
                           if (onPaymentDetailsChange) {
@@ -379,7 +380,7 @@ export default function PaymentDetailsSection({
           {showNewCardForm && selectedCardType && (
             <div className='space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4'>
               <div>
-                <h3 className='text-lg font-semibold text-gray-900'>Enter Card Information</h3>
+                <h3 className='text-lg font-semibold text-gray-900'>Enter Card Information (Test Card: 5436 8862 6984 8367)</h3>
                 <p className='text-sm text-gray-500 mt-1'>
                   {selectedCardType === 'visa' && 'Visa'}
                   {selectedCardType === 'mastercard' && 'Mastercard'}
@@ -404,6 +405,7 @@ export default function PaymentDetailsSection({
                     }}
                     placeholder='1234 5678 9012 3456'
                     maxLength={19}
+                    autoComplete='cc-number'
                     className='w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500'
                   />
                 </div>
@@ -425,6 +427,7 @@ export default function PaymentDetailsSection({
                       }}
                       placeholder='MM'
                       maxLength={2}
+                      autoComplete='cc-exp-month'
                       className='w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500'
                     />
                   </div>
@@ -442,6 +445,7 @@ export default function PaymentDetailsSection({
                       }}
                       placeholder='YYYY'
                       maxLength={4}
+                      autoComplete='cc-exp-year'
                       className='w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500'
                     />
                   </div>
@@ -462,6 +466,7 @@ export default function PaymentDetailsSection({
                       }}
                       placeholder='123'
                       maxLength={4}
+                      autoComplete='cc-csc'
                       className='w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500'
                     />
                   </div>
@@ -475,6 +480,7 @@ export default function PaymentDetailsSection({
                       value={newCardData.cardholderName}
                       onChange={(e) => setNewCardData({ ...newCardData, cardholderName: e.target.value })}
                       placeholder='John Doe'
+                      autoComplete='cc-name'
                       className='w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500'
                     />
                   </div>

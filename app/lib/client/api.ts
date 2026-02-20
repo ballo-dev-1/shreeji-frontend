@@ -220,6 +220,71 @@ class ClientApiClient {
     };
   }
 
+  /**
+   * Guest order lookup - no auth required. Use for post-checkout "View order" for guests.
+   */
+  async getOrderByGuestLookup(orderNumber: string, email: string): Promise<{ data: any }> {
+    const params = new URLSearchParams({ orderNumber: orderNumber.trim(), email: email.trim() });
+    const url = getApiUrl(`/orders/guest-lookup?${params}`);
+    const response = await fetch(url, { cache: 'no-store' });
+    if (!response.ok) {
+      const text = await response.text();
+      let message = `Order not found`;
+      try {
+        const j = JSON.parse(text);
+        message = j.message || message;
+      } catch {
+        if (text) message = text;
+      }
+      throw new Error(message);
+    }
+    const json = await response.json();
+    const raw = json.data || json;
+    return {
+      data: {
+        id: raw.id,
+        orderNumber: raw.orderNumber || raw.order_number,
+        orderStatus: raw.orderStatus || raw.status || 'pending',
+        paymentStatus: raw.paymentStatus || raw.payment_status || 'pending',
+        totalAmount: raw.totalAmount ?? raw.total_amount ?? 0,
+        subtotal: raw.subtotal ?? 0,
+        taxAmount: raw.taxAmount ?? raw.tax_amount ?? 0,
+        shippingAmount: raw.shippingAmount ?? raw.shipping_amount ?? 0,
+        discountAmount: raw.discountAmount ?? raw.discount_amount ?? 0,
+        currency: raw.currency || 'ZMW',
+        notes: raw.notes,
+        trackingNumber: raw.trackingNumber || raw.tracking_number,
+        estimatedDelivery: raw.estimatedDelivery || raw.estimated_delivery,
+        shippedAt: raw.shippedAt || raw.shipped_at,
+        deliveredAt: raw.deliveredAt || raw.delivered_at,
+        createdAt: raw.createdAt || raw.created_at,
+        updatedAt: raw.updatedAt || raw.updated_at,
+        orderItems: raw.orderItems || raw.order_items || [],
+        shippingAddress: raw.shippingAddress || raw.shipping_address,
+        billingAddress: raw.billingAddress || raw.billing_address,
+        preferredPickupDate: raw.preferredPickupDate || raw.preferred_pickup_date,
+        preferredPickupTime: raw.preferredPickupTime || raw.preferred_pickup_time,
+        collectingPersonName: raw.collectingPersonName || raw.collecting_person_name,
+        collectingPersonPhone: raw.collectingPersonPhone || raw.collecting_person_phone,
+        collectingPersonRelationship: raw.collectingPersonRelationship || raw.collecting_person_relationship,
+        vehicleInfo: raw.vehicleInfo || raw.vehicle_info,
+        idType: raw.idType || raw.id_type,
+        idNumber: raw.idNumber || raw.id_number,
+        pickupSpecialInstructions: raw.pickupSpecialInstructions || raw.pickup_special_instructions,
+        payments: (raw.payments || []).map((p: any) => ({
+          id: p.id,
+          amount: p.amount,
+          currency: p.currency || 'ZMW',
+          paymentStatus: p.paymentStatus || p.payment_status,
+          paymentMethod: p.paymentMethod || p.payment_method,
+          transactionId: p.transactionId || p.transaction_id,
+          processedAt: p.processedAt || p.processed_at,
+          createdAt: p.createdAt || p.created_at,
+        })),
+      },
+    };
+  }
+
   async getOrder(id: string) {
     const user = await clientAuth.getCurrentUser();
     if (!user) {
