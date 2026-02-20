@@ -202,6 +202,21 @@ function GuestOrderContent() {
             node.childNodes.forEach((child) => { if (child.nodeType === 1) walk(child as Element) })
           }
           walk(clonedDoc.documentElement)
+          const headerStatus = clonedElement.querySelector('[data-pdf-header-status]')
+          if (headerStatus && logoDataUrl) {
+            headerStatus.textContent = ''
+            headerStatus.classList.add('inline-flex', 'items-center')
+            const img = clonedDoc.createElement('img')
+            img.src = logoDataUrl
+            img.alt = 'Shreeji'
+            img.setAttribute('width', '120')
+            img.setAttribute('height', '32')
+            img.style.height = '40px'
+            img.style.width = 'auto'
+            img.style.marginTop = '10px'   
+            img.style.objectFit = 'contain'
+            headerStatus.appendChild(img)
+          }
         },
       })
       if (downloadBtn) downloadBtn.style.visibility = ''
