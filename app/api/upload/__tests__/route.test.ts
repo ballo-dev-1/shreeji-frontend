@@ -25,6 +25,7 @@ describe('upload route background removal', () => {
     withHeaderToken?: boolean;
     withCookieToken?: boolean;
     fileType?: string;
+    removeBackgroundQuery?: boolean;
   }): any {
     const formData = new FormData();
     const file = new File(['fake-image'], 'sample.png', {
@@ -40,6 +41,14 @@ describe('upload route background removal', () => {
     return {
       formData: async () => formData,
       headers,
+      nextUrl: {
+        searchParams: {
+          get: (key: string) =>
+            key === 'removeBackground' && options?.removeBackgroundQuery
+              ? '1'
+              : null,
+        },
+      },
       cookies: {
         get: (key: string) =>
           key === 'admin_jwt' && options?.withCookieToken
@@ -76,7 +85,7 @@ describe('upload route background removal', () => {
     (global.fetch as jest.Mock)
       .mockResolvedValueOnce({
         ok: true,
-        arrayBuffer: async () => new TextEncoder().encode('processed').buffer,
+        arrayBuffer: async () => Uint8Array.from([112, 114, 111, 99, 101, 115, 115, 101, 100]).buffer,
         headers: new Headers({ 'content-type': 'image/png' }),
       })
       .mockResolvedValueOnce({
@@ -93,6 +102,34 @@ describe('upload route background removal', () => {
     );
     expect((global.fetch as jest.Mock).mock.calls[1][0]).toBe(
       'http://example-backend:4000/files/upload',
+    );
+    expect(response.status).toBe(200);
+  });
+
+  it('forces bg removal via query even when toggle is off', async () => {
+    process.env.NEXT_PUBLIC_ECOM_API_URL = 'http://example-backend:4000';
+    process.env.BG_REMOVER_ENABLED = 'false';
+    process.env.BG_REMOVER_API_URL = 'http://bg-remover:4200';
+
+    (global.fetch as jest.Mock)
+      .mockResolvedValueOnce({
+        ok: true,
+        arrayBuffer: async () => Uint8Array.from([112, 114, 111, 99, 101, 115, 115, 101, 100]).buffer,
+        headers: new Headers({ 'content-type': 'image/png' }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: 5, url: '/uploads/e.png', originalName: 'e.png' }),
+      });
+
+    const { POST } = await import('../route');
+    const response = await POST(
+      createRequest({ withHeaderToken: true, removeBackgroundQuery: true }),
+    );
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    expect((global.fetch as jest.Mock).mock.calls[0][0]).toBe(
+      'http://bg-remover:4200/remove-bg',
     );
     expect(response.status).toBe(200);
   });

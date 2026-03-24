@@ -10,8 +10,15 @@ function withPngExtension(filename: string): string {
   return filename.replace(/\.[^.]+$/, '.png');
 }
 
-async function maybeRemoveBackground(file: File): Promise<File> {
-  if (!BG_REMOVER_ENABLED || !BG_REMOVER_API_URL || !file.type.startsWith('image/')) {
+async function maybeRemoveBackground(file: File, force = false): Promise<File> {
+  const shouldAttempt = (force || BG_REMOVER_ENABLED) && file.type.startsWith('image/');
+  if (!shouldAttempt) {
+    return file;
+  }
+  if (!BG_REMOVER_API_URL) {
+    if (force) {
+      throw new Error('Background remover API URL is not configured');
+    }
     return file;
   }
 
@@ -29,6 +36,9 @@ async function maybeRemoveBackground(file: File): Promise<File> {
     });
 
     if (!removerResponse.ok) {
+      if (force) {
+        throw new Error(`Background remover failed: ${removerResponse.status}`);
+      }
       return file;
     }
 
@@ -38,7 +48,10 @@ async function maybeRemoveBackground(file: File): Promise<File> {
       type: contentType,
     });
     return processed;
-  } catch {
+  } catch (error) {
+    if (force) {
+      throw error;
+    }
     return file;
   } finally {
     clearTimeout(timeoutId);
@@ -47,6 +60,9 @@ async function maybeRemoveBackground(file: File): Promise<File> {
 
 export async function POST(request: NextRequest) {
   try {
+    const forceBgRemoval =
+      request.nextUrl?.searchParams.get('removeBackground') === '1' ||
+      request.nextUrl?.searchParams.get('removeBackground') === 'true';
     const formData = await request.formData();
     const file = formData.get('file') as File | null;
 
@@ -64,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     // Forward the file to the NestJS backend
     const backendFormData = new FormData();
-    const fileToUpload = await maybeRemoveBackground(file);
+    const fileToUpload = await maybeRemoveBackground(file, forceBgRemoval);
     backendFormData.append('file', fileToUpload);
 
     const response = await fetch(`${API_URL}/files/upload`, {

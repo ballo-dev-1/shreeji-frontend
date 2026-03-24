@@ -16,7 +16,8 @@ import {
   LinkIcon,
   MagnifyingGlassIcon,
   EyeIcon,
-  EyeSlashIcon
+  EyeSlashIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline';
 import { processProductImages, normalizeImageUrl } from '@/app/lib/admin/image-mapping';
 import api from '@/app/lib/admin/api';
@@ -774,6 +775,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
   const [imageUploadMode, setImageUploadMode] = useState<'upload' | 'url' | null>(null);
   const [pastedImageUrl, setPastedImageUrl] = useState('');
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [removingBgImageIndex, setRemovingBgImageIndex] = useState<number | null>(null);
   const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number; fileName: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -1675,6 +1677,79 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
       ...prev,
       images: updatedImages
     }));
+  };
+
+  const removeImageBackground = async (index: number) => {
+    const target = formData.images[index];
+    if (!target?.url) {
+      toast.error('No image found to process');
+      return;
+    }
+
+    try {
+      setRemovingBgImageIndex(index);
+      const sourceUrl = normalizeImageUrl(target.url);
+      const response = await fetch(sourceUrl);
+      if (!response.ok) {
+        throw new Error('Failed to fetch selected image');
+      }
+
+      const blob = await response.blob();
+      const ext =
+        blob.type === 'image/png'
+          ? 'png'
+          : blob.type === 'image/webp'
+            ? 'webp'
+            : 'jpg';
+      const file = new File([blob], `product-image-${Date.now()}.${ext}`, {
+        type: blob.type || 'image/png',
+      });
+
+      const formDataPayload = new FormData();
+      formDataPayload.append('file', file);
+      const headers: Record<string, string> = {};
+      const token = typeof window !== 'undefined' ? localStorage.getItem('admin_jwt') : null;
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const uploadResponse = await fetch('/api/upload?removeBackground=1', {
+        method: 'POST',
+        headers,
+        body: formDataPayload,
+      });
+      if (!uploadResponse.ok) {
+        let message = 'Failed to remove background';
+        try {
+          const err = await uploadResponse.json();
+          message = err?.error || err?.message || message;
+        } catch {
+          // Ignore parse error and keep fallback message.
+        }
+        throw new Error(message);
+      }
+
+      const uploadResult = await uploadResponse.json();
+      setFormData((prev) => {
+        const updatedImages = [...prev.images];
+        if (!updatedImages[index]) {
+          return prev;
+        }
+        updatedImages[index] = {
+          ...updatedImages[index],
+          url: uploadResult.url,
+        };
+        return {
+          ...prev,
+          images: updatedImages,
+        };
+      });
+      toast.success('Background removed');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to remove background');
+    } finally {
+      setRemovingBgImageIndex(null);
+    }
   };
 
   const setMainImage = (index: number) => {
@@ -2721,15 +2796,28 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                             alt={formData.images[mainImageIndex]?.alt || "Main product image"}
                             className="w-full h-full object-contain min-h-[15rem]"
                           />
-                          {/* Delete button on hover */}
-                          <button
-                            type="button"
-                            onClick={() => removeImage(mainImageIndex)}
-                            className="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-lg"
-                            title="Delete image"
-                          >
-                            <TrashIcon className="h-5 w-5" />
-                          </button>
+                          {/* Image actions on hover */}
+                          <div className="absolute top-2 right-2 flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                            <button
+                              type="button"
+                              onClick={() => removeImageBackground(mainImageIndex)}
+                              disabled={removingBgImageIndex === mainImageIndex}
+                              className="p-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
+                              title="Remove background"
+                            >
+                              <SparklesIcon
+                                className={`h-5 w-5 ${removingBgImageIndex === mainImageIndex ? 'animate-spin' : ''}`}
+                              />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => removeImage(mainImageIndex)}
+                              className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 shadow-lg"
+                              title="Delete image"
+                            >
+                              <TrashIcon className="h-5 w-5" />
+                            </button>
+                          </div>
                         </div>
                       ) : (
                         <div className="w-full aspect-square bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
@@ -4829,9 +4917,10 @@ function ProductPreviewOverlay({
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 z-[80] flex rounded-full bg-white/90 p-2 text-gray-600 shadow-lg hover:bg-white transition-colors"
+          className="fixed bottom-16 right-20 z-[80] inline-flex items-center gap-1 rounded-full bg-white font-bold px-4 py-2 text-sm text-gray-700 shadow-lg transition-colors hover:bg-white"
         >
           <XMarkIcon className="h-5 w-5" />
+          <span>Close Preview</span>
         </button>
         <section
           style={{
