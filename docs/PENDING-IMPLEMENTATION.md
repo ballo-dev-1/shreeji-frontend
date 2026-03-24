@@ -579,7 +579,7 @@ This document tracks all pending tasks and next steps required to make the ecomm
 
 ---
 
-**Last Updated:** January 2025
+**Last Updated:** March 23, 2026
 **Maintained By:** Development Team
 
 ### December 2024 - Inventory Management Frontend Completion
@@ -599,6 +599,14 @@ This document tracks all pending tasks and next steps required to make the ecomm
 ---
 
 ## Recent Updates
+
+### March 23, 2026 - Modal Clickthrough Fixes
+- ✅ Fixed nested admin modal clickthrough behavior that could close dialogs when interacting with modal content.
+- ✅ Updated `EditProductModal` nested CRUD dialogs (category, subcategory, brand, image) to stop propagation on modal panels and enforce foreground stacking.
+- ✅ Applied the same modal containment hardening to admin dialogs in coupon, content, and admin-user management screens.
+- ✅ Added regression tests for modal behavior:
+  - Clicking modal content/input keeps modal open
+  - Clicking backdrop closes modal
 
 ### December 2025 - Payments Export
 - ✅ Added admin payments CSV/PDF export endpoints (backend) with pdfkit layout sizing to prevent clipping
@@ -775,5 +783,5 @@ This document tracks all pending tasks and next steps required to make the ecomm
 
 ---
 
-Last Updated: December 16, 2025
+Last Updated: March 23, 2026
 

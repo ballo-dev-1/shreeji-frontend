@@ -1765,28 +1765,28 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
       return;
     }
 
-    const categoryIdNum = typeof categoryId === 'string' && !isNaN(Number(categoryId))
+    const normalizedCategoryValue = typeof categoryId === 'string' && !isNaN(Number(categoryId))
       ? Number(categoryId)
       : categoryId;
-
-    if (typeof categoryIdNum !== 'number') {
-      setErrors(prev => ({ ...prev, newSubcategory: 'Invalid category selected' }));
-      return;
-    }
+    const categoryMatchKey = normalizedCategoryValue.toString().toLowerCase();
 
     if (subcategories.some(sub => 
       sub.name.toLowerCase() === trimmedName.toLowerCase() && 
-      (typeof sub.category === 'number' ? sub.category : (sub.category as Category).id) === categoryIdNum
+      (typeof sub.category === 'number'
+        ? sub.category.toString().toLowerCase()
+        : (sub.category as Category).id.toString().toLowerCase()) === categoryMatchKey
     )) {
       setErrors(prev => ({ ...prev, newSubcategory: 'Subcategory already exists in this category' }));
       return;
     }
 
     try {
-      const response = await api.createSubcategory({ 
-        name: trimmedName,
-        category: categoryIdNum
-      }) as { data: any };
+      const payload: { name: string; category?: number } = { name: trimmedName };
+      if (typeof normalizedCategoryValue === 'number') {
+        payload.category = normalizedCategoryValue;
+      }
+
+      const response = await api.createSubcategory(payload) as { data: any };
       const createdSubcategory = response.data;
       const subcategoryDataAttr = createdSubcategory.attributes || createdSubcategory;
 
@@ -1795,7 +1795,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
         documentId: createdSubcategory.documentId,
         name: subcategoryDataAttr.name || trimmedName,
         slug: subcategoryDataAttr.slug || null,
-        category: categoryIdNum
+        category: normalizedCategoryValue
       };
 
       setSubcategories(prev => [...prev, newSubcategory]);
@@ -1829,29 +1829,34 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
     }
 
     const categoryId = formData.category;
-    const categoryIdNum = typeof categoryId === 'string' && !isNaN(Number(categoryId))
+    const normalizedCategoryValue = typeof categoryId === 'string' && !isNaN(Number(categoryId))
       ? Number(categoryId)
       : categoryId;
+    const categoryMatchKey = normalizedCategoryValue?.toString().toLowerCase();
 
-    if (typeof categoryIdNum !== 'number') {
-      setErrors(prev => ({ ...prev, newSubcategory: 'Invalid category selected' }));
+    if (!categoryMatchKey) {
+      setErrors(prev => ({ ...prev, newSubcategory: 'Please select a category first' }));
       return;
     }
 
     if (subcategories.some(sub => 
       sub.id !== editingSubcategory.id &&
       sub.name.toLowerCase() === trimmedName.toLowerCase() &&
-      (typeof sub.category === 'number' ? sub.category : (sub.category as Category).id) === categoryIdNum
+      (typeof sub.category === 'number'
+        ? sub.category.toString().toLowerCase()
+        : (sub.category as Category).id.toString().toLowerCase()) === categoryMatchKey
     )) {
       setErrors(prev => ({ ...prev, newSubcategory: 'Subcategory name already exists in this category' }));
       return;
     }
 
     try {
-      const response = await api.updateSubcategory(editingSubcategory.id, { 
-        name: trimmedName,
-        category: categoryIdNum
-      }) as { data: any };
+      const payload: { name?: string; category?: number } = { name: trimmedName };
+      if (typeof normalizedCategoryValue === 'number') {
+        payload.category = normalizedCategoryValue;
+      }
+
+      const response = await api.updateSubcategory(editingSubcategory.id, payload) as { data: any };
       const updatedSubcategory = response.data;
       const subcategoryDataAttr = updatedSubcategory.attributes || updatedSubcategory;
 
@@ -1860,7 +1865,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
         documentId: updatedSubcategory.documentId,
         name: subcategoryDataAttr.name || trimmedName,
         slug: subcategoryDataAttr.slug || null,
-        category: categoryIdNum
+        category: normalizedCategoryValue
       };
 
       setSubcategories(prev => prev.map(sub => sub.id === editingSubcategory.id ? updated : sub));
@@ -3797,7 +3802,10 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
             });
           }}></div>
           <div className="flex items-center justify-center min-h-screen px-4 py-4">
-            <div className="relative bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full max-w-md">
+            <div
+              className="relative z-10 bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold text-gray-900">Add New Category</h3>
@@ -3888,7 +3896,10 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
             });
           }}></div>
           <div className="flex items-center justify-center min-h-screen px-4 py-4">
-            <div className="relative bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full max-w-md">
+            <div
+              className="relative z-10 bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold text-gray-900">Edit Category</h3>
@@ -3990,7 +4001,10 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
             });
           }}></div>
           <div className="flex items-center justify-center min-h-screen px-4 py-4">
-            <div className="relative bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full max-w-md">
+            <div
+              className="relative z-10 bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold text-gray-900">Add New Subcategory</h3>
@@ -4100,7 +4114,10 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
             });
           }}></div>
           <div className="flex items-center justify-center min-h-screen px-4 py-4">
-            <div className="relative bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full max-w-md">
+            <div
+              className="relative z-10 bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold text-gray-900">Edit Subcategory</h3>
@@ -4216,7 +4233,10 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
             });
           }}></div>
           <div className="flex items-center justify-center min-h-screen px-4 py-4">
-            <div className="relative bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full max-w-md">
+            <div
+              className="relative z-10 bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold text-gray-900">Add New Brand</h3>
@@ -4340,7 +4360,10 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
             });
           }}></div>
           <div className="flex items-center justify-center min-h-screen px-4 py-4">
-            <div className="relative bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full max-w-md">
+            <div
+              className="relative z-10 bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-bold text-gray-900">Edit Brand</h3>
@@ -4478,7 +4501,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
           });
         }}></div>
         <div className="flex items-center justify-center min-h-screen px-4 py-4">
-          <div className="relative bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div className="relative z-10 bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full max-w-md" onClick={(e) => e.stopPropagation()}>
             <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-bold text-gray-900">Add Image</h3>
