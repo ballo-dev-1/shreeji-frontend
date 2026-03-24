@@ -9,7 +9,7 @@ interface ProductSEOEditorProps {
     metaDescription?: string
     metaKeywords?: string
     ogImage?: string
-    schemaMarkup?: Record<string, any>
+    schemaMarkup?: Record<string, any> | string
   }
   productName?: string
   productDescription?: string
@@ -30,21 +30,66 @@ export default function ProductSEOEditor({
   productImages,
   onChange,
 }: ProductSEOEditorProps) {
+  const normalizeSchemaMarkupText = (value?: Record<string, any> | string) => {
+    if (!value) return ''
+
+    if (typeof value === 'string') {
+      const trimmed = value.trim()
+      if (!trimmed) return ''
+      try {
+        return JSON.stringify(JSON.parse(trimmed), null, 2)
+      } catch {
+        // Keep raw input visible if backend sent non-JSON text.
+        return value
+      }
+    }
+
+    try {
+      return JSON.stringify(value, null, 2)
+    } catch {
+      return ''
+    }
+  }
+
   const [metaTitle, setMetaTitle] = useState(seoData.metaTitle || '')
   const [metaDescription, setMetaDescription] = useState(seoData.metaDescription || '')
   const [metaKeywords, setMetaKeywords] = useState(seoData.metaKeywords || '')
   const [ogImage, setOgImage] = useState(seoData.ogImage || '')
-  const [schemaMarkup, setSchemaMarkup] = useState(
-    seoData.schemaMarkup ? JSON.stringify(seoData.schemaMarkup, null, 2) : '',
-  )
+  const [schemaMarkup, setSchemaMarkup] = useState(() => normalizeSchemaMarkupText(seoData.schemaMarkup))
 
   useEffect(() => {
-    onChange({
+    setMetaTitle(seoData.metaTitle || '')
+    setMetaDescription(seoData.metaDescription || '')
+    setMetaKeywords(seoData.metaKeywords || '')
+    setOgImage(seoData.ogImage || '')
+    setSchemaMarkup(normalizeSchemaMarkupText(seoData.schemaMarkup))
+  }, [seoData.metaTitle, seoData.metaDescription, seoData.metaKeywords, seoData.ogImage, seoData.schemaMarkup])
+
+  useEffect(() => {
+    const payload: {
+      metaTitle?: string
+      metaDescription?: string
+      metaKeywords?: string
+      ogImage?: string
+      schemaMarkup?: Record<string, any>
+    } = {
       metaTitle: metaTitle || undefined,
       metaDescription: metaDescription || undefined,
       metaKeywords: metaKeywords || undefined,
       ogImage: ogImage || undefined,
-      schemaMarkup: schemaMarkup ? JSON.parse(schemaMarkup) : undefined,
+    }
+
+    const trimmedSchemaMarkup = schemaMarkup.trim()
+    if (trimmedSchemaMarkup) {
+      try {
+        payload.schemaMarkup = JSON.parse(trimmedSchemaMarkup)
+      } catch {
+        // Do not throw while user is editing invalid JSON.
+      }
+    }
+
+    onChange({
+      ...payload,
     })
   }, [metaTitle, metaDescription, metaKeywords, ogImage, schemaMarkup, onChange])
 

@@ -310,4 +310,31 @@ describe('Modal clickthrough regression', () => {
     expect(screen.getByText(/Laptops/)).toBeInTheDocument()
     expect(screen.getByText(/HP ProBook 430 G7/)).toBeInTheDocument()
   })
+
+  it('renders preview modal close button with Close Preview text', async () => {
+    const user = userEvent.setup()
+    render(
+      <EditProductModal
+        isOpen={true}
+        onClose={jest.fn()}
+        product={{
+          id: 1,
+          name: 'HP ProBook 430 G7',
+          slug: 'hp-probook-430-g7',
+          category: 'Computers',
+          subcategory: 'Laptops',
+          brand: 'HP',
+          price: '10956.2',
+          images: [],
+          isActive: true,
+        } as any}
+      />,
+    )
+
+    await screen.findByText('General Information')
+    const previewButtons = screen.getAllByRole('button', { name: /^preview$/i })
+    await user.click(previewButtons[previewButtons.length - 1])
+
+    expect(await screen.findByRole('button', { name: /close preview/i })).toBeInTheDocument()
+  })
 })

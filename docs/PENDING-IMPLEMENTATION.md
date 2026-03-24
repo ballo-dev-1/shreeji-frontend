@@ -579,7 +579,7 @@ This document tracks all pending tasks and next steps required to make the ecomm
 
 ---
 
-**Last Updated:** March 23, 2026
+**Last Updated:** March 24, 2026
 **Maintained By:** Development Team
 
 ### December 2024 - Inventory Management Frontend Completion
@@ -600,12 +600,33 @@ This document tracks all pending tasks and next steps required to make the ecomm
 
 ## Recent Updates
 
+### February 20, 2026 - Google OAuth Redirect Hardening (Staging)
+- ✅ Backend Google OAuth callback redirect fallback logic updated to avoid localhost fallback in staging/production environments.
+- ✅ Added backend regression tests covering:
+  - allowlisted staging `redirect_uri` callback
+  - callback URL token appending with existing query params
+  - disallowed redirect fallback behavior
+  - staging fallback never resolving to localhost
+- ✅ Frontend Google auth URL generation centralized into `app/lib/client/googleAuth.ts` and reused by portal auth page/modal.
+- ✅ Added frontend unit tests for OAuth URL creation to ensure canonical `/portal/login` redirect URI and proxy behavior on HTTPS.
+
 ### March 24, 2026 - Product Preview Modal Parity
 - ✅ Updated `EditProductModal` product preview overlay to mirror product details page context more accurately:
   - Added product-details page background styling in preview
   - Added breadcrumb rendering in preview (`Products > Category > Subcategory > Product`)
   - Aligned preview container and close button behavior with full-page visual framing
+  - Replaced icon-only preview close control with labeled `Close Preview` button for clearer UX
 - ✅ Added regression test coverage to ensure preview modal includes breadcrumb context and renders in preview mode.
+ - ✅ Added regression test to ensure preview modal renders a `Close Preview` close button label.
+
+### March 24, 2026 - Product SEO Save Reliability
+- ✅ Fixed admin product create API payload mapping to persist SEO fields (`metaTitle`, `metaDescription`, `metaKeywords`, `ogImage`, `schemaMarkup`).
+- ✅ Hardened `ProductSEOEditor` JSON-LD handling to avoid runtime errors while editing invalid JSON.
+- ✅ Normalized incoming `schemaMarkup` handling for object/string values to improve editor UX.
+- ✅ Added regression tests for:
+  - SEO field mapping in product create payload
+  - JSON string schema normalization in SEO editor
+  - Invalid JSON editing state without component crash
 
 ### March 24, 2026 - Add Brand Logo Preview
 - ✅ Added live logo preview in `EditProductModal` Add Brand modal when an image file is selected.

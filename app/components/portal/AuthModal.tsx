@@ -9,6 +9,7 @@ import {
   EnvelopeIcon
 } from '@heroicons/react/24/outline';
 import { useClientAuth } from '@/app/contexts/ClientAuthContext';
+import { buildGoogleAuthUrl } from '@/app/lib/client/googleAuth';
 
 type AuthMode = 'login' | 'signup';
 
@@ -143,21 +144,11 @@ export default function AuthModal({
   };
 
   const handleGoogleLogin = () => {
-    // Get backend API URL
-    const API_URL = process.env.NEXT_PUBLIC_ECOM_API_URL?.replace(/\/$/, '') || 'http://localhost:4000';
-    
-    // Check if we should use proxy (when frontend is HTTPS and backend is HTTP)
-    const shouldUseProxy = typeof window !== 'undefined' && 
-      window.location.protocol === 'https:' && 
-      API_URL.startsWith('http://');
-    
-    const baseUrl = shouldUseProxy 
-      ? `/api/backend/auth/google`
-      : `${API_URL}/auth/google`;
-    const redirect_uri = typeof window !== 'undefined' ? window.location.origin + '/portal/login' : '';
-    const googleAuthUrl = redirect_uri
-      ? `${baseUrl}?redirect_uri=${encodeURIComponent(redirect_uri)}`
-      : baseUrl;
+    const googleAuthUrl = buildGoogleAuthUrl({
+      apiUrl: process.env.NEXT_PUBLIC_ECOM_API_URL,
+      protocol: typeof window !== 'undefined' ? window.location.protocol : undefined,
+      origin: typeof window !== 'undefined' ? window.location.origin : undefined,
+    });
     
     // Redirect immediately to backend Google OAuth endpoint
     // Use setTimeout with 0 delay to ensure it runs after current execution stack

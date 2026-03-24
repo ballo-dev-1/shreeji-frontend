@@ -181,6 +181,11 @@ class ApiClient {
       minStockLevel: data.minStockLevel ? parseInt(data.minStockLevel) : undefined,
       maxStockLevel: data.maxStockLevel ? parseInt(data.maxStockLevel) : undefined,
       isActive: data.isActive !== undefined ? data.isActive : true,
+      metaTitle: data.metaTitle,
+      metaDescription: data.metaDescription,
+      metaKeywords: data.metaKeywords,
+      ogImage: data.ogImage,
+      schemaMarkup: data.schemaMarkup,
     };
 
     return this.request('/admin/products', {
