@@ -811,6 +811,9 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
   const [editingSubcategory, setEditingSubcategory] = useState<Subcategory | null>(null);
   const [newBrandName, setNewBrandName] = useState('');
   const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
+  const [addBrandLogoUrlInput, setAddBrandLogoUrlInput] = useState('');
+  const [addBrandLogoPreviewFileUrl, setAddBrandLogoPreviewFileUrl] = useState<string | null>(null);
+  const [addBrandLogoPreviewFailed, setAddBrandLogoPreviewFailed] = useState(false);
 
   // Categories and subcategories fetched from API
   const [categories, setCategories] = useState<Category[]>([]);
@@ -835,6 +838,43 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
 
   const generateSlug = (value: string) =>
     value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+  const resetAddBrandModalState = useCallback(() => {
+    if (addBrandLogoPreviewFileUrl) {
+      URL.revokeObjectURL(addBrandLogoPreviewFileUrl);
+    }
+
+    setShowAddBrandModal(false);
+    setNewBrandName('');
+    setAddBrandLogoUrlInput('');
+    setAddBrandLogoPreviewFileUrl(null);
+    setAddBrandLogoPreviewFailed(false);
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      delete newErrors.newBrand;
+      return newErrors;
+    });
+
+    const addBrandFileInput = document.getElementById('brand-logo-file') as HTMLInputElement | null;
+    if (addBrandFileInput) {
+      addBrandFileInput.value = '';
+    }
+  }, [addBrandLogoPreviewFileUrl]);
+
+  const handleAddBrandLogoFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (addBrandLogoPreviewFileUrl) {
+      URL.revokeObjectURL(addBrandLogoPreviewFileUrl);
+    }
+
+    const selectedFile = event.target.files?.[0];
+    setAddBrandLogoPreviewFailed(false);
+    setAddBrandLogoPreviewFileUrl(selectedFile ? URL.createObjectURL(selectedFile) : null);
+  };
+
+  const addBrandLogoPreviewSrc = useMemo(() => {
+    const trimmedUrl = addBrandLogoUrlInput.trim();
+    return addBrandLogoPreviewFileUrl || trimmedUrl || null;
+  }, [addBrandLogoPreviewFileUrl, addBrandLogoUrlInput]);
 
   useEffect(() => {
     if (isOpen) {
@@ -1919,6 +1959,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
   // Handle brand selection - check if "Add new" was selected
   const handleBrandChange = (value: string) => {
     if (value === '__add_new__') {
+      resetAddBrandModalState();
       setShowAddBrandModal(true);
     } else {
       // Convert to number if it's a numeric string (brand ID)
@@ -2002,7 +2043,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
 
     // Logo is optional - check if provided
     const brandLogoFile = (document.getElementById('brand-logo-file') as HTMLInputElement)?.files?.[0];
-    const brandLogoUrl = (document.getElementById('brand-logo-url') as HTMLInputElement)?.value?.trim();
+    const brandLogoUrl = addBrandLogoUrlInput.trim();
 
     try {
       let logoId: number | undefined;
@@ -2049,15 +2090,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
       handleInputChange('brand', newBrand.id.toString());
       
       // Reset and close modal
-      setNewBrandName('');
-      setShowAddBrandModal(false);
-      (document.getElementById('brand-logo-file') as HTMLInputElement).value = '';
-      (document.getElementById('brand-logo-url') as HTMLInputElement).value = '';
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors.newBrand;
-        return newErrors;
-      });
+      resetAddBrandModalState();
     } catch (error: any) {
       console.error('Error creating brand:', error);
       
@@ -3021,6 +3054,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                         if (value !== '__add_new__') {
                           handleBrandChange(value);
                         } else {
+                          resetAddBrandModalState();
                           setShowAddBrandModal(true);
                         }
                       }}
@@ -4223,15 +4257,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
     {/* Add New Brand Modal */}
     {showAddBrandModal && (
         <div className="fixed inset-0 z-[60] overflow-y-auto">
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => {
-            setShowAddBrandModal(false);
-            setNewBrandName('');
-            setErrors(prev => {
-              const newErrors = { ...prev };
-              delete newErrors.newBrand;
-              return newErrors;
-            });
-          }}></div>
+          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={resetAddBrandModalState}></div>
           <div className="flex items-center justify-center min-h-screen px-4 py-4">
             <div
               className="relative z-10 bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all w-full max-w-md"
@@ -4242,15 +4268,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                   <h3 className="text-lg font-bold text-gray-900">Add New Brand</h3>
                   <button
                     type="button"
-                    onClick={() => {
-                      setShowAddBrandModal(false);
-                      setNewBrandName('');
-                      setErrors(prev => {
-                        const newErrors = { ...prev };
-                        delete newErrors.newBrand;
-                        return newErrors;
-                      });
-                    }}
+                    onClick={resetAddBrandModalState}
                     className="text-gray-400 hover:text-gray-500"
                   >
                     <XMarkIcon className="h-6 w-6" />
@@ -4291,6 +4309,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                       id="brand-logo-file"
                       type="file"
                       accept="image/*"
+                      onChange={handleAddBrandLogoFileChange}
                       className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                     />
                     <p className="mt-1 text-xs text-gray-500">Upload a logo image file (optional)</p>
@@ -4310,11 +4329,35 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                     <input
                       id="brand-logo-url"
                       type="text"
+                      value={addBrandLogoUrlInput}
+                      onChange={(e) => {
+                        setAddBrandLogoUrlInput(e.target.value);
+                        setAddBrandLogoPreviewFailed(false);
+                      }}
                       className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
                       placeholder="https://example.com/logo.png or /logos/brand.png"
                     />
                     <p className="mt-1 text-xs text-gray-500">Enter a URL to an existing logo image (optional)</p>
                   </div>
+
+                  {addBrandLogoPreviewSrc && (
+                    <div data-testid="add-brand-logo-preview-section">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Preview</label>
+                      <div className="w-full rounded-lg border border-gray-200 bg-gray-50 p-3 min-h-[84px] flex items-center justify-center">
+                        {addBrandLogoPreviewFailed ? (
+                          <p className="text-xs text-gray-500">Unable to load logo preview.</p>
+                        ) : (
+                          <img
+                            src={addBrandLogoPreviewSrc}
+                            alt="Brand logo preview"
+                            className="max-h-20 w-auto object-contain"
+                            onLoad={() => setAddBrandLogoPreviewFailed(false)}
+                            onError={() => setAddBrandLogoPreviewFailed(true)}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
@@ -4327,15 +4370,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
               </button>
               <button
                 type="button"
-                  onClick={() => {
-                    setShowAddBrandModal(false);
-                    setNewBrandName('');
-                    setErrors(prev => {
-                      const newErrors = { ...prev };
-                      delete newErrors.newBrand;
-                      return newErrors;
-                    });
-                  }}
+                  onClick={resetAddBrandModalState}
                 className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
               >
                 Cancel

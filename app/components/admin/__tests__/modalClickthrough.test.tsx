@@ -91,6 +91,15 @@ const mockedApi = api as jest.Mocked<typeof api>
 
 describe('Modal clickthrough regression', () => {
   beforeEach(() => {
+    Object.defineProperty(global.URL, 'createObjectURL', {
+      writable: true,
+      value: jest.fn(() => 'blob:brand-logo-preview'),
+    })
+    Object.defineProperty(global.URL, 'revokeObjectURL', {
+      writable: true,
+      value: jest.fn(),
+    })
+
     jest.clearAllMocks()
     mockedApi.getBrands.mockResolvedValue({ data: [] } as any)
     mockedApi.getProducts.mockResolvedValue({
@@ -100,6 +109,13 @@ describe('Modal clickthrough regression', () => {
     mockedApi.createSubcategory.mockResolvedValue({ data: { id: 99, name: 'Laptops' } } as any)
     mockedApi.getAdminUsers.mockResolvedValue({ data: [] } as any)
   })
+
+  const openAddBrandModal = async (user: ReturnType<typeof userEvent.setup>) => {
+    await screen.findByText('General Information')
+    await user.click(screen.getByRole('button', { name: /select brand/i }))
+    await user.click(await screen.findByText('+ Add new brand'))
+    expect(await screen.findByText('Add New Brand')).toBeInTheDocument()
+  }
 
   it('keeps Add New Category modal open when clicking the category name input', async () => {
     const user = userEvent.setup()
@@ -188,5 +204,71 @@ describe('Modal clickthrough regression', () => {
       expect(screen.queryByText('Invalid category selected')).not.toBeInTheDocument()
     })
     expect(mockedApi.createSubcategory).toHaveBeenCalled()
+  })
+
+  it('renders logo preview when a brand logo URL is entered', async () => {
+    const user = userEvent.setup()
+    render(<EditProductModal isOpen={true} onClose={jest.fn()} />)
+
+    await openAddBrandModal(user)
+
+    const logoUrlInput = screen.getByPlaceholderText('https://example.com/logo.png or /logos/brand.png')
+    await user.type(logoUrlInput, 'https://cdn.example.com/logo.png')
+
+    const previewImage = await screen.findByAltText('Brand logo preview')
+    expect(previewImage).toHaveAttribute('src', 'https://cdn.example.com/logo.png')
+  })
+
+  it('renders logo preview when a brand logo file is selected', async () => {
+    const user = userEvent.setup()
+    const { container } = render(<EditProductModal isOpen={true} onClose={jest.fn()} />)
+
+    await openAddBrandModal(user)
+
+    const fileInput = container.querySelector('#brand-logo-file') as HTMLInputElement
+    expect(fileInput).toBeTruthy()
+
+    const logoFile = new File(['file-bytes'], 'brand.png', { type: 'image/png' })
+    fireEvent.change(fileInput, { target: { files: [logoFile] } })
+
+    expect(global.URL.createObjectURL).toHaveBeenCalledWith(logoFile)
+    const previewImage = await screen.findByAltText('Brand logo preview')
+    expect(previewImage).toHaveAttribute('src', 'blob:brand-logo-preview')
+  })
+
+  it('uses file preview source over URL when both are provided', async () => {
+    const user = userEvent.setup()
+    const { container } = render(<EditProductModal isOpen={true} onClose={jest.fn()} />)
+
+    await openAddBrandModal(user)
+
+    const logoUrlInput = screen.getByPlaceholderText('https://example.com/logo.png or /logos/brand.png')
+    await user.type(logoUrlInput, 'https://cdn.example.com/logo.png')
+
+    const fileInput = container.querySelector('#brand-logo-file') as HTMLInputElement
+    const logoFile = new File(['file-bytes'], 'brand.png', { type: 'image/png' })
+    fireEvent.change(fileInput, { target: { files: [logoFile] } })
+
+    const previewImage = await screen.findByAltText('Brand logo preview')
+    expect(previewImage).toHaveAttribute('src', 'blob:brand-logo-preview')
+  })
+
+  it('clears add-brand logo preview after closing and reopening modal', async () => {
+    const user = userEvent.setup()
+    render(<EditProductModal isOpen={true} onClose={jest.fn()} />)
+
+    await openAddBrandModal(user)
+
+    const logoUrlInput = screen.getByPlaceholderText('https://example.com/logo.png or /logos/brand.png')
+    await user.type(logoUrlInput, 'https://cdn.example.com/logo.png')
+    expect(screen.getByTestId('add-brand-logo-preview-section')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /^cancel$/i }))
+    expect(screen.queryByText('Add New Brand')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /select brand/i }))
+    await user.click(await screen.findByText('+ Add new brand'))
+    expect(await screen.findByText('Add New Brand')).toBeInTheDocument()
+    expect(screen.queryByTestId('add-brand-logo-preview-section')).not.toBeInTheDocument()
   })
 })

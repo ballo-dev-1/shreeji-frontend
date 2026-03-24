@@ -600,6 +600,16 @@ This document tracks all pending tasks and next steps required to make the ecomm
 
 ## Recent Updates
 
+### March 24, 2026 - Add Brand Logo Preview
+- ✅ Added live logo preview in `EditProductModal` Add Brand modal when an image file is selected.
+- ✅ Added live logo preview when a logo URL is provided, with file-preview precedence when both are present.
+- ✅ Added preview reset/cleanup on modal close and submit to prevent stale preview state.
+- ✅ Added regression tests for:
+  - URL-based brand logo preview rendering
+  - File-based brand logo preview rendering
+  - File preview precedence over URL preview
+  - Preview reset after modal close/reopen
+
 ### March 23, 2026 - Modal Clickthrough Fixes
 - ✅ Fixed nested admin modal clickthrough behavior that could close dialogs when interacting with modal content.
 - ✅ Updated `EditProductModal` nested CRUD dialogs (category, subcategory, brand, image) to stop propagation on modal panels and enforce foreground stacking.
@@ -783,5 +793,5 @@ This document tracks all pending tasks and next steps required to make the ecomm
 
 ---
 
-Last Updated: March 23, 2026
+Last Updated: March 24, 2026
 
