@@ -839,6 +839,32 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
   const generateSlug = (value: string) =>
     value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 
+  const sanitizeMonetaryInput = (value: string) => {
+    const cleaned = value.replace(/[^\d.]/g, '');
+    const firstDotIndex = cleaned.indexOf('.');
+    if (firstDotIndex === -1) return cleaned;
+    const integerPart = cleaned.slice(0, firstDotIndex);
+    const decimalPart = cleaned.slice(firstDotIndex + 1).replace(/\./g, '').slice(0, 2);
+    return `${integerPart}.${decimalPart}`;
+  };
+
+  const formatMonetaryInput = (value: string) => {
+    const sanitized = sanitizeMonetaryInput(value);
+    if (!sanitized) return '';
+    const [intPartRaw, decimalPart] = sanitized.split('.');
+    const intPart = intPartRaw || '0';
+    const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return decimalPart !== undefined ? `${withCommas}.${decimalPart}` : withCommas;
+  };
+
+  const formatMonetaryNumber = (value: number, minimumFractionDigits = 2, maximumFractionDigits = 2) =>
+    value.toLocaleString('en-US', { minimumFractionDigits, maximumFractionDigits });
+
+  const parseMonetaryInput = (value: string) => {
+    const numeric = parseFloat(sanitizeMonetaryInput(value));
+    return Number.isFinite(numeric) ? numeric : 0;
+  };
+
   const resetAddBrandModalState = useCallback(() => {
     if (addBrandLogoPreviewFileUrl) {
       URL.revokeObjectURL(addBrandLogoPreviewFileUrl);
@@ -988,20 +1014,20 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
         // Initialize currency fields from basePrice (stored in ZMW)
         const basePriceZMWValue = initialFormData.basePrice || 0;
         const basePriceUSDValue = basePriceZMWValue > 0 ? (basePriceZMWValue / USD_TO_ZMW_RATE).toFixed(2) : '';
-        setBasePriceZMW(basePriceZMWValue > 0 ? basePriceZMWValue.toFixed(2) : '');
-        setBasePriceUSD(basePriceUSDValue);
+        setBasePriceZMW(basePriceZMWValue > 0 ? formatMonetaryNumber(basePriceZMWValue) : '');
+        setBasePriceUSD(basePriceUSDValue ? formatMonetaryInput(basePriceUSDValue) : '');
         
         // Initialize selling price currency fields
         const parsedPriceValue = parseFloat(String(initialFormData.price || '0').replace(/[^0-9.]/g, '')) || 0;
         if (parsedPriceValue > 0) {
-          setSellingPriceZMW(parsedPriceValue.toFixed(2));
-          setSellingPriceUSD((parsedPriceValue / USD_TO_ZMW_RATE).toFixed(2));
+          setSellingPriceZMW(formatMonetaryNumber(parsedPriceValue));
+          setSellingPriceUSD(formatMonetaryNumber(parsedPriceValue / USD_TO_ZMW_RATE));
         } else {
           // Calculate from base price if price not set
           const calculatedSellingPrice = basePriceZMWValue * (1 + 16 / 100);
           if (calculatedSellingPrice > 0) {
-            setSellingPriceZMW(calculatedSellingPrice.toFixed(2));
-            setSellingPriceUSD((calculatedSellingPrice / USD_TO_ZMW_RATE).toFixed(2));
+            setSellingPriceZMW(formatMonetaryNumber(calculatedSellingPrice));
+            setSellingPriceUSD(formatMonetaryNumber(calculatedSellingPrice / USD_TO_ZMW_RATE));
           } else {
             setSellingPriceZMW('');
             setSellingPriceUSD('');
@@ -1017,10 +1043,10 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
         const productRate = (product as any).exchangeRate;
         setModalExchangeRateInput(productRate != null && Number(productRate) > 0 ? String(Number(productRate)) : USD_TO_ZMW_RATE.toFixed(2));
         if (basePriceZMWValue > 0 && (product as any).basePriceUsd != null) {
-          setBasePriceUSD(Number((product as any).basePriceUsd).toFixed(2));
+          setBasePriceUSD(formatMonetaryNumber(Number((product as any).basePriceUsd)));
         }
         if (parsedPriceValue > 0 && (product as any).sellingPriceUsd != null) {
-          setSellingPriceUSD(Number((product as any).sellingPriceUsd).toFixed(2));
+          setSellingPriceUSD(formatMonetaryNumber(Number((product as any).sellingPriceUsd)));
         }
       } else {
         // Create mode: reset form to default empty values
@@ -2480,8 +2506,8 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
         const n = parseFloat(modalExchangeRateInput);
         return n > 0 && !Number.isNaN(n) ? n : USD_TO_ZMW_RATE;
       })();
-      const basePriceUsd = parseFloat(basePriceUSD) || 0;
-      const sellingPriceUsd = parseFloat(sellingPriceUSD) || 0;
+      const basePriceUsd = parseMonetaryInput(basePriceUSD);
+      const sellingPriceUsd = parseMonetaryInput(sellingPriceUSD);
 
       if (isEditMode) {
         // Edit mode: update existing product
@@ -3174,11 +3200,12 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">$</span>
                                   <input
                                     id="field-product-base-price-usd"
-                                    type="number"
+                                    type="text"
+                                    inputMode="decimal"
                                     value={basePriceUSD}
                                     onChange={(e) => {
-                                      const usdValue = e.target.value;
-                                      setBasePriceUSD(usdValue);
+                                      const usdValue = sanitizeMonetaryInput(e.target.value);
+                                      setBasePriceUSD(formatMonetaryInput(usdValue));
                                       
                                       if (usdValue === '' || usdValue === null || usdValue === undefined) {
                                         setBasePriceZMW('');
@@ -3190,11 +3217,11 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                                         return;
                                       }
                                       
-                                      const usdNum = parseFloat(usdValue);
+                                      const usdNum = parseMonetaryInput(usdValue);
                                       if (!isNaN(usdNum) && usdNum >= 0) {
                                         // Convert USD to ZMW using modal exchange rate
                                         const zmwValue = (usdNum * effectiveRate).toFixed(2);
-                                        setBasePriceZMW(zmwValue);
+                                        setBasePriceZMW(formatMonetaryInput(zmwValue));
                                         
                                         // Update basePrice (stored in ZMW)
                                         const basePriceValue = parseFloat(zmwValue);
@@ -3205,8 +3232,8 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                                         handleInputChange('price', newSellingPrice.toFixed(2));
                                         
                                         // Update selling price currency fields
-                                        setSellingPriceZMW(newSellingPrice.toFixed(2));
-                                        setSellingPriceUSD((newSellingPrice / effectiveRate).toFixed(2));
+                                        setSellingPriceZMW(formatMonetaryNumber(newSellingPrice));
+                                        setSellingPriceUSD(formatMonetaryNumber(newSellingPrice / effectiveRate));
                                         
                                         // Auto-update discount price if discount percent exists
                                         if (formData.discountPercent) {
@@ -3230,11 +3257,12 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">K</span>
                                   <input
                                     id="field-product-base-price-zmw"
-                                    type="number"
+                                    type="text"
+                                    inputMode="decimal"
                                     value={basePriceZMW}
                                     onChange={(e) => {
-                                      const zmwValue = e.target.value;
-                                      setBasePriceZMW(zmwValue);
+                                      const zmwValue = sanitizeMonetaryInput(e.target.value);
+                                      setBasePriceZMW(formatMonetaryInput(zmwValue));
                                       
                                       if (zmwValue === '' || zmwValue === null || zmwValue === undefined) {
                                         setBasePriceUSD('');
@@ -3246,11 +3274,11 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                                         return;
                                       }
                                       
-                                      const zmwNum = parseFloat(zmwValue);
+                                      const zmwNum = parseMonetaryInput(zmwValue);
                                       if (!isNaN(zmwNum) && zmwNum >= 0) {
                                         // Convert ZMW to USD using modal exchange rate
                                         const usdValue = (zmwNum / effectiveRate).toFixed(2);
-                                        setBasePriceUSD(usdValue);
+                                        setBasePriceUSD(formatMonetaryInput(usdValue));
                                         
                                         // Update basePrice (stored in ZMW)
                                         handleInputChange('basePrice', zmwNum);
@@ -3260,8 +3288,8 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                                         handleInputChange('price', newSellingPrice.toFixed(2));
                                         
                                         // Update selling price currency fields
-                                        setSellingPriceZMW(newSellingPrice.toFixed(2));
-                                        setSellingPriceUSD((newSellingPrice / effectiveRate).toFixed(2));
+                                        setSellingPriceZMW(formatMonetaryNumber(newSellingPrice));
+                                        setSellingPriceUSD(formatMonetaryNumber(newSellingPrice / effectiveRate));
                                         
                                         // Auto-update discount price if discount percent exists
                                         if (formData.discountPercent) {
@@ -3326,7 +3354,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                                   <input
                                     id="field-product-selling-price-usd"
                                     type="text"
-                                    value={sellingPriceUSD || '0.00'}
+                                    value={formatMonetaryInput(sellingPriceUSD) || '0.00'}
                                     readOnly
                                     className="w-full pl-7 pr-3 py-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-600 focus:outline-none cursor-not-allowed"
                                     placeholder="0.00"
@@ -3342,7 +3370,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                                   <input
                                     id="field-product-selling-price-zmw"
                                     type="text"
-                                    value={sellingPriceZMW || '0.00'}
+                                    value={formatMonetaryInput(sellingPriceZMW) || '0.00'}
                                     readOnly
                                     className="w-full pl-7 pr-3 py-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-600 focus:outline-none cursor-not-allowed"
                                     placeholder="0.00"
@@ -3380,13 +3408,16 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                           {/* Discount Price (computed) */}
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">Discounted Price</label>
-                            <input
-                              type="text"
-                              value={discountPrice > 0 ? discountPrice.toFixed(2) : '0.00'}
-                              readOnly
-                              className="w-full px-3 py-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-600 focus:outline-none cursor-not-allowed"
-                              placeholder="Calculated automatically"
-                            />
+                            <div className="relative">
+                              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">K</span>
+                              <input
+                                type="text"
+                                value={discountPrice > 0 ? formatMonetaryNumber(discountPrice) : '0.00'}
+                                readOnly
+                                className="w-full pl-7 pr-3 py-2 rounded-lg border border-gray-300 bg-gray-100 text-gray-600 focus:outline-none cursor-not-allowed"
+                                placeholder="Calculated automatically"
+                              />
+                            </div>
                             <p className="mt-1 text-xs text-gray-500">Calculated from Selling Price - Discount %</p>
                           </div>
                         </div>
