@@ -600,6 +600,13 @@ This document tracks all pending tasks and next steps required to make the ecomm
 
 ## Recent Updates
 
+### March 24, 2026 - Product Preview Modal Parity
+- ✅ Updated `EditProductModal` product preview overlay to mirror product details page context more accurately:
+  - Added product-details page background styling in preview
+  - Added breadcrumb rendering in preview (`Products > Category > Subcategory > Product`)
+  - Aligned preview container and close button behavior with full-page visual framing
+- ✅ Added regression test coverage to ensure preview modal includes breadcrumb context and renders in preview mode.
+
 ### March 24, 2026 - Add Brand Logo Preview
 - ✅ Added live logo preview in `EditProductModal` Add Brand modal when an image file is selected.
 - ✅ Added live logo preview when a logo URL is provided, with file-preview precedence when both are present.

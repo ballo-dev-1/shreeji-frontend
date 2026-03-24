@@ -1,6 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const API_URL = process.env.NEXT_PUBLIC_ECOM_API_URL?.replace(/\/$/, '') || 'http://localhost:4000';
+const BG_REMOVER_ENABLED = process.env.BG_REMOVER_ENABLED === 'true';
+const BG_REMOVER_API_URL = process.env.BG_REMOVER_API_URL?.replace(/\/$/, '') || '';
+const BG_REMOVER_TIMEOUT_MS = Number(process.env.BG_REMOVER_TIMEOUT_MS || 15000);
+
+function withPngExtension(filename: string): string {
+  if (!filename.includes('.')) return `${filename}.png`;
+  return filename.replace(/\.[^.]+$/, '.png');
+}
+
+async function maybeRemoveBackground(file: File): Promise<File> {
+  if (!BG_REMOVER_ENABLED || !BG_REMOVER_API_URL || !file.type.startsWith('image/')) {
+    return file;
+  }
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), BG_REMOVER_TIMEOUT_MS);
+
+  try {
+    const removerResponse = await fetch(`${BG_REMOVER_API_URL}/remove-bg`, {
+      method: 'POST',
+      body: formData,
+      signal: controller.signal,
+    });
+
+    if (!removerResponse.ok) {
+      return file;
+    }
+
+    const contentType = removerResponse.headers.get('content-type') || 'image/png';
+    const bytes = await removerResponse.arrayBuffer();
+    const processed = new File([bytes], withPngExtension(file.name), {
+      type: contentType,
+    });
+    return processed;
+  } catch {
+    return file;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,7 +64,8 @@ export async function POST(request: NextRequest) {
 
     // Forward the file to the NestJS backend
     const backendFormData = new FormData();
-    backendFormData.append('file', file);
+    const fileToUpload = await maybeRemoveBackground(file);
+    backendFormData.append('file', fileToUpload);
 
     const response = await fetch(`${API_URL}/files/upload`, {
       method: 'POST',

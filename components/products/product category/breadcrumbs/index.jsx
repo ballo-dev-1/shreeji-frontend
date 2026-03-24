@@ -3,7 +3,7 @@ import React from "react";
 
 const Breadcrumbs = ({ breadcrumbs }) => {
   return (
-    <div className="bg-[var(--shreeji-primary)] text-xl font-medium mt-1 p-5 [text-shadow:2px_2px_4px_rgba(0,0,0,0.3)] px-10">
+    <div className="bg-[var(--shreeji-primary)] text-xl font-medium mt-1 p-5 [text-shadow:2px_2px_4px_rgba(0,0,0,0.3)] px-10 rounded-[20px]">
       <Link
         href="/products"
         className="font-medium text-white cursor-pointer"

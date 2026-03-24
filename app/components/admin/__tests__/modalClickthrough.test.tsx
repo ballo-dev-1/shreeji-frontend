@@ -69,7 +69,9 @@ jest.mock('../Layout', () => ({
 
 jest.mock('@/components/products/product details', () => ({
   __esModule: true,
-  default: () => <div data-testid="product-details" />,
+  default: ({ previewMode }: { previewMode?: boolean }) => (
+    <div data-testid="product-details" data-preview-mode={previewMode ? 'true' : 'false'} />
+  ),
 }))
 
 jest.mock('@/app/lib/admin/api', () => ({
@@ -270,5 +272,42 @@ describe('Modal clickthrough regression', () => {
     await user.click(await screen.findByText('+ Add new brand'))
     expect(await screen.findByText('Add New Brand')).toBeInTheDocument()
     expect(screen.queryByTestId('add-brand-logo-preview-section')).not.toBeInTheDocument()
+  })
+
+  it('renders preview modal with product page breadcrumb context', async () => {
+    const user = userEvent.setup()
+    render(
+      <EditProductModal
+        isOpen={true}
+        onClose={jest.fn()}
+        product={{
+          id: 1,
+          name: 'HP ProBook 430 G7',
+          slug: 'hp-probook-430-g7',
+          category: 'Computers',
+          subcategory: 'Laptops',
+          brand: 'HP',
+          price: '10956.2',
+          images: [],
+          isActive: true,
+        } as any}
+      />,
+    )
+
+    await screen.findByText('General Information')
+    const previewButtons = screen.getAllByRole('button', { name: /^preview$/i })
+    await user.click(previewButtons[previewButtons.length - 1])
+
+    expect(await screen.findByTestId('product-details')).toHaveAttribute('data-preview-mode', 'true')
+    const breadcrumbsRoot = screen.getByText('Products >').closest('div')
+    expect(breadcrumbsRoot).toBeInTheDocument()
+    expect(breadcrumbsRoot).toHaveClass('rounded-[20px]')
+    const previewMainSection = breadcrumbsRoot?.closest('section')?.parentElement as HTMLElement | null
+    expect(previewMainSection).toBeInTheDocument()
+    expect(previewMainSection).toHaveStyle({ width: '100%' })
+    expect(previewMainSection).toHaveClass('overflow-x-hidden')
+    expect(screen.getByText(/Computers/)).toBeInTheDocument()
+    expect(screen.getByText(/Laptops/)).toBeInTheDocument()
+    expect(screen.getByText(/HP ProBook 430 G7/)).toBeInTheDocument()
   })
 })

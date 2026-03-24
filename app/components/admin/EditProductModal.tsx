@@ -22,6 +22,7 @@ import { processProductImages, normalizeImageUrl } from '@/app/lib/admin/image-m
 import api from '@/app/lib/admin/api';
 import ProductDetails from '@/components/products/product details';
 import '@/components/products/product details/style.scss';
+import Breadcrumbs from '@/components/products/product category/breadcrumbs';
 import { CartProvider } from '@/app/contexts/CartContext';
 import { ClientAuthProvider } from '@/app/contexts/ClientAuthContext';
 import ProductVariantsManager from './ProductVariantsManager';
@@ -4821,24 +4822,35 @@ function ProductPreviewOverlay({
       onClick={onClose}
     >
       <div 
-        className="relative w-full max-w-7xl bg-white rounded-lg shadow-2xl max-h-[90vh] overflow-auto"
+        className="relative w-full max-w-[1300px] rounded-lg shadow-2xl max-h-[90vh] overflow-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="relative w-full max-w-7xl bg-white rounded-lg shadow-2xl max-h-[90vh] overflow-auto product-details-page">
+        <div className="relative bg-white rounded-lg overflow-hidden product-details-page">
         <button
           type="button"
           onClick={onClose}
-          className="sticky top-5 right-5 z-[80] ml-auto flex rounded-full bg-white/90 p-2 text-gray-600 shadow-lg hover:bg-white transition-colors mr-5 mt-5"
+          className="absolute top-4 right-4 z-[80] flex rounded-full bg-white/90 p-2 text-gray-600 shadow-lg hover:bg-white transition-colors"
         >
           <XMarkIcon className="h-5 w-5" />
         </button>
-        <div className="bg-transparent">
+        <section
+          style={{
+            backgroundImage: 'url(/backgrounds/product-details-bg.png)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            width: '100%',
+          }}
+          className="products-main-section product-details-page relative z-[1] h-fit min-h-screen gap-5 pl-1 pr-1 text-white md:pr-8 pb-[2rem] overflow-x-hidden"
+        >
+          <section className="main-grid relative flex flex-[3] flex-col gap-5 overflow-visible">
+            <Breadcrumbs breadcrumbs={breadcrumbs.filter(Boolean)} />
+          </section>
           <ClientAuthProvider>
             <CartProvider>
               <ProductDetails product={transformedProduct} previewMode={true} />
             </CartProvider>
           </ClientAuthProvider>
-        </div>
+        </section>
         </div>
       </div>
     </div>
