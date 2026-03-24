@@ -4840,16 +4840,16 @@ function ProductPreviewOverlay({
             backgroundPosition: 'center',
             width: '100%',
           }}
-          className="products-main-section product-details-page relative z-[1] h-fit min-h-screen gap-5 pl-1 pr-1 text-white md:pr-8 pb-[2rem] overflow-x-hidden"
+          className="products-main-section product-details-page relative z-[1] h-fit min-h-screen gap-5 pl-1 pr-1 text-white pb-[2rem] overflow-x-hidden"
         >
-          <section className="main-grid relative flex flex-[3] flex-col gap-5 overflow-visible">
+          <section className="main-grid relative flex flex-[3] flex-col gap-5 overflow-visible w-auto">
             <Breadcrumbs breadcrumbs={breadcrumbs.filter(Boolean)} />
+            <ClientAuthProvider>
+              <CartProvider>
+                <ProductDetails product={transformedProduct} previewMode={true} />
+              </CartProvider>
+            </ClientAuthProvider>
           </section>
-          <ClientAuthProvider>
-            <CartProvider>
-              <ProductDetails product={transformedProduct} previewMode={true} />
-            </CartProvider>
-          </ClientAuthProvider>
         </section>
         </div>
       </div>
