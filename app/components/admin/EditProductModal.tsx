@@ -1679,10 +1679,15 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
     }));
   };
 
-  const MAX_BG_REMOVAL_UPLOAD_BYTES = 3_800_000;
+  const MAX_BG_REMOVAL_SOURCE_BYTES = 2_000_000;
+  const MAX_BG_REMOVAL_RESULT_BYTES = 850_000;
 
-  const shrinkImageForBgRemoval = async (blob: Blob): Promise<Blob> => {
-    if (blob.size <= MAX_BG_REMOVAL_UPLOAD_BYTES || typeof window === 'undefined') {
+  const shrinkImageToMaxBytes = async (
+    blob: Blob,
+    maxBytes: number,
+    preferAlpha = false,
+  ): Promise<Blob> => {
+    if (blob.size <= maxBytes || typeof window === 'undefined') {
       return blob;
     }
 
@@ -1697,7 +1702,12 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
     let width = imageBitmap.width;
     let height = imageBitmap.height;
     let quality = 0.88;
-    let outputMime = blob.type === 'image/png' ? 'image/jpeg' : (blob.type || 'image/jpeg');
+    let outputMime =
+      preferAlpha && (blob.type === 'image/png' || blob.type === 'image/webp')
+        ? 'image/webp'
+        : blob.type === 'image/png'
+          ? 'image/jpeg'
+          : (blob.type || 'image/jpeg');
     let bestBlob = blob;
 
     try {
@@ -1713,7 +1723,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
 
         if (!nextBlob) break;
         bestBlob = nextBlob;
-        if (bestBlob.size <= MAX_BG_REMOVAL_UPLOAD_BYTES) {
+        if (bestBlob.size <= maxBytes) {
           break;
         }
 
@@ -1747,7 +1757,48 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
       }
 
       const blob = await response.blob();
-      const processedBlob = await shrinkImageForBgRemoval(blob);
+      const sourceBlob = await shrinkImageToMaxBytes(
+        blob,
+        MAX_BG_REMOVAL_SOURCE_BYTES,
+      );
+      const sourceExt =
+        sourceBlob.type === 'image/png'
+          ? 'png'
+          : sourceBlob.type === 'image/webp'
+            ? 'webp'
+            : 'jpg';
+      const sourceFile = new File([sourceBlob], `product-image-${Date.now()}.${sourceExt}`, {
+        type: sourceBlob.type || 'image/jpeg',
+      });
+      const removeBgPayload = new FormData();
+      removeBgPayload.append('file', sourceFile);
+      const headers: Record<string, string> = {};
+      const token = typeof window !== 'undefined' ? localStorage.getItem('admin_jwt') : null;
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      const removeBgResponse = await fetch('/api/remove-bg', {
+        method: 'POST',
+        headers,
+        body: removeBgPayload,
+      });
+      if (!removeBgResponse.ok) {
+        let message = 'Failed to remove background';
+        try {
+          const err = await removeBgResponse.json();
+          message = err?.error || err?.message || message;
+        } catch {
+          // Ignore parse error and keep fallback message.
+        }
+        throw new Error(message);
+      }
+
+      const removedBgBlob = await removeBgResponse.blob();
+      const processedBlob = await shrinkImageToMaxBytes(
+        removedBgBlob,
+        MAX_BG_REMOVAL_RESULT_BYTES,
+        true,
+      );
       const ext =
         processedBlob.type === 'image/png'
           ? 'png'
@@ -1755,18 +1806,13 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
             ? 'webp'
             : 'jpg';
       const file = new File([processedBlob], `product-image-${Date.now()}.${ext}`, {
-        type: processedBlob.type || 'image/png',
+        type: processedBlob.type || 'image/webp',
       });
 
       const formDataPayload = new FormData();
       formDataPayload.append('file', file);
-      const headers: Record<string, string> = {};
-      const token = typeof window !== 'undefined' ? localStorage.getItem('admin_jwt') : null;
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
 
-      const uploadResponse = await fetch('/api/upload?removeBackground=1', {
+      const uploadResponse = await fetch('/api/upload', {
         method: 'POST',
         headers,
         body: formDataPayload,
