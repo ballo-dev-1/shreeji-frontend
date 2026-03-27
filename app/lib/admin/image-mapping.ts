@@ -66,8 +66,24 @@ export function normalizeImageUrl(url: string): string {
   if (!url || typeof url !== 'string') return url;
   const u = url.trim();
 
-  // Already our backend proxy URL
-  if (u.includes('/files/serve?')) return u;
+  // File proxy endpoint from backend: avoid mixed-content on HTTPS frontends
+  if (u.includes('/files/serve')) {
+    try {
+      if (u.startsWith('/files/serve')) {
+        return `/api/backend${u}`;
+      }
+      if (u.startsWith('http://') || u.startsWith('https://')) {
+        const parsed = new URL(u);
+        if (parsed.pathname === '/files/serve') {
+          // Route through Next.js backend proxy so browser never requests plain HTTP directly.
+          return `/api/backend${parsed.pathname}${parsed.search}`;
+        }
+      }
+    } catch {
+      // Keep original URL if parsing fails.
+    }
+    return u;
+  }
 
   // Legacy backend MinIO URL (https or http) with :9000 -> backend /files/serve
   if (u.includes(':9000') && BACKEND_BASE) {

@@ -2327,7 +2327,10 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
   };
 
   // Get the main image URL for display
-  const mainImageUrl = formData.images[mainImageIndex]?.url || (formData.images.length > 0 ? formData.images[0]?.url : null);
+  const rawMainImageUrl =
+    formData.images[mainImageIndex]?.url ||
+    (formData.images.length > 0 ? formData.images[0]?.url : null);
+  const mainImageUrl = rawMainImageUrl ? normalizeImageUrl(rawMainImageUrl) : null;
   const displayImages = formData.images; // Show all thumbnails
 
   const validateForm = (): { isValid: boolean; firstErrorField: string | null; errorMessage: string } => {
