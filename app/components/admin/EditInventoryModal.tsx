@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { XMarkIcon, ExclamationTriangleIcon, PlusIcon, MinusIcon, PhotoIcon } from '@heroicons/react/24/outline';
 import api from '@/app/lib/admin/api';
+import { normalizeImageUrl } from '@/app/lib/admin/image-mapping';
 import toast from 'react-hot-toast';
 
 interface Product {
@@ -295,7 +296,10 @@ export default function EditInventoryModal({
   };
 
   // Get the main image URL and display images
-  const mainImageUrl = product?.images?.[mainImageIndex]?.url || (product?.images && product.images.length > 0 ? product.images[0]?.url : null);
+  const rawMainImageUrl =
+    product?.images?.[mainImageIndex]?.url ||
+    (product?.images && product.images.length > 0 ? product.images[0]?.url : null);
+  const mainImageUrl = rawMainImageUrl ? normalizeImageUrl(rawMainImageUrl) : null;
   const displayImages = product?.images?.slice(0, 4) || []; // Show max 4 thumbnails
 
   if (!isOpen || !product) return null;
@@ -374,7 +378,7 @@ export default function EditInventoryModal({
                   >
                     {image.url ? (
                       <img
-                        src={image.url}
+                        src={normalizeImageUrl(image.url)}
                         alt={image.alt || `Thumbnail ${index + 1}`}
                         className="w-full h-full object-contain"
                         onError={(e) => {
