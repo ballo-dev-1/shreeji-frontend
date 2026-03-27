@@ -17,7 +17,7 @@ import {
   EyeIcon,
   EyeSlashIcon
 } from '@heroicons/react/24/outline';
-import { processProductImages } from '@/app/lib/admin/image-mapping';
+import { processProductImages, normalizeImageUrl } from '@/app/lib/admin/image-mapping';
 import api from '@/app/lib/admin/api';
 import ProductDetails from '@/components/products/product details';
 import '@/components/products/product details/style.scss';
