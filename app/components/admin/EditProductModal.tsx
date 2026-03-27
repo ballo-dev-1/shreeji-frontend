@@ -1482,6 +1482,131 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
     }));
   };
 
+  const MAX_BG_REMOVAL_UPLOAD_BYTES = 3_800_000;
+
+  const shrinkImageForBgRemoval = async (blob: Blob): Promise<Blob> => {
+    if (blob.size <= MAX_BG_REMOVAL_UPLOAD_BYTES || typeof window === 'undefined') {
+      return blob;
+    }
+
+    const imageBitmap = await createImageBitmap(blob);
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (!context) {
+      imageBitmap.close();
+      return blob;
+    }
+
+    let width = imageBitmap.width;
+    let height = imageBitmap.height;
+    let quality = 0.88;
+    let outputMime = blob.type === 'image/png' ? 'image/jpeg' : (blob.type || 'image/jpeg');
+    let bestBlob = blob;
+
+    try {
+      for (let attempt = 0; attempt < 10; attempt += 1) {
+        canvas.width = Math.max(320, Math.round(width));
+        canvas.height = Math.max(320, Math.round(height));
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(imageBitmap, 0, 0, canvas.width, canvas.height);
+
+        const nextBlob = await new Promise<Blob | null>((resolve) =>
+          canvas.toBlob(resolve, outputMime, quality),
+        );
+
+        if (!nextBlob) break;
+        bestBlob = nextBlob;
+        if (bestBlob.size <= MAX_BG_REMOVAL_UPLOAD_BYTES) {
+          break;
+        }
+
+        if (quality > 0.55) {
+          quality -= 0.1;
+        } else {
+          width *= 0.85;
+          height *= 0.85;
+        }
+      }
+    } finally {
+      imageBitmap.close();
+    }
+
+    return bestBlob;
+  };
+
+  const removeImageBackground = async (index: number) => {
+    const target = formData.images[index];
+    if (!target?.url) {
+      toast.error('No image found to process');
+      return;
+    }
+
+    try {
+      setRemovingBgImageIndex(index);
+      const sourceUrl = normalizeImageUrl(target.url);
+      const response = await fetch(sourceUrl);
+      if (!response.ok) {
+        throw new Error('Failed to fetch selected image');
+      }
+
+      const blob = await response.blob();
+      const processedBlob = await shrinkImageForBgRemoval(blob);
+      const ext =
+        processedBlob.type === 'image/png'
+          ? 'png'
+          : processedBlob.type === 'image/webp'
+            ? 'webp'
+            : 'jpg';
+      const file = new File([processedBlob], `product-image-${Date.now()}.${ext}`, {
+        type: processedBlob.type || 'image/png',
+      });
+
+      const formDataPayload = new FormData();
+      formDataPayload.append('file', file);
+      const headers: Record<string, string> = {};
+      const token = typeof window !== 'undefined' ? localStorage.getItem('admin_jwt') : null;
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const uploadResponse = await fetch('/api/upload?removeBackground=1', {
+        method: 'POST',
+        headers,
+        body: formDataPayload,
+      });
+      if (!uploadResponse.ok) {
+        let message = 'Failed to remove background';
+        try {
+          const err = await uploadResponse.json();
+          message = err?.error || err?.message || message;
+        } catch {
+          // Ignore parse error and keep fallback message.
+        }
+        throw new Error(message);
+      }
+
+      const uploadResult = await uploadResponse.json();
+      setFormData((prev) => {
+        const updatedImages = [...prev.images];
+        if (!updatedImages[index]) {
+          return prev;
+        }
+        updatedImages[index] = {
+          ...updatedImages[index],
+          url: uploadResult.url,
+        };
+        return {
+          ...prev,
+          images: updatedImages,
+        };
+      });
+      toast.success('Background removed');
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to remove background');
+    } finally {
+      setRemovingBgImageIndex(null);
+    }
+  };
   const setMainImage = (index: number) => {
     setMainImageIndex(index);
     const updatedImages = formData.images.map((img, i) => ({
