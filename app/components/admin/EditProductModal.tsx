@@ -1545,6 +1545,34 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
     return bestBlob;
   };
 
+  const hasMeaningfulTransparency = async (blob: Blob): Promise<boolean> => {
+    if (typeof window === 'undefined') return true;
+    if (!(blob.type === 'image/png' || blob.type === 'image/webp')) return false;
+
+    const imageBitmap = await createImageBitmap(blob);
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (!context) {
+      imageBitmap.close();
+      return false;
+    }
+
+    canvas.width = imageBitmap.width;
+    canvas.height = imageBitmap.height;
+    context.drawImage(imageBitmap, 0, 0, canvas.width, canvas.height);
+    imageBitmap.close();
+
+    const { data } = context.getImageData(0, 0, canvas.width, canvas.height);
+    let transparentPixels = 0;
+    const totalPixels = data.length / 4;
+    for (let i = 3; i < data.length; i += 4) {
+      if (data[i] < 240) transparentPixels += 1;
+    }
+
+    // Require at least 0.5% transparency to treat as a successful background removal.
+    return totalPixels > 0 && transparentPixels / totalPixels >= 0.005;
+  };
+
   const removeImageBackground = async (index: number) => {
     const target = formData.images[index];
     if (!target?.url) {
@@ -1603,6 +1631,12 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
         MAX_BG_REMOVAL_RESULT_BYTES,
         true,
       );
+      const hasTransparency = await hasMeaningfulTransparency(processedBlob);
+      if (!hasTransparency) {
+        throw new Error(
+          'Background remover could not isolate this image. Try a clearer product photo or manual background removal.',
+        );
+      }
       const ext =
         processedBlob.type === 'image/png'
           ? 'png'
