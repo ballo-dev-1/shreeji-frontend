@@ -91,6 +91,8 @@ async function proxyRequest(
       method,
       headers,
       body,
+      // Preserve 3xx responses so browser keeps OAuth redirect chain.
+      redirect: 'manual',
     });
     
     // Get response body
