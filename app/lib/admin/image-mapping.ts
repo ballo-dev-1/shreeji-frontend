@@ -39,6 +39,85 @@ export function getAvailableProducts(): string[] {
   return Object.keys(imageMapping.mappings);
 }
 
+const BACKEND_BASE =
+  (typeof process !== 'undefined' && process.env?.NEXT_PUBLIC_ECOM_API_URL?.replace?.(/\/$/, '')) ||
+  '';
+
+// Extract MinIO object name from path part of legacy URLs
+function extractObjectName(pathPart: string): string {
+  let s = pathPart.replace(/^\//, '');
+  if (s.includes('api/images/shreeji-uploads/uploads/')) {
+    return 'uploads/' + s.split('api/images/shreeji-uploads/uploads/')[1];
+  }
+  if (s.startsWith('shreeji-uploads/uploads/')) {
+    return 'uploads/' + s.slice('shreeji-uploads/uploads/'.length);
+  }
+  if (s.startsWith('shreeji-uploads/')) {
+    return s.slice('shreeji-uploads/'.length);
+  }
+  return s;
+}
+
+/**
+ * Normalize image URLs: rewrite legacy MinIO :9000 URLs to backend proxy,
+ * and old IP:9000 to /api/images proxy. Use for any img src from the API.
+ */
+export function normalizeImageUrl(url: string): string {
+  if (!url || typeof url !== 'string') return url;
+  const u = url.trim();
+
+  // File proxy endpoint from backend: avoid mixed-content on HTTPS frontends
+  if (u.includes('/files/serve')) {
+    try {
+      if (u.startsWith('/files/serve')) {
+        return `/api/backend${u}`;
+      }
+      if (u.startsWith('http://') || u.startsWith('https://')) {
+        const parsed = new URL(u);
+        if (parsed.pathname === '/files/serve') {
+          // Route through Next.js backend proxy so browser never requests plain HTTP directly.
+          return `/api/backend${parsed.pathname}${parsed.search}`;
+        }
+      }
+    } catch {
+      // Keep original URL if parsing fails.
+    }
+    return u;
+  }
+
+  // Legacy backend MinIO URL (https or http) with :9000 -> backend /files/serve
+  if (u.includes(':9000') && BACKEND_BASE) {
+    try {
+      const baseHost = new URL(BACKEND_BASE).hostname;
+      if (u.includes(baseHost + ':9000')) {
+        const pathPart = u.replace(/^https?:\/\/[^/]+/, '');
+        const objectName = extractObjectName(pathPart);
+        if (objectName) {
+          return `${BACKEND_BASE}/files/serve?path=${encodeURIComponent(objectName)}`;
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // Old MinIO IP:9000 -> Next.js /api/images proxy
+  if (u.startsWith('http://164.92.249.220:9000/')) {
+    return `/api/images/${u.replace('http://164.92.249.220:9000/', '')}`;
+  }
+
+  // Convert HTTP to HTTPS for mixed content
+  if (u.startsWith('http://')) {
+    return u.replace('http://', 'https://');
+  }
+  return u;
+}
+
+// Convert HTTP URLs to HTTPS for mixed content security
+// For servers that don't support HTTPS, proxy through Next.js
+function ensureHttps(url: string): string {
+  return normalizeImageUrl(url);
+}
 // Enhanced image processing that prioritizes uploaded images from backend
 export function processProductImages(product: any): Array<{ url: string; alt: string; isMain?: boolean }> {
   const productName = product.name;
