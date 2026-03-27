@@ -296,7 +296,10 @@ export default function EditInventoryModal({
   };
 
   // Get the main image URL and display images
-  const mainImageUrl = product?.images?.[mainImageIndex]?.url || (product?.images && product.images.length > 0 ? product.images[0]?.url : null);
+  const rawMainImageUrl =
+    product?.images?.[mainImageIndex]?.url ||
+    (product?.images && product.images.length > 0 ? product.images[0]?.url : null);
+  const mainImageUrl = rawMainImageUrl ? normalizeImageUrl(rawMainImageUrl) : null;
   const displayImages = product?.images?.slice(0, 4) || []; // Show max 4 thumbnails
 
   if (!isOpen || !product) return null;
