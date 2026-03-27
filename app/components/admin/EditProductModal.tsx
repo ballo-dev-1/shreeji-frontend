@@ -1679,6 +1679,58 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
     }));
   };
 
+  const MAX_BG_REMOVAL_UPLOAD_BYTES = 3_800_000;
+
+  const shrinkImageForBgRemoval = async (blob: Blob): Promise<Blob> => {
+    if (blob.size <= MAX_BG_REMOVAL_UPLOAD_BYTES || typeof window === 'undefined') {
+      return blob;
+    }
+
+    const imageBitmap = await createImageBitmap(blob);
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (!context) {
+      imageBitmap.close();
+      return blob;
+    }
+
+    let width = imageBitmap.width;
+    let height = imageBitmap.height;
+    let quality = 0.88;
+    let outputMime = blob.type === 'image/png' ? 'image/jpeg' : (blob.type || 'image/jpeg');
+    let bestBlob = blob;
+
+    try {
+      for (let attempt = 0; attempt < 10; attempt += 1) {
+        canvas.width = Math.max(320, Math.round(width));
+        canvas.height = Math.max(320, Math.round(height));
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(imageBitmap, 0, 0, canvas.width, canvas.height);
+
+        const nextBlob = await new Promise<Blob | null>((resolve) =>
+          canvas.toBlob(resolve, outputMime, quality),
+        );
+
+        if (!nextBlob) break;
+        bestBlob = nextBlob;
+        if (bestBlob.size <= MAX_BG_REMOVAL_UPLOAD_BYTES) {
+          break;
+        }
+
+        if (quality > 0.55) {
+          quality -= 0.1;
+        } else {
+          width *= 0.85;
+          height *= 0.85;
+        }
+      }
+    } finally {
+      imageBitmap.close();
+    }
+
+    return bestBlob;
+  };
+
   const removeImageBackground = async (index: number) => {
     const target = formData.images[index];
     if (!target?.url) {
@@ -1695,14 +1747,15 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
       }
 
       const blob = await response.blob();
+      const processedBlob = await shrinkImageForBgRemoval(blob);
       const ext =
-        blob.type === 'image/png'
+        processedBlob.type === 'image/png'
           ? 'png'
-          : blob.type === 'image/webp'
+          : processedBlob.type === 'image/webp'
             ? 'webp'
             : 'jpg';
-      const file = new File([blob], `product-image-${Date.now()}.${ext}`, {
-        type: blob.type || 'image/png',
+      const file = new File([processedBlob], `product-image-${Date.now()}.${ext}`, {
+        type: processedBlob.type || 'image/png',
       });
 
       const formDataPayload = new FormData();
