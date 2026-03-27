@@ -750,6 +750,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
   const [showAddBrandModal, setShowAddBrandModal] = useState(false);
   const [showHiddenAttributes, setShowHiddenAttributes] = useState(false);
   const [showEditBrandModal, setShowEditBrandModal] = useState(false);
+  const [removingBgImageIndex, setRemovingBgImageIndex] = useState<number | null>(null);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [newSubcategoryName, setNewSubcategoryName] = useState('');
