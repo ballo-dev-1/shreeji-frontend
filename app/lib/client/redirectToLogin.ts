@@ -15,10 +15,18 @@ const LOGIN_PATH = '/portal/login';
 export function isSafeReturnUrl(url: string): boolean {
   if (!url || typeof url !== 'string') return false;
   const trimmed = url.trim();
+  const blockedInternalAuthPaths = [
+    '/api/backend/auth/google',
+    '/api/backend/auth/google/callback',
+  ];
+  const isBlockedPath = blockedInternalAuthPaths.some(
+    (path) => trimmed === path || trimmed.startsWith(`${path}?`),
+  );
   return (
     trimmed.startsWith('/') &&
     !trimmed.startsWith('//') &&
-    !/^https?:\/\//i.test(trimmed)
+    !/^https?:\/\//i.test(trimmed) &&
+    !isBlockedPath
   );
 }
 
