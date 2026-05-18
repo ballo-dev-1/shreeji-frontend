@@ -17,7 +17,8 @@ import {
   MagnifyingGlassIcon,
   EyeIcon,
   EyeSlashIcon,
-  SparklesIcon
+  SparklesIcon,
+  Bars3Icon
 } from '@heroicons/react/24/outline';
 import { processProductImages, normalizeImageUrl } from '@/app/lib/admin/image-mapping';
 import api from '@/app/lib/admin/api';
@@ -778,7 +779,22 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
   const [removingBgImageIndex, setRemovingBgImageIndex] = useState<number | null>(null);
   const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number; fileName: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
+  // Spec drag-to-sort state
+  const [specOrder, setSpecOrder] = useState<string[]>([]);
+  const dragSpecIndex = useRef<number | null>(null);
+  const dragOverSpecIndex = useRef<number | null>(null);
+
+  // Keep specOrder in sync when specs are added/removed externally
+  useEffect(() => {
+    const keys = Object.keys(formData.specs || {});
+    setSpecOrder(prev => {
+      const prevFiltered = prev.filter(k => keys.includes(k));
+      const newKeys = keys.filter(k => !prev.includes(k));
+      return [...prevFiltered, ...newKeys];
+    });
+  }, [JSON.stringify(Object.keys(formData.specs || {}))]);
+
   // Track last toast to prevent duplicates
   const lastToastRef = useRef<{ id: string; message: string } | null>(null);
   
@@ -3742,33 +3758,60 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                     <h4 className="text-lg font-bold text-gray-900 mb-6">Specifications</h4>
                     
                     <div className="space-y-2">
-                      {Object.entries(formData.specs || {}).map(([key, value], index) => {
-                        // Use index as stable key to prevent remounting when key changes
+                      {specOrder.filter(k => k in (formData.specs || {})).map((key, index) => {
+                        const value = (formData.specs || {})[key];
                         return (
-                          <SpecInput
+                          <div
                             key={`spec-${index}-${key}`}
-                            specKey={key}
-                            specValue={value}
-                            availableSpecNames={availableSpecNames}
-                            onKeyChange={(oldKey, newKey) => {
-                              const newSpecs = { ...formData.specs };
-                              if (newKey && newKey.trim() !== '') {
-                                delete newSpecs[oldKey];
-                                newSpecs[newKey.trim()] = value;
-                              } else {
-                                delete newSpecs[oldKey];
-                              }
-                              setFormData(prev => ({ ...prev, specs: newSpecs }));
+                            className="flex items-center gap-2 group"
+                            draggable
+                            onDragStart={() => { dragSpecIndex.current = index; }}
+                            onDragEnter={() => { dragOverSpecIndex.current = index; }}
+                            onDragOver={(e) => e.preventDefault()}
+                            onDragEnd={() => {
+                              const from = dragSpecIndex.current;
+                              const to = dragOverSpecIndex.current;
+                              if (from === null || to === null || from === to) return;
+                              const newOrder = [...specOrder.filter(k => k in (formData.specs || {}))];
+                              const [moved] = newOrder.splice(from, 1);
+                              newOrder.splice(to, 0, moved);
+                              setSpecOrder(newOrder);
+                              const reordered: Record<string, any> = {};
+                              newOrder.forEach(k => { reordered[k] = (formData.specs || {})[k]; });
+                              setFormData(prev => ({ ...prev, specs: reordered }));
+                              dragSpecIndex.current = null;
+                              dragOverSpecIndex.current = null;
                             }}
-                            onValueChange={(specKey, newValue) => {
-                              handleSpecsChange(specKey, newValue);
-                            }}
-                            onRemove={(specKey) => {
-                              const newSpecs = { ...formData.specs };
-                              delete newSpecs[specKey];
-                              setFormData(prev => ({ ...prev, specs: newSpecs }));
-                            }}
-                          />
+                          >
+                            <Bars3Icon className="h-5 w-5 text-gray-300 group-hover:text-gray-500 cursor-grab active:cursor-grabbing flex-shrink-0" />
+                            <div className="flex-1">
+                              <SpecInput
+                                specKey={key}
+                                specValue={value}
+                                availableSpecNames={availableSpecNames}
+                                onKeyChange={(oldKey, newKey) => {
+                                  const newSpecs = { ...formData.specs };
+                                  if (newKey && newKey.trim() !== '') {
+                                    delete newSpecs[oldKey];
+                                    newSpecs[newKey.trim()] = value;
+                                    setSpecOrder(prev => prev.map(k => k === oldKey ? newKey.trim() : k));
+                                  } else {
+                                    delete newSpecs[oldKey];
+                                  }
+                                  setFormData(prev => ({ ...prev, specs: newSpecs }));
+                                }}
+                                onValueChange={(specKey, newValue) => {
+                                  handleSpecsChange(specKey, newValue);
+                                }}
+                                onRemove={(specKey) => {
+                                  const newSpecs = { ...formData.specs };
+                                  delete newSpecs[specKey];
+                                  setSpecOrder(prev => prev.filter(k => k !== specKey));
+                                  setFormData(prev => ({ ...prev, specs: newSpecs }));
+                                }}
+                              />
+                            </div>
+                          </div>
                         );
                       })}
                       <button
