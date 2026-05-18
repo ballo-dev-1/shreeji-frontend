@@ -67,8 +67,8 @@ const OurSolutions = () => {
           />
 
           <div className="middle-text-overlay absolute z-[1]" />
-          <Triangle color="#807045" fill="#807045" strokeWidth={3} className="absolute z-[0] rounded-3xl w-[40%] h-[40%] rotate-[140deg] left-[-2%] top-[-5%]" />
-          <Triangle color="#807045" fill="#807045" strokeWidth={3} className="absolute z-[0] rounded-3xl w-[40%] h-[40%] rotate-[230deg] right-[-2%] bottom-[-5%]" />
+          <Triangle color="var(--shreeji-primary)" fill="var(--shreeji-primary)" strokeWidth={3} className="absolute z-[0] rounded-3xl w-[40%] h-[40%] rotate-[140deg] left-[-2%] top-[-5%]" />
+          <Triangle color="var(--shreeji-primary)" fill="var(--shreeji-primary)" strokeWidth={3} className="absolute z-[0] rounded-3xl w-[40%] h-[40%] rotate-[230deg] right-[-2%] bottom-[-5%]" />
         </div>
 
         <div className="flex flex-col justify-between flex-1 md:text-right gap-5 md:gap-16 relative z-[2]">

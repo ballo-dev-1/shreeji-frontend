@@ -48,39 +48,39 @@ export default function CollaborationsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="text-3xl font-semibold text-center text-[#807045]"
+          className="text-3xl font-semibold text-center text-[var(--shreeji-primary)]"
         >
           Why Collaborate With Us?
         </motion.h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
           {[
             {
-              icon: <Handshake size={50} className="text-[#807045]" />,
+              icon: <Handshake size={50} className="text-[var(--shreeji-primary)]" />,
               title: "Strategic Partnerships",
               description: "Align with an industry leader to drive innovation and market expansion."
             },
             {
-              icon: <Users size={50} className="text-[#807045]" />,
+              icon: <Users size={50} className="text-[var(--shreeji-primary)]" />,
               title: "Industry Expertise",
               description: "Leverage our decades of experience in ICT, business solutions, and enterprise services."
             },
             {
-              icon: <Globe size={50} className="text-[#807045]" />,
+              icon: <Globe size={50} className="text-[var(--shreeji-primary)]" />,
               title: "Global Reach",
               description: "Expand your presence with our extensive network and international collaborations."
             },
             {
-              icon: <Building size={50} className="text-[#807045]" />,
+              icon: <Building size={50} className="text-[var(--shreeji-primary)]" />,
               title: "Enterprise-Level Solutions",
               description: "Partner with us for large-scale, customized solutions tailored to your needs."
             },
             {
-              icon: <Network size={50} className="text-[#807045]" />,
+              icon: <Network size={50} className="text-[var(--shreeji-primary)]" />,
               title: "Technology Integration",
               description: "Integrate cutting-edge technologies to enhance efficiency and productivity."
             },
             {
-              icon: <Star size={50} className="text-[#807045]" />,
+              icon: <Star size={50} className="text-[var(--shreeji-primary)]" />,
               title: "Proven Success",
               description: "Work with a trusted partner known for delivering high-impact results."
             }
@@ -94,7 +94,7 @@ export default function CollaborationsPage() {
             >
               <div className="flex items-center space-x-4">
                 {benefit.icon}
-                <h3 className="text-2xl font-semibold text-[#807045]">{benefit.title}</h3>
+                <h3 className="text-2xl font-semibold text-[var(--shreeji-primary)]">{benefit.title}</h3>
               </div>
               <p className="mt-4 text-gray-700">{benefit.description}</p>
             </motion.div>
@@ -103,7 +103,7 @@ export default function CollaborationsPage() {
       </div>
 
       {/* Collaboration Models */}
-      <div className="bg-[#807045] text-white py-16 px-8">
+      <div className="bg-[var(--shreeji-primary)] text-white py-16 px-8">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -124,7 +124,7 @@ export default function CollaborationsPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 + index * 0.2 }}
-              className="bg-white text-[#807045] p-6 rounded-xl shadow-lg"
+              className="bg-white text-[var(--shreeji-primary)] p-6 rounded-xl shadow-lg"
             >
               <h3 className="text-xl font-semibold">{collab.step}</h3>
               <p className="mt-2 text-gray-700">{collab.description}</p>
@@ -139,7 +139,7 @@ export default function CollaborationsPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="text-3xl font-semibold text-center text-[#807045]"
+          className="text-3xl font-semibold text-center text-[var(--shreeji-primary)]"
         >
           Success Stories
         </motion.h2>
@@ -157,7 +157,7 @@ export default function CollaborationsPage() {
               transition={{ delay: 0.3 + index * 0.2 }}
               className="bg-[#F8F6F0] p-8 rounded-xl shadow-lg"
             >
-              <h3 className="text-xl font-semibold text-[#807045]">{story.title}</h3>
+              <h3 className="text-xl font-semibold text-[var(--shreeji-primary)]">{story.title}</h3>
               <p className="mt-4 text-gray-700">{story.description}</p>
             </motion.div>
           ))}
@@ -165,7 +165,7 @@ export default function CollaborationsPage() {
       </div>
 
       {/* Partners & Distributors Section */}
-      <div className="bg-[#F8F6F0] text-[#807045] py-16 px-8">
+      <div className="bg-[#F8F6F0] text-[var(--shreeji-primary)] py-16 px-8">
         <motion.h2 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-3xl font-semibold text-center">
           Our Trusted Partners & Distributors
         </motion.h2>
@@ -179,7 +179,7 @@ export default function CollaborationsPage() {
       </div>
 
       {/* Call to Action */}
-      <div className="text-center py-16 bg-[#807045] text-white">
+      <div className="text-center py-16 bg-[var(--shreeji-primary)] text-white">
         <motion.h2 
           initial={{ opacity: 0, y: -50 }} 
           animate={{ opacity: 1, y: 0 }} 
@@ -201,7 +201,7 @@ export default function CollaborationsPage() {
           initial={{ opacity: 0 }} 
           animate={{ opacity: 1 }} 
           transition={{ delay: 0.5 }} 
-          className="mt-6 px-8 py-3 bg-white text-[#807045] font-semibold rounded-lg hover:bg-[#3f3822] hover:shadow-2xl hover:text-white transition-colors"
+          className="mt-6 px-8 py-3 bg-white text-[var(--shreeji-primary)] font-semibold rounded-lg hover:bg-[#3f3822] hover:shadow-2xl hover:text-white transition-colors"
         >
           Get in Touch
         </motion.button>

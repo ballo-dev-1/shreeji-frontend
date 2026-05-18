@@ -334,29 +334,6 @@ export default function CheckoutPage() {
   }
 
   const handlePayment = async () => {
-    // Log current cart entity/items when pay/order now button is clicked
-    console.log('=== PAY/ORDER NOW BUTTON CLICKED - CART DATA ===')
-    console.log('Full Cart Entity:', JSON.stringify(cart, null, 2))
-    console.log('Cart Items:', JSON.stringify(cart?.items || [], null, 2))
-    console.log('Cart Summary:', {
-      cartId: cart?.id,
-      itemCount: cart?.items?.length || 0,
-      subtotal: cart?.subtotal,
-      taxTotal: cart?.taxTotal,
-      total: cart?.total,
-      currency: cart?.currency,
-    })
-    console.log('Cart Items Details:', cart?.items?.map(item => ({
-      id: item.id,
-      productId: item.productId,
-      quantity: item.quantity,
-      unitPrice: item.unitPrice,
-      subtotal: item.subtotal,
-      taxRate: item.taxRate,
-      productSnapshot: item.productSnapshot,
-    })))
-    console.log('================================================')
-
     setFormError(null)
     setSuccess(null)
 
@@ -502,13 +479,7 @@ export default function CheckoutPage() {
         }
       }
 
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:pre-checkout',message:'Before checkout call',data:{cartId:cart?.id,paymentMethod:backendPaymentMethod,runId:'pay-click'},timestamp:Date.now(),hypothesisId:'A,E'})}).catch(()=>{});
-      // #endregion
       const response = await checkout(checkoutPayload)
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:post-checkout',message:'Checkout response',data:{paymentStatus:response?.paymentStatus,redirectUrl:!!response?.redirectUrl,requiresAction:response?.requiresAction,orderId:response?.orderId,orderNumber:response?.orderNumber,runId:'pay-click'},timestamp:Date.now(),hypothesisId:'C'})}).catch(()=>{});
-      // #endregion
 
       // Handle payment redirect (for DPO gateway)
       if (response.redirectUrl && response.requiresAction) {
@@ -565,9 +536,6 @@ export default function CheckoutPage() {
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Checkout failed. Please try again.'
-      // #region agent log
-      fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'checkout/page.tsx:catch',message:'Checkout error',data:{errorMessage,runId:'pay-click'},timestamp:Date.now(),hypothesisId:'B,D'})}).catch(()=>{});
-      // #endregion
       toast.error(errorMessage)
       setFormError(errorMessage)
     }

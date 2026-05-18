@@ -88,7 +88,7 @@
     border: 0;
     height: 3px;
     width: 30px;
-    background-color: #807045;
+    background-color: var(--shreeji-primary);
     margin: 22px 0 20px;
   }
 
@@ -165,7 +165,7 @@
     left: -24px;
     width: 100px;
     height: 100px;
-    background-color: #807045f2;
+    background-color: color-mix(in srgb, var(--shreeji-primary) 95%, transparent);
     color: $white;
     border-radius: 50%;
     @extend %caps;
@@ -173,7 +173,7 @@
 
   .product__category {
     display: block;
-    color: #807045;
+    color: var(--shreeji-primary);
     margin-bottom: 1em;
     @extend %caps;
   }
@@ -182,7 +182,7 @@
     position: absolute;
     bottom: -30px;
     right: 30px;
-    background-color: rgba(#807045, 0.95);
+    background-color: color-mix(in srgb, var(--shreeji-primary) 95%, transparent);
     transition: background-color $time $easing, box-shadow $time $easing;
     @include shadow;
 

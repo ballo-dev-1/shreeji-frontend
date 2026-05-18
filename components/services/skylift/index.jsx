@@ -21,21 +21,21 @@ export default function SkyliftServicesPage() {
 
       {/* Skylift Services Overview */}
       <div className="max-w-6xl mx-auto py-20 px-3 md:px-8">
-        <h2 className="text-4xl font-bold text-[#807045] mb-14 text-center">Why Choose Skylift Services?</h2>        
+        <h2 className="text-4xl font-bold text-[var(--shreeji-primary)] mb-14 text-center">Why Choose Skylift Services?</h2>        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
           {[
             {
-              icon: <Building2 size={50} className="text-[#807045]" />,
+              icon: <Building2 size={50} className="text-[var(--shreeji-primary)]" />,
               title: "Aerial Access Services",
               description: "We provide elevated access using our Genie TZ-50 boom lift, allowing safe and stable work at heights for tasks such as repairs, painting, lighting installation, and more."
             },
             {
-              icon: <Loader size={50} className="text-[#807045]" />,
+              icon: <Loader size={50} className="text-[var(--shreeji-primary)]" />,
               title: "Compact & Versatile Reach",
               description: "Our skylift features a working height of 55 ft and horizontal outreach of nearly 30 ft, making it suitable for tight access areas and elevated jobs that require precise positioning."
             },
             {
-              icon: <Server size={50} className="text-[#807045]" />,
+              icon: <Server size={50} className="text-[var(--shreeji-primary)]" />,
               title: "Site Setup & Safety Planning",
               description: "We assess each site to ensure proper placement and operation of the boom lift. Our team prioritizes safety and efficiency, coordinating with your staff as needed."
             }
@@ -49,7 +49,7 @@ export default function SkyliftServicesPage() {
             >
               <div className="flex flex-col md:flex-row gap-2 md:gap-0 items-center justify-center space-x-6 mb-4">
                 {service.icon}
-                <h3 className="text-2xl font-semibold text-[#807045]">{service.title}</h3>
+                <h3 className="text-2xl font-semibold text-[var(--shreeji-primary)]">{service.title}</h3>
               </div>
               <p className="text-gray-600">{service.description}</p>
             </motion.div>
@@ -59,7 +59,7 @@ export default function SkyliftServicesPage() {
       
       <div className="bg-white py-16 px-4 md:px-20" id="specifications">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-semibold text-[#807045] mb-10 text-center">Genie TZ™-50 Specifications</h2>
+          <h2 className="text-4xl font-semibold text-[var(--shreeji-primary)] mb-10 text-center">Genie TZ™-50 Specifications</h2>
           <Image
                 src={skylift1}
                 alt="Shreeji"
@@ -98,7 +98,7 @@ export default function SkyliftServicesPage() {
             </div>
           </div>
           <div className="mt-24">
-            <h2 className="text-4xl font-semibold text-[#807045] text-center">Safety Standards</h2>
+            <h2 className="text-4xl font-semibold text-[var(--shreeji-primary)] text-center">Safety Standards</h2>
             <div className="text-center max-w-4xl mx-auto">
               <p className="text-lg text-gray-600 mb-6">
                 Our operators are trained in using the Genie TZ-50 for safe access, and we follow site-specific safety protocols for setup and operation. Regular inspections and pre-operation checks ensure reliable performance. We also work closely with your team to identify any access challenges and mitigate risk.
@@ -110,36 +110,36 @@ export default function SkyliftServicesPage() {
 
       {/* Industries Served Section */}
       <div className="py-20 px-3 md:px-8 max-w-6xl mx-auto">
-        <h2 className="text-4xl font-bold text-[#807045] mb-12 text-center">Industries We Serve</h2>
+        <h2 className="text-4xl font-bold text-[var(--shreeji-primary)] mb-12 text-center">Industries We Serve</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-16">
           {[
             {
-              icon: <Construction size={50} className="text-[#807045]" />,
+              icon: <Construction size={50} className="text-[var(--shreeji-primary)]" />,
               title: "Construction",
               description: "We offer precise and efficient lifting solutions for large construction projects, from high-rise buildings to residential developments."
             },
             {
-              icon: <HardHat size={50} className="text-[#807045]" />,
+              icon: <HardHat size={50} className="text-[var(--shreeji-primary)]" />,
               title: "Oil & Gas",
               description: "Our lifting equipment is built to handle the toughest demands in the oil and gas industry, ensuring safety and efficiency in challenging environments."
             },
             {
-              icon: <Truck size={50} className="text-[#807045]" />,
+              icon: <Truck size={50} className="text-[var(--shreeji-primary)]" />,
               title: "Logistics & Transportation",
               description: "We support logistics companies with reliable and efficient material handling and lifting solutions to streamline operations."
             },
             {
-              icon: <Factory size={50} className="text-[#807045]" />,
+              icon: <Factory size={50} className="text-[var(--shreeji-primary)]" />,
               title: "Manufacturing",
               description: "Our equipment assists manufacturing companies in handling heavy materials and machinery with precision and safety."
             },
             {
-              icon: <Eclipse size={50} className="text-[#807045]" />,
+              icon: <Eclipse size={50} className="text-[var(--shreeji-primary)]" />,
               title: "Renewable Energy",
               description: "We provide lifting and installation services for renewable energy projects, including solar farms and wind turbine construction."
             },
             {
-              icon: <Building size={50} className="text-[#807045]" />,            
+              icon: <Building size={50} className="text-[var(--shreeji-primary)]" />,            
               title: "Infrastructure Projects",
               description: "Our skylift services support large-scale infrastructure projects, from bridges to road construction, ensuring smooth and safe operations."
             }
@@ -153,7 +153,7 @@ export default function SkyliftServicesPage() {
             >
               <div className="flex flex-col md:flex-row gap-2 md:gap-0 items-center justify-center md:space-x-6 mb-4">
                 {industry.icon}
-                <h3 className="text-2xl font-semibold text-[#807045]">{industry.title}</h3>
+                <h3 className="text-2xl font-semibold text-[var(--shreeji-primary)]">{industry.title}</h3>
               </div>
               <p className="mt-4 text-gray-600">{industry.description}</p>
             </motion.div>
@@ -162,7 +162,7 @@ export default function SkyliftServicesPage() {
       </div>
 
       {/* Call to Action Section */}
-      <div className="bg-[#807045] text-white py-16 px-8 text-center flex-center shadow-lg">
+      <div className="bg-[var(--shreeji-primary)] text-white py-16 px-8 text-center flex-center shadow-lg">
         <h2 className="text-3xl font-semibold">Get Started with Skylift Services</h2>
         <p className="mt-2 text-lg max-w-5xl mb-5">Maximize the efficiency and safety of your lifting operations with our expert solutions. Let us handle the heavy lifting so you can focus on your core business.</p>
         <ContactModal />

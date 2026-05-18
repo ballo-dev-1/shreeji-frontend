@@ -25,7 +25,7 @@
   }
 
   .products-page-product:before {
-    background: #807045 !important;
+    background: var(--shreeji-primary) !important;
   }
 
   * ::-webkit-scrollbar {
@@ -33,7 +33,7 @@
   }
 
   button {
-    background: #807045 !important;
+    background: var(--shreeji-primary) !important;
     width: 4rem;
     height: 4rem;
     color: white !important;

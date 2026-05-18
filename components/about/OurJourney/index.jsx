@@ -134,8 +134,8 @@ const OurJourney = () => {
               />
             </div>
             <p className="milestone-title flex items-center rounded-md p-5 text-2xl">
-              <span className="font-bold text-[#807045]">{item.title}</span>
-              <span className="h-[1px] w-full bg-[#807045]" />
+              <span className="font-bold text-[var(--shreeji-primary)]">{item.title}</span>
+              <span className="h-[1px] w-full bg-[var(--shreeji-primary)]" />
             </p>
             <p className="text-base">{item.description}</p>
           </div>

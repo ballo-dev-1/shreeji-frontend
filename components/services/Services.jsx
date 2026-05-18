@@ -81,7 +81,7 @@ export default function ServicesPage() {
                   <h2 className="text-2xl font-bold">{service.title}</h2>
                 </div>
                 <p className="mt-4 text-gray-600">{service.description}</p> 
-                <div className="text-[#807045] mt-6 inline-block">Explore {service.title} →</div>             
+                <div className="text-[var(--shreeji-primary)] mt-6 inline-block">Explore {service.title} →</div>             
               </motion.div>
             </Link>
           ))}

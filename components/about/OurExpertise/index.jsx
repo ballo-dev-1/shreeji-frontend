@@ -28,7 +28,7 @@ const OurExpertise = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}                
                 transition={{ duration: 0.3 }}
-                className="p-6 bg-white text-[#807045] rounded-2xl shadow-xl cursor-pointer transform hover:shadow-2xl hover:translate-y-[-5px]"
+                className="p-6 bg-white text-[var(--shreeji-primary)] rounded-2xl shadow-xl cursor-pointer transform hover:shadow-2xl hover:translate-y-[-5px]"
               >
                 <div className="flex items-center space-x-4">
                   <div>{service.icon}</div>

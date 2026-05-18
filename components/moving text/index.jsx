@@ -20,7 +20,7 @@ const MovingTextEffect = ({title, subtitle, image}) => {
   }, []);
 
   return (
-    <section className="text-effect-hero w-full h-screen flex items-center justify-center bg-[#807045] font-raleway text-white z-[1] relative">
+    <section className="text-effect-hero w-full h-screen flex items-center justify-center bg-[var(--shreeji-primary)] font-raleway text-white z-[1] relative">
       <div className="absolute text-center">
         <motion.h1 
           initial={{ opacity: 0, y: -20 }} 

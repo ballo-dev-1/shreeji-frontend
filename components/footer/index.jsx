@@ -56,7 +56,7 @@ const Footer = () => {
               className="flex items-center gap-2 hover:underline"
               aria-label="SHREEJI on LinkedIn"
             >
-              <Linkedin strokeWidth={1} color="#807045" />
+              <Linkedin strokeWidth={1} color="var(--shreeji-primary)" />
               <span className="pt-1">LinkedIn</span>
             </a>
           </p>
@@ -68,7 +68,7 @@ const Footer = () => {
               className="flex items-center gap-2 hover:underline"
               aria-label="SHREEJI on Facebook"
             >
-              <Facebook color="#807045" strokeWidth={1} />
+              <Facebook color="var(--shreeji-primary)" strokeWidth={1} />
               <span className="py-1">Facebook</span>
             </a>
           </p>

@@ -93,7 +93,7 @@ export default function PortalDashboardPage() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div className="text-sm text-gray-500">
-            Welcome, {user?.firstName || user?.email || 'Customer'}
+          {user?.firstName ? `Welcome back, ${user.firstName}` : 'Welcome back'}
         </div>
         </div>
 
@@ -138,7 +138,7 @@ export default function PortalDashboardPage() {
                   {currencyFormatter(Number(totalSpent || 0))}
                 </p>
               </div>
-              <DollarSign className="h-8 w-8 text-green-600" />
+              <DollarSign className="h-8 w-8 text-[var(--shreeji-primary)]" />
             </div>
           </div>
           <div className="bg-white rounded-3xl p-6 shadow-[0_0_20px_0_rgba(0,0,0,0.1)]">
@@ -149,7 +149,7 @@ export default function PortalDashboardPage() {
                   {currencyFormatter(Number(Math.round(averageOrderValue || 0)))}
                 </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-blue-600" />
+              <TrendingUp className="h-8 w-8 text-[var(--shreeji-primary)]" />
             </div>
           </div>
           <div className="bg-white rounded-3xl p-6 shadow-[0_0_20px_0_rgba(0,0,0,0.1)]">
@@ -158,7 +158,7 @@ export default function PortalDashboardPage() {
                 <h3 className="text-sm font-medium text-gray-500">Pending Orders</h3>
                 <p className="mt-2 text-3xl font-bold text-gray-900">{pendingOrders}</p>
               </div>
-              <Package className="h-8 w-8 text-yellow-600" />
+              <Package className="h-8 w-8 text-[var(--shreeji-primary)]" />
             </div>
           </div>
         </div>
@@ -197,13 +197,24 @@ export default function PortalDashboardPage() {
                         <p className="font-medium text-gray-900">
                           {currencyFormatter(Number(order.totalAmount || 0))}
                         </p>
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          order.orderStatus === 'delivered' || order.orderStatus === 'fulfilled' ? 'bg-green-100 text-green-800' :
-                          order.orderStatus === 'processing' ? 'bg-blue-100 text-blue-800' :
-                          'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {order.orderStatus || 'pending'}
-                        </span>
+                        {(() => {
+                          const key = (order.orderStatus || 'pending').toLowerCase()
+                          const statusMap: Record<string, string> = {
+                            delivered: 'bg-green-100 text-green-800',
+                            fulfilled: 'bg-green-100 text-green-800',
+                            shipped: 'bg-indigo-100 text-indigo-800',
+                            processing: 'bg-blue-100 text-blue-800',
+                            confirmed: 'bg-blue-100 text-blue-800',
+                            cancelled: 'bg-red-100 text-red-800',
+                            returned: 'bg-orange-100 text-orange-800',
+                          }
+                          const cls = statusMap[key] ?? 'bg-yellow-100 text-yellow-800'
+                          return (
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full capitalize ${cls}`}>
+                              {order.orderStatus || 'pending'}
+                            </span>
+                          )
+                        })()}
                       </div>
                     </div>
                   </Link>

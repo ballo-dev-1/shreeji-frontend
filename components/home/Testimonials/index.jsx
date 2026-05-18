@@ -16,7 +16,7 @@ const Testimonials = () => {
     {
       name: "Dr. Andrew Mwila",
       testimonial: "We partnered with Shreeji for our school's digital upgrade, and the results were outstanding. Reliable service, excellent support, a truly professional team!",
-      title: "CEO of Zenith Holdings",
+      title: "Head of Academic Technology",
     },
     {
       name: "Joseph Zulu",
@@ -26,7 +26,7 @@ const Testimonials = () => {
   ]
   return (
     <section className="testimonials-section flex-center text-white py-20 md:px-10">
-      <p>Testemonials</p>
+      <p>Testimonials</p>
       <h2 className="font-bold text-4xl text-center px-10 md:px-32 mt-5 mb-10">
         What Our Clients Say
       </h2>

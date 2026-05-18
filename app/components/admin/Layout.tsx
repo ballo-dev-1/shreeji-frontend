@@ -135,8 +135,8 @@ export default function Layout({ children, currentPage = 'Dashboard', pageTitle 
   return (
     <div className="flex h-screen bg-[whitesmoke] dark:bg-[#131313]">
       {/* Sidebar */}
-      <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
-        <div className="flex items-center justify-center h-16 px-4  dark:border-gray-800">
+      <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 bg-white dark:bg-[#111214] border-r border-gray-100 dark:border-gray-800`}>
+        <div className="flex items-center justify-center h-16 px-4 border-b border-gray-100 dark:border-gray-800">
           <div className="flex items-center space-x-3">
             <Image
               src="/images/Shreeji icon.png"
@@ -186,9 +186,9 @@ export default function Layout({ children, currentPage = 'Dashboard', pageTitle 
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden rounded-2xl m-2 ml-0">
         {/* Page content */}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-white dark:bg-[whitesmoke]">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-white dark:bg-[#1a1c1e]">
         {/* Header */}
-        <header className="shadow-sm">
+        <header className="shadow-sm border-b border-gray-100 dark:border-gray-800 dark:bg-[#1a1c1e]">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
             <div className="flex items-center">
               <button
@@ -198,7 +198,7 @@ export default function Layout({ children, currentPage = 'Dashboard', pageTitle 
               >
                 <Bars3Icon className="w-6 h-6" />
               </button>
-            <h2 className="ml-4 text-lg font-semibold text-gray-900 lg:ml-0">
+            <h2 className="ml-4 text-lg font-semibold text-gray-900 dark:text-white lg:ml-0">
               {(() => {
                 const isWarehousePage =
                   (pageTitle && pageTitle.toLowerCase().includes('warehouse')) ||
@@ -237,18 +237,18 @@ export default function Layout({ children, currentPage = 'Dashboard', pageTitle 
 
                 {/* User dropdown menu */}
                 {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-lg py-1 z-50">
-                    <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="text-sm font-medium text-gray-900">
-                        {user?.firstName && user?.lastName 
-                          ? `${user.firstName} ${user.lastName}` 
+                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-[#1e2022] border border-gray-100 dark:border-gray-700 rounded-2xl shadow-lg py-1 z-50">
+                    <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {user?.firstName && user?.lastName
+                          ? `${user.firstName} ${user.lastName}`
                           : user?.firstName || user?.email || 'Admin User'}
                       </p>
-                      <p className="text-xs text-gray-500">{user?.email}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{user?.email}</p>
                     </div>
                     <button
                       onClick={handleLogout}
-                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg"
+                      className="flex items-center w-full px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 rounded-lg"
                     >
                       <ArrowRightOnRectangleIcon className="w-4 h-4 mr-3" />
                       Sign out
