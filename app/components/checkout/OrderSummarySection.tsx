@@ -191,7 +191,7 @@ export default function OrderSummarySection() {
                     alt={typeof mainImage === 'object' ? mainImage?.alt : item.productSnapshot.name || 'Product image'}
                     fill
                     className='object-cover'
-                    unoptimized={imageUrl.startsWith('http') || imageUrl.startsWith('/products/')}
+                    unoptimized={imageUrl.startsWith('http') || imageUrl.startsWith('/products/') || imageUrl.startsWith('/api/')}
                     sizes='64px'
                     onError={(e) => {
                       console.error('Image failed to load:', imageUrl)

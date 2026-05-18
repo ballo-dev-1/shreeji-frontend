@@ -292,7 +292,7 @@ function ProductCard({ product }: { product: ProductRecommendation }) {
             fill
             className="object-cover transition-transform duration-200 group-hover:scale-105 overflow-visible"
             sizes="(max-width: 768px) 100vw, 25vw"
-            unoptimized={imageUrl?.startsWith?.('http')}
+            unoptimized={imageUrl?.startsWith?.('http') || imageUrl?.startsWith?.('/api/')}
             onError={(e) => {
               const target = e.target as HTMLImageElement
               target.src = '/products/placeholder.png'

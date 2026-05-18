@@ -62,7 +62,7 @@ export default function CheckoutCartItems() {
                     alt={mainImage?.alt || item.productSnapshot.name || 'Product image'}
                     fill
                     className='object-cover'
-                    unoptimized={imageUrl.startsWith('http')}
+                    unoptimized={imageUrl.startsWith('http') || imageUrl.startsWith('/api/')}
                     sizes='64px'
                   />
                 </div>

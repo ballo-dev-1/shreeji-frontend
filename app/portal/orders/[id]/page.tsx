@@ -321,7 +321,7 @@ export default function OrderDetailsPage() {
                               alt={product.name || 'Product'}
                               fill
                               className="object-cover"
-                              unoptimized={imageUrl.startsWith('http') || imageUrl.startsWith('/products/')}
+                              unoptimized={imageUrl.startsWith('http') || imageUrl.startsWith('/products/') || imageUrl.startsWith('/api/')}
                               sizes="64px"
                               onError={(e) => {
                                 const target = e.target as HTMLImageElement
