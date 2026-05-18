@@ -1687,7 +1687,8 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
     maxBytes: number,
     preferAlpha = false,
   ): Promise<Blob> => {
-    if (blob.size <= maxBytes || typeof window === 'undefined') {
+    const canvasSafeType = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(blob.type);
+    if ((blob.size <= maxBytes && canvasSafeType) || typeof window === 'undefined') {
       return blob;
     }
 
@@ -1707,7 +1708,9 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
         ? 'image/webp'
         : blob.type === 'image/png'
           ? 'image/jpeg'
-          : (blob.type || 'image/jpeg');
+          : canvasSafeType
+            ? blob.type
+            : 'image/jpeg';
     let bestBlob = blob;
 
     try {
