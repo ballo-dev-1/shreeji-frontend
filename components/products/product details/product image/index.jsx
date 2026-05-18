@@ -11,7 +11,7 @@ const ProductImage = ({images, name, product}) => {
   }
   
   const [activeImage, setActiveImage] = useState(images[0]);
-  const isExternalUrl = (url) => typeof url === 'string' && url.startsWith('http');
+  const isExternalUrl = (url) => typeof url === 'string' && (url.startsWith('http') || url.startsWith('/api/'));
   
   return (
     <div className='product-details-image flex flex-col'>

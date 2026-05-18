@@ -565,7 +565,7 @@ const ProductDetails = ({product, previewMode = false}) => {
             width={150}
             height={64}
             className='w-auto h-16 z-[1] object-contain' 
-            unoptimized={typeof brandLogoUrl === 'string' && brandLogoUrl.startsWith('http')}
+            unoptimized={typeof brandLogoUrl === 'string' && (brandLogoUrl.startsWith('http') || brandLogoUrl.startsWith('/api/'))}
             onError={() => {
               console.warn('Brand logo image failed to load:', brandLogoUrl);
               setBrandLogoError(true);

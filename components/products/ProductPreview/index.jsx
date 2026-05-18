@@ -96,7 +96,7 @@ const ProductPreview = ({product, index, additionalClass}) => {
               width={300}
               height={300}
               className="products-page-product__image object-cover overflow-visible product-shadow"
-              unoptimized={product.images[0]?.startsWith('http')}
+              unoptimized={product.images[0]?.startsWith('http') || product.images[0]?.startsWith('/api/')}
             />
           )}
         </div>
