@@ -8,7 +8,7 @@ import Layout from './Layout'
 import api from '@/app/lib/admin/api'
 import CancelOrderModal from './CancelOrderModal'
 import { currencyFormatter } from '@/app/components/checkout/currency-formatter'
-import { TableSkeleton } from '@/app/components/ui/Skeletons'
+import { TableSkeleton, AnalyticsCardsSkeleton } from '@/app/components/ui/Skeletons'
 import { ALL_ORDER_STATUSES, getEnabledOrderStatusOptions } from '@/app/lib/order-statuses';
 import toast from 'react-hot-toast';
 
@@ -475,10 +475,7 @@ export default function OrderManagement() {
       ) : (
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Order Analytics</h3>
-          <div className="space-y-2 animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
-            <div className="h-1 bg-gray-200 rounded w-24 mx-auto"></div>
-          </div>
+          <AnalyticsCardsSkeleton />
         </div>
       )}
 

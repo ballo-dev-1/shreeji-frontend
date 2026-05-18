@@ -10,6 +10,7 @@ import {
 import api from '@/app/lib/admin/api';
 import Layout from './Layout';
 import toast from 'react-hot-toast';
+import { TableSkeleton } from '@/app/components/ui/Skeletons';
 
 interface LowStockItem {
   id: number;
@@ -131,10 +132,7 @@ export default function LowStockAlerts() {
         {/* Low Stock Items */}
         <div className="bg-white shadow-sm rounded-lg overflow-hidden">
           {loading ? (
-            <div className="space-y-2 animate-pulse py-16">
-              <div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
-              <div className="h-1 bg-gray-200 rounded w-24 mx-auto"></div>
-            </div>
+            <TableSkeleton rows={5} columns={5} bare />
           ) : (
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts'
 import api from '@/app/lib/admin/api'
 import { currencyFormatter } from '@/app/components/checkout/currency-formatter'
+import { ChartSkeleton } from '@/app/components/ui/Skeletons'
 
 interface SalesChartProps {
   period?: 'daily' | 'weekly' | 'monthly'
@@ -186,14 +187,7 @@ export default function SalesChart({ period = 'weekly', type = 'revenue' }: Sale
   }
 
   if (loading) {
-    return (
-      <div className="h-64 flex items-center justify-center animate-pulse">
-        <div className="space-y-2">
-          <div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
-          <div className="h-1 bg-gray-200 rounded w-24 mx-auto"></div>
-        </div>
-      </div>
-    )
+    return <ChartSkeleton />
   }
 
   if (data.length === 0) {

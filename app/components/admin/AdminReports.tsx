@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import Layout from './Layout'
 import api from '@/app/lib/admin/api'
+import { TableSkeleton } from '@/app/components/ui/Skeletons'
 import { currencyFormatter } from '@/app/components/checkout/currency-formatter'
 import { exportToCSV, exportToPDF } from '@/utils/reportExporter'
 import ReportFilters from './reports/ReportFilters'
@@ -662,10 +663,7 @@ export default function AdminReports() {
           </h3>
           
           {loading ? (
-            <div className="space-y-2 animate-pulse py-12">
-              <div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
-              <div className="h-1 bg-gray-200 rounded w-24 mx-auto"></div>
-            </div>
+            <TableSkeleton rows={6} columns={5} bare />
           ) : (
             <div className="overflow-x-auto">
               {reportType === 'sales' && (

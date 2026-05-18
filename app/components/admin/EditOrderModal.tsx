@@ -6,6 +6,7 @@ import { Package, Truck, CreditCard, FileText } from 'lucide-react';
 import api from '@/app/lib/admin/api';
 import toast from 'react-hot-toast';
 import { ALL_ORDER_STATUSES, getEnabledOrderStatusOptions } from '@/app/lib/order-statuses';
+import { FormSkeleton } from '@/app/components/ui/Skeletons';
 
 // Status color helper functions (matching customer order page)
 const getStatusColor = (status: string) => {
@@ -380,10 +381,7 @@ export default function EditOrderModal({
             {/* Body */}
             <div className="p-6">
               {loading && !orderDetails ? (
-                <div className="space-y-2 animate-pulse py-8">
-                  <div className="h-4 bg-gray-200 rounded w-32 mx-auto"></div>
-                  <div className="h-1 bg-gray-200 rounded w-24 mx-auto"></div>
-                </div>
+                <FormSkeleton rows={6} />
               ) : (
                 <div className="space-y-6">
                   {/* Order & Payment Status Section */}

@@ -45,29 +45,28 @@ export function TableRowSkeleton({ columns = 5 }: { columns?: number }) {
 }
 
 // Table Skeleton
-export function TableSkeleton({ rows = 5, columns = 5 }: { rows?: number; columns?: number }) {
-  return (
-    <div className="card overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              {Array.from({ length: columns }).map((_, i) => (
-                <th key={i} className="px-6 py-3">
-                  <div className="h-4 bg-gray-300 rounded w-24"></div>
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {Array.from({ length: rows }).map((_, i) => (
-              <TableRowSkeleton key={i} columns={columns} />
+export function TableSkeleton({ rows = 5, columns = 5, bare = false }: { rows?: number; columns?: number; bare?: boolean }) {
+  const content = (
+    <div className="overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            {Array.from({ length: columns }).map((_, i) => (
+              <th key={i} className="px-6 py-3">
+                <div className="h-4 bg-gray-300 rounded w-24"></div>
+              </th>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {Array.from({ length: rows }).map((_, i) => (
+            <TableRowSkeleton key={i} columns={columns} />
+          ))}
+        </tbody>
+      </table>
     </div>
   )
+  return bare ? content : <div className="card overflow-hidden">{content}</div>
 }
 
 // Dashboard Card Skeleton
@@ -465,6 +464,78 @@ export function OrderDetailsSkeleton() {
           <div className="h-4 bg-gray-200 rounded w-5/6"></div>
         </div>
       </div>
+    </div>
+  )
+}
+
+// Chart Skeleton (for line/bar chart containers)
+export function ChartSkeleton({ height = 'h-64' }: { height?: string }) {
+  const bars = [55, 35, 70, 45, 80, 50, 65, 40, 75, 60, 85, 45]
+  return (
+    <div className={`${height} animate-pulse p-4`}>
+      <div className="flex h-full gap-3">
+        <div className="flex flex-col justify-between w-8 py-1">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-3 bg-gray-200 rounded" />
+          ))}
+        </div>
+        <div className="flex-1 flex flex-col">
+          <div className="flex-1 relative border-l border-b border-gray-100">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="absolute w-full h-px bg-gray-100" style={{ top: `${(i + 1) * 20}%` }} />
+            ))}
+            <div className="absolute inset-0 flex items-end px-2 gap-1">
+              {bars.map((h, i) => (
+                <div key={i} className="flex-1 bg-gray-200 rounded-t" style={{ height: `${h}%` }} />
+              ))}
+            </div>
+          </div>
+          <div className="flex justify-between mt-2">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-3 bg-gray-200 rounded w-8" />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Analytics Cards Skeleton (for stat card grids with status pills)
+export function AnalyticsCardsSkeleton({ cards = 3 }: { cards?: number }) {
+  return (
+    <div className="animate-pulse space-y-4">
+      <div className={`grid grid-cols-1 md:grid-cols-${cards} gap-4`}>
+        {Array.from({ length: cards }).map((_, i) => (
+          <div key={i} className="p-4 bg-gray-100 rounded-lg">
+            <div className="h-4 bg-gray-200 rounded w-24 mb-2" />
+            <div className="h-8 bg-gray-300 rounded w-32" />
+          </div>
+        ))}
+      </div>
+      <div>
+        <div className="h-4 bg-gray-200 rounded w-36 mb-2" />
+        <div className="flex flex-wrap gap-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="h-7 bg-gray-200 rounded-full w-28" />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Form Skeleton (for modal bodies and settings forms)
+export function FormSkeleton({ rows = 4 }: { rows?: number }) {
+  return (
+    <div className="space-y-5 animate-pulse">
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="space-y-1.5">
+          <div className="h-4 bg-gray-200 rounded w-28" />
+          <div className="h-10 bg-gray-100 rounded-lg" />
+        </div>
+      ))}
+      <div className="h-10 bg-gray-200 rounded-lg w-32" />
     </div>
   )
 }
