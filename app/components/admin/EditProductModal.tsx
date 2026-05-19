@@ -20,7 +20,7 @@ import {
   SparklesIcon,
   Bars3Icon
 } from '@heroicons/react/24/outline';
-import { processProductImages, normalizeImageUrl } from '@/app/lib/admin/image-mapping';
+import { processProductImages, normalizeImageUrl, IMAGE_PLACEHOLDER } from '@/app/lib/admin/image-mapping';
 import api from '@/app/lib/admin/api';
 import ProductDetails from '@/components/products/product details';
 import '@/components/products/product details/style.scss';
@@ -3000,6 +3000,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                             src={mainImageUrl}
                             alt={formData.images[mainImageIndex]?.alt || "Main product image"}
                             className="w-full h-full object-contain min-h-[15rem]"
+                            onError={(e) => { e.currentTarget.src = IMAGE_PLACEHOLDER; }}
                           />
                           {/* Image actions on hover */}
                           <div className="absolute top-2 right-2 flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
@@ -3071,6 +3072,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                                   src={normalizeImageUrl(image.url)}
                                   alt={image.alt || `Thumbnail ${index + 1}`}
                                   className="w-full h-full object-contain"
+                                  onError={(e) => { e.currentTarget.src = IMAGE_PLACEHOLDER; }}
                                 />
                               ) : (
                                 <div className="w-full h-full bg-gray-200 flex items-center justify-center">
