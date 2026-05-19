@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import Layout from './Layout'
 import { 
   PlusIcon, 
@@ -304,7 +304,12 @@ export default function ProductManagement() {
     }
 
     if (selectedSubcategory) {
-      filtered = filtered.filter(product => product.subcategory === selectedSubcategory)
+      filtered = filtered.filter(product => {
+        const subName = typeof product.subcategory === 'object' && product.subcategory
+          ? (product.subcategory as any).name
+          : String(product.subcategory ?? '');
+        return subName === selectedSubcategory;
+      })
     }
 
     if (selectedBrand) {
@@ -314,9 +319,12 @@ export default function ProductManagement() {
     setFilteredProducts(filtered)
   }, [searchTerm, selectedCategory, selectedSubcategory, selectedBrand, products])
 
-  const categories = Array.from(new Set(products.map(p => p.category).filter(Boolean)))
-  const subcategories = Array.from(new Set(products.map(p => p.subcategory).filter(Boolean)))
-  const brands = Array.from(new Set(products.map(p => p.brand).filter(Boolean)))
+  const categories = useMemo(() => Array.from(new Set(products.map(p => p.category).filter(Boolean))), [products])
+  const subcategories = useMemo(() => Array.from(new Set(products.map(p => {
+    if (!p.subcategory) return null;
+    return typeof p.subcategory === 'object' ? (p.subcategory as any).name : String(p.subcategory);
+  }).filter(Boolean))), [products])
+  const brands = useMemo(() => Array.from(new Set(products.map(p => p.brand).filter(Boolean))), [products])
 
   const handleDelete = async (id: number) => {
     try {
@@ -664,9 +672,14 @@ export default function ProductManagement() {
             >
               <option value="">All Subcategories</option>
               {subcategories
-                .filter(sub => !selectedCategory || products.some(p => p.category === selectedCategory && p.subcategory === sub))
+                .filter(sub => !selectedCategory || products.some(p => {
+                  const subName = typeof p.subcategory === 'object' && p.subcategory
+                    ? (p.subcategory as any).name
+                    : String(p.subcategory ?? '');
+                  return p.category === selectedCategory && subName === sub;
+                }))
                 .map((subcategory, index) => (
-                  <option key={`subcategory-${subcategory}-${index}`} value={subcategory}>{subcategory}</option>
+                  <option key={`subcategory-${subcategory}-${index}`} value={subcategory as string}>{subcategory}</option>
                 ))}
             </select>
 

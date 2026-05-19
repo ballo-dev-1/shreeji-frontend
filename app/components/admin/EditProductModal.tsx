@@ -862,6 +862,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [showEditCategoryModal, setShowEditCategoryModal] = useState(false);
   const [showAddSubcategoryModal, setShowAddSubcategoryModal] = useState(false);
+  const [subcategorySearch, setSubcategorySearch] = useState('');
   const [showEditSubcategoryModal, setShowEditSubcategoryModal] = useState(false);
   const [showAddBrandModal, setShowAddBrandModal] = useState(false);
   const [showHiddenAttributes, setShowHiddenAttributes] = useState(false);
@@ -2152,10 +2153,11 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
       });
     } catch (error: any) {
       console.error('Error creating subcategory:', error);
-      setErrors(prev => ({ 
-        ...prev, 
-        newSubcategory: error.message || 'Failed to create subcategory. Please try again.' 
-      }));
+      const msg = error.status === 409
+        ? 'A subcategory with that name already exists.'
+        : error.message || 'Failed to create subcategory. Please try again.';
+      showToast('error', msg);
+      setErrors(prev => ({ ...prev, newSubcategory: msg }));
     }
   };
 
@@ -2226,10 +2228,11 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
       });
     } catch (error: any) {
       console.error('Error updating subcategory:', error);
-      setErrors(prev => ({ 
-        ...prev, 
-        newSubcategory: error.message || 'Failed to update subcategory. Please try again.' 
-      }));
+      const msg = error.status === 409
+        ? 'A subcategory with that name already exists.'
+        : error.message || 'Failed to update subcategory. Please try again.';
+      showToast('error', msg);
+      setErrors(prev => ({ ...prev, newSubcategory: msg }));
     }
   };
 
@@ -2254,7 +2257,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
       }
     } catch (error: any) {
       console.error('Error deleting subcategory:', error);
-      alert(error.message || 'Failed to delete subcategory. It may be in use by products.');
+      showToast('error', error.message || 'Failed to delete subcategory. It may be in use by products.');
     }
   };
 
@@ -3309,8 +3312,18 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                           leaveTo="opacity-0"
                           className="absolute z-10 mt-1 w-full rounded-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
                         >
-                          <Listbox.Options className="max-h-60 overflow-auto rounded-lg py-1 text-base">
-                            {subcategories.map((subcategory) => (
+                          <div className="px-2 pt-2 pb-1">
+                            <input
+                              type="text"
+                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
+                              placeholder="Search subcategories..."
+                              value={subcategorySearch}
+                              onChange={(e) => setSubcategorySearch(e.target.value)}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+                          <Listbox.Options className="max-h-52 overflow-auto rounded-lg py-1 text-base">
+                            {subcategories.filter(s => !subcategorySearch || s.name.toLowerCase().includes(subcategorySearch.toLowerCase())).map((subcategory) => (
                               <Listbox.Option
                                 key={subcategory.id}
                                 value={subcategory.id.toString()}
