@@ -1613,8 +1613,18 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
     const imageFiles = files.filter(file => file.type.startsWith('image/'));
     if (imageFiles.length === 0) {
       setErrors(prev => ({ ...prev, imageUpload: 'Please select valid image files' }));
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
+
+    const MAX_IMAGES = 10;
+    const slots = MAX_IMAGES - formData.images.length;
+    if (slots <= 0) {
+      setErrors(prev => ({ ...prev, imageUpload: 'Maximum 10 images allowed.' }));
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+    const filesToUpload = imageFiles.slice(0, slots);
 
     // Switch to upload mode to show progress
     setImageUploadMode('upload');
@@ -1631,16 +1641,16 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
       const isFirstImage = currentImageCount === 0;
 
       // Upload files sequentially to show progress
-      for (let i = 0; i < imageFiles.length; i++) {
-        setUploadProgress({ 
-          current: i + 1, 
-          total: imageFiles.length, 
-          fileName: imageFiles[i].name 
+      for (let i = 0; i < filesToUpload.length; i++) {
+        setUploadProgress({
+          current: i + 1,
+          total: filesToUpload.length,
+          fileName: filesToUpload[i].name
         });
-        
-        const compressed = await compressImageForUpload(imageFiles[i]);
+
+        const compressed = await compressImageForUpload(filesToUpload[i]);
         const uploadResult = await api.uploadImage(compressed);
-        
+
         uploadedImages.push({
           url: uploadResult.url,
           alt: formData.name || `Product image ${currentImageCount + i + 1}`,
@@ -1668,10 +1678,11 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
       }
     } catch (error: any) {
       console.error('Error uploading images:', error);
-      setErrors(prev => ({ 
-        ...prev, 
-        imageUpload: error.message || 'Failed to upload images. Please try again.' 
+      setErrors(prev => ({
+        ...prev,
+        imageUpload: error.message || 'Failed to upload images. Please try again.'
       }));
+      if (fileInputRef.current) fileInputRef.current.value = '';
     } finally {
       setUploadingImage(false);
       setUploadProgress(null);
@@ -4166,11 +4177,11 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || uploadingImage}
                   className="inline-flex items-center rounded-xl bg-primary-600 px-6 py-3 text-sm font-semibold text-white shadow-md shadow-primary-500/40 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-400 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <CheckIcon className="mr-2 h-4 w-4" />
-                  {loading ? 'Saving...' : 'Save Changes'}
+                  {loading ? 'Saving...' : uploadingImage ? 'Uploading images...' : 'Save Changes'}
                 </button>
               </div>
             </div>
