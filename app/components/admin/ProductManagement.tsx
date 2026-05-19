@@ -12,7 +12,7 @@ import {
   XMarkIcon
 } from '@heroicons/react/24/outline'
 import api from '@/app/lib/admin/api'
-import { processProductImages, normalizeImageUrl } from '@/app/lib/admin/image-mapping'
+import { processProductImages, normalizeImageUrl, IMAGE_PLACEHOLDER } from '@/app/lib/admin/image-mapping'
 import EditProductModal from './EditProductModal'
 import toast from 'react-hot-toast'
 import { ProductGridSkeleton, TableSkeleton } from '@/app/components/ui/Skeletons'
@@ -909,7 +909,7 @@ function ProductCard({ product, onToggleActive, onEdit }: {
   // Get the main image or fallback
   const mainImage = product.images && product.images.length > 0 
     ? product.images[0] 
-    : { url: 'https://via.placeholder.com/300x200?text=No+Image', alt: product.name };
+    : { url: IMAGE_PLACEHOLDER, alt: product.name };
   
   // Format prices
   const price = typeof product.price === 'string' 
@@ -941,7 +941,7 @@ function ProductCard({ product, onToggleActive, onEdit }: {
           className="w-full h-48 object-cover"
           onError={(e) => {
             // Fallback to placeholder if image fails to load
-            e.currentTarget.src = 'https://via.placeholder.com/300x200?text=Image+Error';
+            e.currentTarget.src = IMAGE_PLACEHOLDER;
           }}
         />
       </div>
@@ -990,7 +990,7 @@ function ProductTable({ products, onToggleActive, onEdit }: {
               // Get the main image or fallback
               const mainImage = product.images && product.images.length > 0 
                 ? product.images[0] 
-                : { url: 'https://via.placeholder.com/50x50?text=No+Image', alt: product.name };
+                : { url: IMAGE_PLACEHOLDER, alt: product.name };
               
               // Format prices
               const price = typeof product.price === 'string' 
@@ -1024,7 +1024,7 @@ function ProductTable({ products, onToggleActive, onEdit }: {
                         className="w-12 h-12 rounded-lg object-cover mr-4"
                         onError={(e) => {
                           // Fallback to placeholder if image fails to load
-                          e.currentTarget.src = 'https://via.placeholder.com/50x50?text=Error';
+                          e.currentTarget.src = IMAGE_PLACEHOLDER;
                         }}
                       />
                       <div>

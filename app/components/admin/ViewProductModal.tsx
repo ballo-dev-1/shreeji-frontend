@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { normalizeImageUrl } from "@/app/lib/admin/image-mapping";
+import { normalizeImageUrl, IMAGE_PLACEHOLDER } from "@/app/lib/admin/image-mapping";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -148,7 +148,7 @@ export default function ViewProductModal({
                           className="h-80 w-full object-contain"
                           onError={(event) => {
                             event.currentTarget.src =
-                              "https://via.placeholder.com/400x400?text=Image+not+available";
+                              IMAGE_PLACEHOLDER;
                           }}
                         />
                       </div>
@@ -220,7 +220,7 @@ export default function ViewProductModal({
                               className="h-20 w-full object-cover"
                               onError={(event) => {
                                 event.currentTarget.src =
-                                  "https://via.placeholder.com/100x100?text=Image";
+                                  IMAGE_PLACEHOLDER;
                               }}
                             />
                             {image.isMain && (

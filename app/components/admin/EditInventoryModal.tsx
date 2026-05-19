@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { XMarkIcon, ExclamationTriangleIcon, PlusIcon, MinusIcon, PhotoIcon } from '@heroicons/react/24/outline';
 import api from '@/app/lib/admin/api';
-import { normalizeImageUrl } from '@/app/lib/admin/image-mapping';
+import { normalizeImageUrl, IMAGE_PLACEHOLDER } from '@/app/lib/admin/image-mapping';
 import toast from 'react-hot-toast';
 
 interface Product {
@@ -338,7 +338,7 @@ export default function EditInventoryModal({
                       alt={product.images?.[mainImageIndex]?.alt || product.name || "Product image"}
                       className="w-full h-full object-contain min-h-[15rem]"
                       onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src = 'https://via.placeholder.com/400x400?text=No+Image';
+                        (e.currentTarget as HTMLImageElement).src = IMAGE_PLACEHOLDER;
                       }}
                     />
                   </div>
@@ -382,7 +382,7 @@ export default function EditInventoryModal({
                         alt={image.alt || `Thumbnail ${index + 1}`}
                         className="w-full h-full object-contain"
                         onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).src = 'https://via.placeholder.com/100x100?text=Error';
+                          (e.currentTarget as HTMLImageElement).src = IMAGE_PLACEHOLDER;
                         }}
                       />
                     ) : (
