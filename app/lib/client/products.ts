@@ -113,6 +113,14 @@ function transformProduct(nestProduct: any): any {
           if (productId === 1) {
             console.log(`[DEBUG] Product ${productId} specs transformed:`, specs, `(${keys.length} keys)`);
           }
+          // Rebuild object in specOrder if available (jsonb destroys insertion order)
+          const order: string[] | null = Array.isArray(productData.specOrder) ? productData.specOrder : null;
+          if (order && order.length > 0) {
+            const ordered: Record<string, any> = {};
+            order.forEach(k => { if (k in specs) ordered[k] = specs[k]; });
+            Object.keys(specs).forEach(k => { if (!(k in ordered)) ordered[k] = specs[k]; });
+            return ordered;
+          }
           return specs;
         })(),
         'special feature': (() => {

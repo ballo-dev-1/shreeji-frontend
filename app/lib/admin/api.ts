@@ -162,6 +162,7 @@ class ApiClient {
       tagline: data.tagline,
       description: data.description,
       specs: data.specs,
+      specOrder: data.specs ? Object.keys(data.specs) : undefined,
       specialFeature: data.specialFeature,
       images: data.images || [],
       dimensions: data.Dimensions || data.dimensions,
@@ -238,7 +239,10 @@ class ApiClient {
     }
     if (productData.tagline !== undefined) updateData.tagline = productData.tagline;
     if (productData.description !== undefined) updateData.description = productData.description;
-    if (productData.specs !== undefined) updateData.specs = productData.specs;
+    if (productData.specs !== undefined) {
+      updateData.specs = productData.specs;
+      updateData.specOrder = Object.keys(productData.specs);
+    }
     if (productData.specialFeature !== undefined) updateData.specialFeature = productData.specialFeature;
     if (productData.images !== undefined) updateData.images = productData.images;
     if (productData.Dimensions !== undefined || productData.dimensions !== undefined) {
