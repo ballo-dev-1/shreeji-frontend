@@ -707,6 +707,48 @@ function AttributeInput({
   );
 }
 
+const VERCEL_MAX_UPLOAD_BYTES = 4_000_000;
+
+async function compressImageForUpload(file: File): Promise<File> {
+  if (file.size <= VERCEL_MAX_UPLOAD_BYTES || typeof window === 'undefined') return file;
+
+  const canvasSafe = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type);
+  if (!canvasSafe) return file;
+
+  const bitmap = await createImageBitmap(file);
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) { bitmap.close(); return file; }
+
+  let width = bitmap.width;
+  let height = bitmap.height;
+  const outputMime = file.type === 'image/png' ? 'image/jpeg' : file.type;
+  let quality = 0.88;
+  let result: Blob | null = null;
+
+  try {
+    for (let attempt = 0; attempt < 10; attempt++) {
+      canvas.width = Math.max(320, Math.round(width));
+      canvas.height = Math.max(320, Math.round(height));
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+
+      const blob = await new Promise<Blob | null>(r => canvas.toBlob(r, outputMime, quality));
+      if (!blob) break;
+      result = blob;
+      if (blob.size <= VERCEL_MAX_UPLOAD_BYTES) break;
+
+      if (quality > 0.55) quality -= 0.1;
+      else { width *= 0.85; height *= 0.85; }
+    }
+  } finally {
+    bitmap.close();
+  }
+
+  if (!result || result.size > file.size) return file;
+  return new File([result], file.name.replace(/\.[^.]+$/, outputMime === 'image/jpeg' ? '.jpg' : '.webp'), { type: outputMime });
+}
+
 export default function EditProductModal({ isOpen, onClose, product, onSave, onDelete, onSuccess }: EditProductModalProps) {
   // Determine if we're in edit mode (product provided) or create mode (no product)
   const isEditMode = !!product;
@@ -1030,6 +1072,11 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
       };
 
         setFormData(initialFormData);
+        // Restore saved spec order (overrides the key-order effect so drag-and-drop persists)
+        const savedSpecOrder = (product as any).specOrder;
+        if (Array.isArray(savedSpecOrder) && savedSpecOrder.length > 0) {
+          setSpecOrder(savedSpecOrder);
+        }
         // Initialize currency fields from basePrice (stored in ZMW)
         const basePriceZMWValue = initialFormData.basePrice || 0;
         const basePriceUSDValue = basePriceZMWValue > 0 ? (basePriceZMWValue / USD_TO_ZMW_RATE).toFixed(2) : '';
@@ -1590,7 +1637,8 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
           fileName: imageFiles[i].name 
         });
         
-        const uploadResult = await api.uploadImage(imageFiles[i]);
+        const compressed = await compressImageForUpload(imageFiles[i]);
+        const uploadResult = await api.uploadImage(compressed);
         
         uploadedImages.push({
           url: uploadResult.url,
@@ -2751,6 +2799,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
           ...formData,
           documentId: formData.documentId || product?.documentId,
           slug: slug,
+          specOrder: specOrder.filter(k => k in (formData.specs || {})),
           price: sellingPrice.toString(), // Selling price = Base Price + VAT
           discountedPrice: discountPrice > 0 ? discountPrice.toString() : '0',
           basePrice: basePrice, // Base price (ZMW)
@@ -2806,6 +2855,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
         const productData = {
           ...formData,
           slug: slug,
+          specOrder: specOrder.filter(k => k in (formData.specs || {})),
           price: sellingPrice.toString(),
           discountedPrice: discountPrice > 0 ? discountPrice.toString() : '0',
           basePrice: basePrice,
