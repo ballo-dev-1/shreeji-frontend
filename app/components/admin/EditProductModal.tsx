@@ -707,10 +707,10 @@ function AttributeInput({
   );
 }
 
-const VERCEL_MAX_UPLOAD_BYTES = 4_000_000;
+const MAX_UPLOAD_BYTES = 999_000;
 
 async function compressImageForUpload(file: File): Promise<File> {
-  if (file.size <= VERCEL_MAX_UPLOAD_BYTES || typeof window === 'undefined') return file;
+  if (file.size <= MAX_UPLOAD_BYTES || typeof window === 'undefined') return file;
 
   const canvasSafe = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type);
   if (!canvasSafe) return file;
@@ -736,7 +736,7 @@ async function compressImageForUpload(file: File): Promise<File> {
       const blob = await new Promise<Blob | null>(r => canvas.toBlob(r, outputMime, quality));
       if (!blob) break;
       result = blob;
-      if (blob.size <= VERCEL_MAX_UPLOAD_BYTES) break;
+      if (blob.size <= MAX_UPLOAD_BYTES) break;
 
       if (quality > 0.55) quality -= 0.1;
       else { width *= 0.85; height *= 0.85; }
@@ -4958,7 +4958,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                     <CloudArrowUpIcon className="h-6 w-6 text-primary-600" />
                     <div className="flex-1">
                       <div className="font-medium text-gray-900">Upload File</div>
-                      <div className="text-sm text-gray-500">Upload an image from your computer · Max 4 MB</div>
+                      <div className="text-sm text-gray-500">Upload an image from your computer · Max 1 MB</div>
                     </div>
                   </button>
 

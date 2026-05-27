@@ -480,7 +480,7 @@ class ApiClient {
 
     if (!response.ok) {
       if (response.status === 413) {
-        const error: any = new Error('Image file is too large. Please use a file under 4 MB, or compress the image and try again.');
+        const error: any = new Error('Image file is too large. Please use a file under 1 MB, or compress the image and try again.');
         error.status = 413;
         throw error;
       }
