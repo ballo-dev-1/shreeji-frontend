@@ -457,7 +457,7 @@ class ApiClient {
     });
   }
 
-  // Image Upload API - Use Next.js API route for file uploads
+  // Image Upload API - bypass Vercel proxy when backend has HTTPS (avoids 4.5 MB Vercel limit)
   async uploadImage(file: File): Promise<{ id: number; url: string; name: string }> {
     const formData = new FormData();
     formData.append('file', file);
@@ -471,11 +471,12 @@ class ApiClient {
       }
     }
 
-    // Use Next.js API route for file uploads
-    const response = await fetch('/api/upload', {
+    // Go direct when backend is HTTPS — Vercel has a hard 4.5 MB body limit on proxy routes
+    const uploadUrl = shouldUseProxy() ? '/api/upload' : `${API_URL}/files/upload`;
+    const response = await fetch(uploadUrl, {
       method: 'POST',
-      headers: headers, // Include Authorization header
-      body: formData, // Don't set Content-Type - browser will set it with boundary
+      headers: headers,
+      body: formData,
     });
 
     if (!response.ok) {
@@ -506,7 +507,8 @@ class ApiClient {
     return {
       id: data.id || Date.now(),
       url: data.url,
-      name: data.name || file.name,
+      // direct backend returns originalName; proxy returns name
+      name: data.name || data.originalName || file.name,
     };
   }
 
