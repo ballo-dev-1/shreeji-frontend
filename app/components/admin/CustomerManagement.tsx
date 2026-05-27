@@ -575,7 +575,42 @@ export default function CustomerManagement() {
       {/* Customers Display */}
       {viewMode === 'table' ? (
         <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Mobile card list */}
+          <div className="sm:hidden divide-y divide-gray-200">
+            {filteredCustomers.length === 0 ? (
+              <p className="px-4 py-8 text-center text-sm text-gray-500">No customers found</p>
+            ) : (
+              filteredCustomers.map((customer) => (
+                <div
+                  key={customer.id}
+                  className="p-4 cursor-pointer hover:bg-gray-50"
+                  onClick={() => goToCustomerDetail(customer)}
+                >
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="h-9 w-9 rounded-full bg-primary-500 flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-medium text-white">
+                        {customer.name.split(' ').map((n: string) => n[0]).join('')}
+                      </span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-gray-900 truncate">{customer.name}</p>
+                      <p className="text-xs text-gray-500 truncate">{customer.email}</p>
+                    </div>
+                    <span className={clsx('inline-flex px-2 py-0.5 text-xs font-semibold rounded-full flex-shrink-0', statusColors[customer.status])}>
+                      {customer.status.charAt(0).toUpperCase() + customer.status.slice(1)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-500 pl-12">
+                    <span>{customer.totalOrders} orders · {currencyFormatter(Number(customer.totalSpent || 0))}</span>
+                    <span>Last: {customer.lastOrder !== 'N/A' ? new Date(customer.lastOrder).toLocaleDateString() : 'N/A'}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>

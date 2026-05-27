@@ -172,7 +172,7 @@ export default function CouponManagement() {
     <Layout currentPage="Coupons" pageTitle="Coupon Management">
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Coupon Management</h1>
             <p className="mt-1 text-sm text-gray-500">
@@ -181,7 +181,7 @@ export default function CouponManagement() {
           </div>
           <button
             onClick={handleAdd}
-            className="btn-primary flex items-center"
+            className="btn-primary flex items-center self-start sm:self-auto"
           >
             <PlusIcon className="w-5 h-5 mr-2" />
             Create Coupon
@@ -227,7 +227,53 @@ export default function CouponManagement() {
 
         {/* Coupons Table */}
         <div className="card overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Mobile card list */}
+          <div className="sm:hidden divide-y divide-gray-200">
+            {filteredCoupons.length === 0 ? (
+              <p className="px-4 py-8 text-center text-sm text-gray-500">
+                {searchTerm || statusFilter !== 'all' ? 'No coupons match your criteria' : 'No coupons yet. Create your first coupon.'}
+              </p>
+            ) : (
+              filteredCoupons.map((coupon) => {
+                const status = getCouponStatus(coupon);
+                return (
+                  <div key={coupon.id} className="p-4">
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-1.5">
+                        <TagIcon className="w-4 h-4 text-primary-600 flex-shrink-0" />
+                        <span className="font-semibold text-primary-600 text-sm">{coupon.code}</span>
+                      </div>
+                      <span className={`inline-flex px-2 py-0.5 text-xs font-semibold rounded-full flex-shrink-0 ${getStatusColor(status)}`}>
+                        {status}
+                      </span>
+                    </div>
+                    {coupon.description && <p className="text-xs text-gray-500 mb-1.5">{coupon.description}</p>}
+                    <div className="flex items-center justify-between text-xs text-gray-600 mb-2">
+                      <span>
+                        {coupon.type === 'percentage' ? `${coupon.value}%` : currencyFormatter(Number(coupon.value || 0))} off
+                        {coupon.maximumDiscountAmount && coupon.type === 'percentage' && ` (max ${currencyFormatter(Number(coupon.maximumDiscountAmount || 0))})`}
+                      </span>
+                      <span>
+                        Used: {coupon.usageCount || 0}{coupon.usageLimit ? ` / ${coupon.usageLimit}` : ''} ·{' '}
+                        {coupon.validUntil ? `Expires ${new Date(coupon.validUntil).toLocaleDateString()}` : 'No expiry'}
+                      </span>
+                    </div>
+                    <div className="flex gap-3">
+                      <button onClick={() => handleEdit(coupon)} className="text-blue-600 text-xs flex items-center gap-1">
+                        <PencilIcon className="w-4 h-4" /> Edit
+                      </button>
+                      <button onClick={() => handleDelete(coupon.id)} className="text-red-600 text-xs flex items-center gap-1">
+                        <TrashIcon className="w-4 h-4" /> Delete
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Desktop table */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>

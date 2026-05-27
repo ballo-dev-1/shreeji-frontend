@@ -581,7 +581,41 @@ export default function OrderManagement() {
 
       {/* Orders Table */}
       <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile card list */}
+        <div className="sm:hidden divide-y divide-gray-200">
+          {filteredOrders.length === 0 ? (
+            <p className="px-4 py-8 text-center text-sm text-gray-500">No orders found</p>
+          ) : (
+            filteredOrders.map((order) => (
+              <div
+                key={order.id}
+                className="p-4 cursor-pointer hover:bg-gray-50"
+                onClick={() => router.push(`/admin/orders/${order.orderId}`)}
+              >
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <span className="font-medium text-gray-900 text-sm">{order.id}</span>
+                  <div className="flex flex-wrap justify-end gap-1">
+                    <span className={clsx('inline-flex px-2 py-0.5 text-xs font-semibold rounded-full', statusColors[order.status as keyof typeof statusColors] || 'bg-gray-100 text-gray-800')}>
+                      {order.status?.charAt(0).toUpperCase() + order.status?.slice(1) || order.status}
+                    </span>
+                    <span className={clsx('inline-flex px-2 py-0.5 text-xs font-semibold rounded-full', paymentStatusColors[order.paymentStatus as keyof typeof paymentStatusColors] || 'bg-gray-100 text-gray-800')}>
+                      {PAYMENT_STATUSES.find(p => p.value === order.paymentStatus)?.label ?? order.paymentStatus}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-800 mb-0.5">{order.customer}</p>
+                <p className="text-xs text-gray-500 mb-2">{order.email}</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-gray-900">{currencyFormatter(Number(order.total || 0))}</span>
+                  <span className="text-xs text-gray-500">{new Date(order.date).toLocaleDateString()}</span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>

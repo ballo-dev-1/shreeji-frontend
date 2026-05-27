@@ -339,7 +339,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Revenue Chart Card */}
           <div className="card p-6 pb-14">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Revenue Statistics</h3>
                 {revenueTrend && (
@@ -389,7 +389,7 @@ export default function Dashboard() {
 
           {/* Orders Chart Card */}
           <div className="card p-6 pb-14">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Orders Statistics</h3>
               </div>

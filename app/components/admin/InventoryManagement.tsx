@@ -1076,7 +1076,57 @@ export default function InventoryManagement() {
 
       {/* Inventory Table */}
       <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile card list */}
+        <div className="sm:hidden divide-y divide-gray-200">
+          {filteredProducts.length === 0 ? (
+            <div className="text-center py-12 px-4">
+              <CubeIcon className="mx-auto h-10 w-10 text-gray-400" />
+              <p className="mt-2 text-sm text-gray-500">No products found</p>
+            </div>
+          ) : (
+            filteredProducts.map((product) => {
+              const hasVariants = product.variants && product.variants.length > 0;
+              let quantity: number;
+              if (hasVariants) {
+                quantity = product.variants!.reduce((sum: number, variant: any) => {
+                  if (selectedWarehouse) {
+                    const key = `${product.id}-${variant.id}`;
+                    const variantQty = warehouseVariantInventory[key]?.quantity;
+                    if (variantQty !== undefined) return sum + variantQty;
+                  }
+                  return sum + (variant.stockQuantity || 0);
+                }, 0);
+              } else {
+                quantity = selectedWarehouse && warehouseInventory[product.id]
+                  ? warehouseInventory[product.id].quantity
+                  : product.stockQuantity;
+              }
+              const stockStatus = computeStockStatus(quantity, product.minStockLevel, product.stockStatus);
+              return (
+                <div
+                  key={product.id}
+                  className="p-4 cursor-pointer hover:bg-gray-50"
+                  onClick={() => { setEditingProduct(product); setIsEditModalOpen(true); }}
+                >
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <p className="text-sm font-medium text-gray-900 leading-snug">{product.name}</p>
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium flex-shrink-0 ${getStatusClass(stockStatus)}`}>
+                      {stockStatus.replace('-', ' ')}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-2">{product.SKU || 'No SKU'} · {product.brand} · {product.category}</p>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-600">Stock: <span className="font-medium text-gray-900">{quantity}/{product.maxStockLevel}</span></span>
+                    <span className="text-gray-600">Value: <span className="font-medium text-gray-900">{currencyFormatter(Number((product.basePrice || 0) * quantity))}</span></span>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden sm:block overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
@@ -1309,17 +1359,16 @@ export default function InventoryManagement() {
               })}
             </tbody>
           </table>
+          {filteredProducts.length === 0 && (
+            <div className="text-center py-12">
+              <CubeIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No products found</h3>
+              <p className="mt-1 text-sm text-gray-500">
+                {searchTerm || filterStatus ? 'Try adjusting your search or filter criteria.' : 'No inventory data available.'}
+              </p>
+            </div>
+          )}
         </div>
-
-        {filteredProducts.length === 0 && (
-          <div className="text-center py-12">
-            <CubeIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No products found</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              {searchTerm || filterStatus ? 'Try adjusting your search or filter criteria.' : 'No inventory data available.'}
-            </p>
-          </div>
-        )}
       </div>
 
       {/* Edit Inventory Modal */}

@@ -980,14 +980,52 @@ function ProductCard({ product, onToggleActive, onEdit }: {
   )
 }
 
-function ProductTable({ products, onToggleActive, onEdit }: { 
-  products: Product[], 
+function ProductTable({ products, onToggleActive, onEdit }: {
+  products: Product[],
   onToggleActive: (id: number) => void,
   onEdit: (product: Product) => void
 }) {
   return (
     <div className="card overflow-hidden">
-      <div className="overflow-x-auto">
+      {/* Mobile card list */}
+      <div className="sm:hidden divide-y divide-gray-200">
+        {products.map((product) => {
+          const mainImage = product.images && product.images.length > 0
+            ? product.images[0]
+            : { url: IMAGE_PLACEHOLDER, alt: product.name };
+          const price = typeof product.price === 'string'
+            ? parseFloat(product.price.replace(/[^0-9.]/g, '')) || 0
+            : Number(product.price) || 0;
+          return (
+            <div
+              key={`pm-${product.id}`}
+              className="p-4 flex items-center gap-3 cursor-pointer hover:bg-gray-50"
+              onClick={() => onEdit(product)}
+            >
+              <img
+                src={normalizeImageUrl(mainImage.url)}
+                alt={mainImage.alt || product.name}
+                className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
+                onError={(e) => { e.currentTarget.src = IMAGE_PLACEHOLDER; }}
+              />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
+                <p className="text-xs text-gray-500 truncate">{product.category}{product.brand ? ` · ${product.brand}` : ''}</p>
+                <p className="text-sm font-semibold text-gray-800 mt-0.5">{currencyFormatter(price)}</p>
+              </div>
+              <button
+                onClick={(e) => { e.stopPropagation(); onToggleActive(product.id); }}
+                className={`px-2 py-1 text-xs rounded-full flex-shrink-0 ${product.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}
+              >
+                {product.isActive ? 'Active' : 'Inactive'}
+              </button>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop table */}
+      <div className="hidden sm:block overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>

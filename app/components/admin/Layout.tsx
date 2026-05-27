@@ -164,6 +164,7 @@ export default function Layout({ children, currentPage = 'Dashboard', pageTitle 
                 <Link
                   key={item.name}
                   href={item.href}
+                  onClick={() => setSidebarOpen(false)}
                   className={clsx(
                     'group flex items-center px-4 py-3 text-sm font-medium rounded-2xl transition-all duration-200',
                     isActive
