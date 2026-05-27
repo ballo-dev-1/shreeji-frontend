@@ -712,25 +712,34 @@ const MAX_UPLOAD_BYTES = 999_000;
 async function compressImageForUpload(file: File): Promise<File> {
   if (file.size <= MAX_UPLOAD_BYTES || typeof window === 'undefined') return file;
 
-  const canvasSafe = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(file.type);
+  const canvasSafe = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/avif'].includes(file.type);
   if (!canvasSafe) return file;
 
-  const bitmap = await createImageBitmap(file);
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    return file;
+  }
+
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   if (!ctx) { bitmap.close(); return file; }
 
   let width = bitmap.width;
   let height = bitmap.height;
-  const outputMime = file.type === 'image/png' ? 'image/jpeg' : file.type;
-  let quality = 0.88;
+  // Always output JPEG — most efficient for photos and universally supported.
+  const outputMime = 'image/jpeg';
+  let quality = 0.85;
   let result: Blob | null = null;
 
   try {
-    for (let attempt = 0; attempt < 10; attempt++) {
-      canvas.width = Math.max(320, Math.round(width));
-      canvas.height = Math.max(320, Math.round(height));
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let attempt = 0; attempt < 15; attempt++) {
+      canvas.width = Math.max(200, Math.round(width));
+      canvas.height = Math.max(200, Math.round(height));
+      // White background so transparent PNGs/WebPs don't become black JPEGs.
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
 
       const blob = await new Promise<Blob | null>(r => canvas.toBlob(r, outputMime, quality));
@@ -738,15 +747,15 @@ async function compressImageForUpload(file: File): Promise<File> {
       result = blob;
       if (blob.size <= MAX_UPLOAD_BYTES) break;
 
-      if (quality > 0.55) quality -= 0.1;
-      else { width *= 0.85; height *= 0.85; }
+      if (quality > 0.4) quality -= 0.1;
+      else { width *= 0.75; height *= 0.75; }
     }
   } finally {
     bitmap.close();
   }
 
-  if (!result || result.size > file.size) return file;
-  return new File([result], file.name.replace(/\.[^.]+$/, outputMime === 'image/jpeg' ? '.jpg' : '.webp'), { type: outputMime });
+  if (!result) return file;
+  return new File([result], file.name.replace(/\.[^.]+$/, '.jpg'), { type: outputMime });
 }
 
 export default function EditProductModal({ isOpen, onClose, product, onSave, onDelete, onSuccess }: EditProductModalProps) {
@@ -1649,6 +1658,9 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
         });
 
         const compressed = await compressImageForUpload(filesToUpload[i]);
+        if (compressed.size > MAX_UPLOAD_BYTES) {
+          throw new Error(`"${filesToUpload[i].name}" is too large to upload even after compression. Please convert it to a JPEG or PNG under 5 MB and try again.`);
+        }
         const uploadResult = await api.uploadImage(compressed);
 
         uploadedImages.push({
