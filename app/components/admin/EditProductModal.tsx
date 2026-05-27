@@ -2860,7 +2860,6 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
         }
         showToast('success', 'Product saved successfully!');
         originalProductRef.current = null;
-        onClose();
       } else {
         // Create mode: create new product
         // Upload images first if there are any file uploads needed
@@ -2943,7 +2942,6 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
         if (onSuccess) {
           onSuccess();
         }
-        onClose();
       }
     } catch (error: any) {
       console.error('Error saving product:', error);
@@ -4960,7 +4958,7 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                     <CloudArrowUpIcon className="h-6 w-6 text-primary-600" />
                     <div className="flex-1">
                       <div className="font-medium text-gray-900">Upload File</div>
-                      <div className="text-sm text-gray-500">Upload an image from your computer</div>
+                      <div className="text-sm text-gray-500">Upload an image from your computer · Max 4 MB</div>
                     </div>
                   </button>
 

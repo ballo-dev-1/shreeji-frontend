@@ -13,7 +13,8 @@ import {
   CheckIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline'
-import toast from 'react-hot-toast'
+import toast from 'react-hot-toast';
+import { friendlyError } from '@/app/lib/error-messages';
 import { generateVariantSKU, generateUniqueVariantSKU } from '@/utils/sku-generator'
 import { currencyFormatter } from '@/app/components/checkout/currency-formatter'
 
@@ -212,7 +213,7 @@ export default function ProductVariantsManager({ productId, productName }: Produ
       setVariants(variants)
     } catch (error: any) {
       console.error('Failed to load variants:', error)
-      toast.error(error.message || 'Failed to load variants')
+      toast.error(friendlyError(error, 'Could not load variants. Please refresh the page.'))
     } finally {
       setLoading(false)
     }
@@ -225,7 +226,7 @@ export default function ProductVariantsManager({ productId, productName }: Produ
       setIsCreating(false)
       loadVariants()
     } catch (error: any) {
-      toast.error(error.message || 'Failed to create variant')
+      toast.error(friendlyError(error, 'Could not create variant. Please try again.'))
       throw error
     }
   }
@@ -237,7 +238,7 @@ export default function ProductVariantsManager({ productId, productName }: Produ
       // Don't set editingVariantId here - let the form handle it
       loadVariants()
     } catch (error: any) {
-      toast.error(error.message || 'Failed to update variant')
+      toast.error(friendlyError(error, 'Could not update variant. Please try again.'))
       throw error
     }
   }
@@ -252,7 +253,7 @@ export default function ProductVariantsManager({ productId, productName }: Produ
       toast.success('Variant deleted successfully')
       loadVariants()
     } catch (error: any) {
-      toast.error(error.message || 'Failed to delete variant')
+      toast.error(friendlyError(error, 'Could not delete variant. Please try again.'))
     }
   }
 

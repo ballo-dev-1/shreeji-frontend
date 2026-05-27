@@ -92,14 +92,21 @@ export async function POST(request: NextRequest) {
     });
 
     if (!response.ok) {
+      if (response.status === 413) {
+        return NextResponse.json(
+          { error: 'Image file is too large. Please use a file under 10 MB, or compress the image and try again.' },
+          { status: 413 },
+        );
+      }
+
       const errorText = await response.text();
-      let errorMessage = `Image upload failed: ${response.status} ${response.statusText}`;
+      let errorMessage = 'Image upload failed. Please try again.';
 
       try {
         const errorJson = JSON.parse(errorText);
         errorMessage = errorJson.error?.message || errorJson.message || errorMessage;
       } catch {
-        if (errorText) {
+        if (errorText && !errorText.startsWith('<')) {
           errorMessage = errorText;
         }
       }

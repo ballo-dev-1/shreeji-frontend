@@ -114,6 +114,8 @@ export interface CheckoutResponse {
   };
 }
 
+import { friendlyHttpError } from '@/app/lib/error-messages';
+
 const API_URL = process.env.NEXT_PUBLIC_ECOM_API_URL?.replace(/\/$/, '') || 'http://localhost:4000';
 
 // Determine if we should use proxy (when frontend is HTTPS and backend is HTTP)
@@ -162,20 +164,19 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
         }
       }
       
-      // Don't log 404s for product lookups (they're handled gracefully)
-      // Also include status code in error message for better error detection
-      const errorMessage = message || `Request failed: ${response.status} ${response.statusText}`
-      const fullErrorMessage = `${errorMessage} (${response.status})`
-      // #region agent log
-      if (url.includes('/checkout')) {
-        fetch('http://127.0.0.1:7246/ingest/e84e78e7-6a89-4f9d-aa7c-e6b9fffa749d',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'api.ts:checkout-fail',message:'Checkout API non-ok',data:{status:response.status,errorMessage,url,runId:'pay-click'},timestamp:Date.now(),hypothesisId:'B,D'})}).catch(()=>{});
-      }
-      // #endregion
+      const rawMessage = message || '';
       if (response.status !== 404 || !url.includes('/products/')) {
-        console.error(`API request failed: ${response.status} ${response.statusText}`, { url, message: errorMessage })
+        console.error(`API request failed: ${response.status} ${response.statusText}`, { url, message: rawMessage });
       }
-      
-      throw new Error(fullErrorMessage)
+
+      // 5xx: always use a safe generic message — server errors are not meaningful to users.
+      // 4xx: use the backend message if it exists (it's usually meaningful), else map by status.
+      const userMessage =
+        response.status >= 500
+          ? friendlyHttpError(response.status)
+          : rawMessage || friendlyHttpError(response.status);
+
+      throw new Error(userMessage)
     }
 
     return response.json()

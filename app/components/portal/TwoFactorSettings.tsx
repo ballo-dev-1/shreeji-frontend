@@ -11,7 +11,8 @@ import {
   ExclamationTriangleIcon,
   CheckCircleIcon,
 } from '@heroicons/react/24/outline'
-import toast from 'react-hot-toast'
+import toast from 'react-hot-toast';
+import { friendlyError } from '@/app/lib/error-messages';
 import { TwoFactorSettingsSkeleton } from '@/app/components/ui/Skeletons'
 
 interface TwoFactorSettingsProps {
@@ -62,7 +63,7 @@ export default function TwoFactorSettings({ standalone = false }: TwoFactorSetti
       }
     } catch (error: any) {
       console.error('Failed to load 2FA status:', error)
-      toast.error(error.message || 'Failed to load 2FA status')
+      toast.error(friendlyError(error, 'Could not load your 2FA settings. Please refresh the page.'))
     } finally {
       setLoading(false)
     }
@@ -76,7 +77,7 @@ export default function TwoFactorSettings({ standalone = false }: TwoFactorSetti
       setManualEntryKey(response.manualEntryKey)
       setStep('verify')
     } catch (error: any) {
-      toast.error(error.message || 'Failed to generate 2FA secret')
+      toast.error(friendlyError(error, 'Could not set up 2FA. Please try again.'))
     } finally {
       setLoading(false)
     }
@@ -97,7 +98,7 @@ export default function TwoFactorSettings({ standalone = false }: TwoFactorSetti
       toast.success('2FA enabled successfully!')
       loadStatus()
     } catch (error: any) {
-      toast.error(error.message || 'Failed to enable 2FA')
+      toast.error(friendlyError(error, 'Could not enable 2FA. Please check your code and try again.'))
     } finally {
       setLoading(false)
     }
@@ -115,7 +116,7 @@ export default function TwoFactorSettings({ standalone = false }: TwoFactorSetti
       setStep('status')
       loadStatus()
     } catch (error: any) {
-      toast.error(error.message || 'Failed to disable 2FA')
+      toast.error(friendlyError(error, 'Could not disable 2FA. Please try again.'))
     } finally {
       setLoading(false)
     }
@@ -133,7 +134,7 @@ export default function TwoFactorSettings({ standalone = false }: TwoFactorSetti
       setShowBackupCodes(true)
       toast.success('Backup codes regenerated successfully!')
     } catch (error: any) {
-      toast.error(error.message || 'Failed to regenerate backup codes')
+      toast.error(friendlyError(error, 'Could not regenerate backup codes. Please try again.'))
     } finally {
       setLoading(false)
     }

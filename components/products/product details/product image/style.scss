@@ -1,3 +1,9 @@
+.product-details-image__main {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+}
+
 .active-image-select {
   border: 3px solid rgba(128, 112, 69, 10);
   padding: 0.2rem;

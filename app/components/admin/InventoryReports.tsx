@@ -12,6 +12,7 @@ import {
 import api from '@/app/lib/admin/api';
 import Layout from './Layout';
 import toast from 'react-hot-toast';
+import { friendlyError } from '@/app/lib/error-messages';
 import { TableSkeleton } from '@/app/components/ui/Skeletons';
 
 interface Warehouse {
@@ -84,7 +85,7 @@ export default function InventoryReports() {
       setReportData(response?.data || []);
     } catch (error: any) {
       console.error('Error fetching report:', error);
-      toast.error('Failed to load report');
+      toast.error('Could not load the report. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -156,7 +157,7 @@ export default function InventoryReports() {
       toast.success(`Report exported as ${format.toUpperCase()}`);
     } catch (error: any) {
       console.error('Error exporting report:', error);
-      toast.error('Failed to export report');
+      toast.error('Could not export the report. Please try again.');
     }
   };
 

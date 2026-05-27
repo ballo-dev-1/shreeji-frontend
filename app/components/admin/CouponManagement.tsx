@@ -10,7 +10,8 @@ import {
   TagIcon
 } from '@heroicons/react/24/outline'
 import api from '@/app/lib/admin/api'
-import toast from 'react-hot-toast'
+import toast from 'react-hot-toast';
+import { friendlyError } from '@/app/lib/error-messages';
 import { currencyFormatter } from '@/app/components/checkout/currency-formatter'
 import { mapFormToCouponPayload, type CouponFormData } from './couponMapper'
 import { TableSkeleton } from '@/app/components/ui/Skeletons'
@@ -65,7 +66,7 @@ export default function CouponManagement() {
     } catch (error: any) {
       console.error('Error fetching coupons:', error)
       setError(error.message || 'Failed to load coupons')
-      toast.error('Failed to load coupons')
+      toast.error('Could not load coupons. Please refresh the page.')
     } finally {
       setLoading(false)
     }
@@ -112,7 +113,7 @@ export default function CouponManagement() {
       fetchCoupons()
     } catch (error: any) {
       console.error('Error deleting coupon:', error)
-      toast.error(error.message || 'Failed to delete coupon')
+      toast.error(friendlyError(error, 'Could not delete coupon. Please try again.'))
     }
   }
 

@@ -16,7 +16,7 @@ export default function GlobalError({
               Something went wrong!
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              {error.message || 'An unexpected error occurred'}
+              Something went wrong while loading this page. This is usually temporary — please try again.
             </p>
             <button
               onClick={() => reset()}

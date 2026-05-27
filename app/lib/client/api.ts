@@ -1,5 +1,6 @@
 // Client API - Connects to NestJS backend for orders, profile, and addresses
 import clientAuth from './auth';
+import { friendlyHttpError } from '@/app/lib/error-messages';
 import { getLoginUrl } from './redirectToLogin';
 
 const API_URL = process.env.NEXT_PUBLIC_ECOM_API_URL?.replace(/\/$/, '') || 'http://localhost:4000';
@@ -67,16 +68,22 @@ class ClientApiClient {
       }
       
       const errorText = await response.text();
-      let errorMessage = `API request failed: ${response.status} ${response.statusText}`;
-
+      let backendMessage: string | null = null;
       try {
         const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.message || errorJson.error?.message || errorMessage;
+        backendMessage = errorJson.message || errorJson.error?.message || null;
       } catch {
-        if (errorText) {
-          errorMessage = errorText;
+        if (errorText && !errorText.startsWith('<')) {
+          backendMessage = errorText;
         }
       }
+
+      // 5xx: always hide server internals. 4xx: use backend message if present.
+      const errorMessage =
+        response.status >= 500
+          ? friendlyHttpError(response.status)
+          : backendMessage || friendlyHttpError(response.status);
+
       throw new Error(errorMessage);
     }
 

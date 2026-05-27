@@ -294,7 +294,7 @@ export default function OrderManagement() {
       });
     } catch (error: any) {
       console.error('Error exporting CSV:', error);
-      alert(error.message || 'Failed to export orders');
+      toast.error(error.message || 'Could not export orders. Please try again.');
     } finally {
       setExporting(false);
     }
@@ -311,7 +311,7 @@ export default function OrderManagement() {
       });
     } catch (error: any) {
       console.error('Error exporting PDF:', error);
-      alert(error.message || 'Failed to export orders');
+      toast.error(error.message || 'Could not export orders. Please try again.');
     } finally {
       setExporting(false);
     }

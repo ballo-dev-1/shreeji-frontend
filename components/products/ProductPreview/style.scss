@@ -83,36 +83,30 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .products-page-product:hover img {
-    // background: white;
+  .products-page-product:hover .products-page-product__image-wrapper img {
     transform: scale(1.2);
+  }
+}
+
+.products-page-product__image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 12rem;
+  overflow: visible;
+
+  @media (min-width: 640px) {
+    height: 13rem;
+  }
+
+  @media (min-width: 768px) {
+    height: 15rem;
   }
 }
 
 .products-page-product__image {
   position: relative;
   z-index: 1;
-  width: auto;
-  height: 12rem;
-  max-height: 12rem;
-  min-height: 12rem;
-  margin: auto;
-  margin-top: -5px;
-  margin-bottom: 0px;
-  max-width: none;
   transition: all 0.15s ease-in-out !important;
-  
-  @media (min-width: 640px) {
-    height: 13rem;
-    max-height: 13rem;
-    min-height: 13rem;
-  }
-  
-  @media (min-width: 768px) {
-    height: 15rem;
-    max-height: 15rem;
-    min-height: 15rem;
-  }
 }
 
 .products-page-product::before {

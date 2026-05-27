@@ -88,14 +88,14 @@ const ProductPreview = ({product, index, additionalClass}) => {
         }
         className="w-full flex flex-col gap-2 items-center cursor-pointer"
       >
-        <div className="relative w-full">
+        <div className="products-page-product__image-wrapper">
           {product.images && product.images[0] && (
             <Image
               src={product.images[0]}
               alt={product.name || 'Product image'}
-              width={300}
-              height={300}
-              className="products-page-product__image object-cover overflow-visible product-shadow"
+              fill
+              sizes="(max-width: 640px) 150px, (max-width: 768px) 200px, 300px"
+              className="products-page-product__image object-contain product-shadow"
               unoptimized={product.images[0]?.startsWith('http') || product.images[0]?.startsWith('/api/')}
             />
           )}

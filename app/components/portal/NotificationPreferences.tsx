@@ -9,6 +9,7 @@ import {
 } from '@heroicons/react/24/outline';
 import clientApi from '@/app/lib/client/api';
 import toast from 'react-hot-toast';
+import { friendlyError } from '@/app/lib/error-messages';
 
 interface NotificationPreference {
   id: number;
@@ -54,7 +55,7 @@ export default function NotificationPreferences() {
       setPreferences(prefsMap);
     } catch (error: any) {
       console.error('Failed to load preferences:', error);
-      toast.error('Failed to load notification preferences');
+      toast.error('Could not load your notification preferences. Please refresh the page.');
     } finally {
       setLoading(false);
     }
@@ -96,7 +97,7 @@ export default function NotificationPreferences() {
       toast.success('Preferences updated');
     } catch (error: any) {
       console.error('Failed to update preference:', error);
-      toast.error(error.message || 'Failed to update preference');
+      toast.error(friendlyError(error, 'Could not save your preference. Please try again.'));
     } finally {
       setSaving((prev) => ({ ...prev, [type]: false }));
     }

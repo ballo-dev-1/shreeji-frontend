@@ -1,4 +1,6 @@
 // Admin API Client for NestJS Backend
+import { friendlyHttpError } from '@/app/lib/error-messages';
+
 const API_URL = process.env.NEXT_PUBLIC_ECOM_API_URL?.replace(/\/$/, '') || 'http://localhost:4000';
 
 // Determine if we should use proxy (when frontend is HTTPS and backend is HTTP)
@@ -76,16 +78,20 @@ class ApiClient {
       }
       
       const errorText = await response.text();
-      let errorMessage = `API request failed: ${response.status} ${response.statusText}`;
-
+      let backendMessage: string | null = null;
       try {
         const errorJson = JSON.parse(errorText);
-        errorMessage = errorJson.message || errorJson.error?.message || errorMessage;
+        backendMessage = errorJson.message || errorJson.error?.message || null;
       } catch {
-        if (errorText) {
-          errorMessage = errorText;
+        if (errorText && !errorText.startsWith('<')) {
+          backendMessage = errorText;
         }
       }
+
+      const errorMessage =
+        response.status >= 500
+          ? friendlyHttpError(response.status)
+          : backendMessage || friendlyHttpError(response.status);
 
       const error: any = new Error(errorMessage);
       error.status = response.status;
@@ -473,14 +479,20 @@ class ApiClient {
     });
 
     if (!response.ok) {
+      if (response.status === 413) {
+        const error: any = new Error('Image file is too large. Please use a file under 4 MB, or compress the image and try again.');
+        error.status = 413;
+        throw error;
+      }
+
       const errorText = await response.text();
-      let errorMessage = `Image upload failed: ${response.status} ${response.statusText}`;
+      let errorMessage = 'Image upload failed. Please try again.';
 
       try {
         const errorJson = JSON.parse(errorText);
         errorMessage = errorJson.error?.message || errorJson.message || errorMessage;
       } catch {
-        if (errorText) {
+        if (errorText && !errorText.startsWith('<')) {
           errorMessage = errorText;
         }
       }
