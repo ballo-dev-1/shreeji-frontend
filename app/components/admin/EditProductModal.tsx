@@ -3116,14 +3116,21 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                                   images: newImages.map((img, i) => ({ ...img, isMain: i === newMainIndex })),
                                 }));
                               }}
-                              className={`relative aspect-square rounded-lg overflow-hidden border-2 cursor-grab active:cursor-grabbing transition-all ${
+                              className={`group relative aspect-square rounded-lg overflow-hidden border-2 cursor-grab active:cursor-grabbing transition-all ${
                                 index === mainImageIndex
                                   ? 'border-primary-500 ring-2 ring-primary-200'
                                   : 'border-gray-200 hover:border-gray-300'
                               }`}
                             >
+                              {/* Drag handle — appears on hover */}
+                              <div className="absolute top-0.5 left-0.5 z-10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                <div className="bg-black/50 rounded p-0.5">
+                                  <Bars3Icon className="h-3 w-3 text-white" />
+                                </div>
+                              </div>
                               {image.url ? (
                                 <img
+                                  draggable={false}
                                   src={normalizeImageUrl(image.url)}
                                   alt={image.alt || `Thumbnail ${index + 1}`}
                                   className="w-full h-full object-contain"
