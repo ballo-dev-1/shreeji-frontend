@@ -836,6 +836,10 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
   const dragSpecIndex = useRef<number | null>(null);
   const dragOverSpecIndex = useRef<number | null>(null);
 
+  // Image drag-to-sort state
+  const dragImageIndex = useRef<number | null>(null);
+  const dragOverImageIndex = useRef<number | null>(null);
+
   // Keep specOrder in sync when specs are added/removed externally
   useEffect(() => {
     const keys = Object.keys(formData.specs || {});
@@ -3084,8 +3088,35 @@ export default function EditProductModal({ isOpen, onClose, product, onSave, onD
                           {displayImages.map((image, index) => (
                             <div
                               key={index}
+                              draggable
                               onClick={() => setMainImage(index)}
-                              className={`relative aspect-square rounded-lg overflow-hidden border-2 cursor-pointer transition-all ${
+                              onDragStart={() => { dragImageIndex.current = index; }}
+                              onDragEnter={() => { dragOverImageIndex.current = index; }}
+                              onDragOver={(e) => e.preventDefault()}
+                              onDragEnd={() => {
+                                const from = dragImageIndex.current;
+                                const to = dragOverImageIndex.current;
+                                dragImageIndex.current = null;
+                                dragOverImageIndex.current = null;
+                                if (from === null || to === null || from === to) return;
+                                const newImages = [...formData.images];
+                                const [moved] = newImages.splice(from, 1);
+                                newImages.splice(to, 0, moved);
+                                let newMainIndex = mainImageIndex;
+                                if (from === mainImageIndex) {
+                                  newMainIndex = to;
+                                } else if (from < mainImageIndex && to >= mainImageIndex) {
+                                  newMainIndex = mainImageIndex - 1;
+                                } else if (from > mainImageIndex && to <= mainImageIndex) {
+                                  newMainIndex = mainImageIndex + 1;
+                                }
+                                setMainImageIndex(newMainIndex);
+                                setFormData(prev => ({
+                                  ...prev,
+                                  images: newImages.map((img, i) => ({ ...img, isMain: i === newMainIndex })),
+                                }));
+                              }}
+                              className={`relative aspect-square rounded-lg overflow-hidden border-2 cursor-grab active:cursor-grabbing transition-all ${
                                 index === mainImageIndex
                                   ? 'border-primary-500 ring-2 ring-primary-200'
                                   : 'border-gray-200 hover:border-gray-300'
